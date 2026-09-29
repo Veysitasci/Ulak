@@ -251,58 +251,136 @@ class WifiView(Gtk.Box):
 
     def _on_proxy_settings(self, btn):
         dialog = Gtk.Dialog(title="Sistem Proxy Ayarları", transient_for=self.get_toplevel())
-        dialog.set_default_size(300, 250)
-        dialog.add_button("İptal", Gtk.ResponseType.CANCEL)
-        dialog.add_button("Kaydet", Gtk.ResponseType.OK)
+        dialog.set_default_size(440, 480)
+        btn_cancel = dialog.add_button("İptal", Gtk.ResponseType.CANCEL)
+        btn_cancel.get_style_context().add_class("btn-secondary")
+        btn_save = dialog.add_button("Kaydet & Uygula", Gtk.ResponseType.OK)
+        btn_save.get_style_context().add_class("btn-primary")
         
         box = dialog.get_content_area()
         box.set_spacing(12)
-        box.set_margin_top(12)
-        box.set_margin_bottom(12)
-        box.set_margin_start(12)
-        box.set_margin_end(12)
+        box.set_margin_top(16)
+        box.set_margin_bottom(16)
+        box.set_margin_start(16)
+        box.set_margin_end(16)
         
+        # Header Box
+        head_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        h_icon = Gtk.Image.new_from_icon_name("preferences-system-network-proxy-symbolic", Gtk.IconSize.LARGE_TOOLBAR)
+        h_icon.set_pixel_size(28)
+        head_box.pack_start(h_icon, False, False, 0)
+        
+        h_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        h_title = Gtk.Label(label="Proxy Yapılandırması")
+        h_title.get_style_context().add_class("device-name")
+        h_title.set_halign(Gtk.Align.START)
+        h_sub = Gtk.Label(label="Sistem ve terminal trafiğini belirtilen ara sunucuya yönlendirir.")
+        h_sub.get_style_context().add_class("device-mac")
+        h_sub.set_halign(Gtk.Align.START)
+        h_sub.set_line_wrap(True)
+        h_text.pack_start(h_title, False, False, 0)
+        h_text.pack_start(h_sub, False, False, 0)
+        head_box.pack_start(h_text, True, True, 0)
+        box.pack_start(head_box, False, False, 0)
+
         # Current proxy settings
         current_ip = subprocess.getoutput("gsettings get org.gnome.system.proxy.http host 2>/dev/null").strip("'")
         current_port = subprocess.getoutput("gsettings get org.gnome.system.proxy.http port 2>/dev/null").strip()
         proxy_mode = subprocess.getoutput("gsettings get org.gnome.system.proxy mode 2>/dev/null").strip("'")
-        
-        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        switch_lbl = Gtk.Label(label="Proxy'yi Aktifleştir:")
-        proxy_switch = Gtk.Switch()
-        proxy_switch.set_active(proxy_mode == "manual")
-        switch_box.pack_start(switch_lbl, False, False, 0)
-        switch_box.pack_end(proxy_switch, False, False, 0)
-        box.pack_start(switch_box, False, False, 0)
-        
-        strict_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        strict_lbl = Gtk.Label(label="Sıkı Mod (Kill Switch): Proxy dışı trafiği engelle")
-        strict_lbl.get_style_context().add_class("dim-label")
-        strict_check = Gtk.CheckButton()
-        # Check if kill switch is currently active from saved state
-        has_fw = storage.get_global("proxy_strict_mode", False)
-        strict_check.set_active(has_fw)
-        strict_box.pack_start(strict_check, False, False, 0)
-        strict_box.pack_start(strict_lbl, False, False, 0)
-        box.pack_start(strict_box, False, False, 0)
 
-        btn_exclude = Gtk.Button(label="Uygulamaları Hariç Tut (Bypass)")
-        btn_exclude.get_style_context().add_class("btn-secondary")
-        btn_exclude.connect("clicked", self._on_exclude_apps)
-        box.pack_start(btn_exclude, False, False, 0)
+        # 1. Bento Card: Proxy Switch
+        card_switch = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        card_switch.get_style_context().add_class("settings-card")
+        sw_icon = Gtk.Image.new_from_icon_name("network-server-symbolic", Gtk.IconSize.BUTTON)
+        card_switch.pack_start(sw_icon, False, False, 0)
+        
+        sw_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        sw_title = Gtk.Label(label="Proxy Tünelini Aktifleştir")
+        sw_title.get_style_context().add_class("setting-title")
+        sw_title.set_halign(Gtk.Align.START)
+        sw_sub = Gtk.Label(label="Tüm HTTP ve HTTPS isteklerini tünelle")
+        sw_sub.get_style_context().add_class("setting-subtitle")
+        sw_sub.set_halign(Gtk.Align.START)
+        sw_text.pack_start(sw_title, False, False, 0)
+        sw_text.pack_start(sw_sub, False, False, 0)
+        card_switch.pack_start(sw_text, True, True, 0)
+        
+        proxy_switch = Gtk.Switch()
+        proxy_switch.set_valign(Gtk.Align.CENTER)
+        proxy_switch.set_active(proxy_mode == "manual")
+        card_switch.pack_end(proxy_switch, False, False, 0)
+        box.pack_start(card_switch, False, False, 0)
+
+        # 2. Bento Card: Strict Mode (Kill Switch)
+        card_strict = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        card_strict.get_style_context().add_class("settings-card")
+        st_icon = Gtk.Image.new_from_icon_name("security-high-symbolic", Gtk.IconSize.BUTTON)
+        card_strict.pack_start(st_icon, False, False, 0)
+        
+        st_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        st_title = Gtk.Label(label="Sıkı Mod (Kill Switch)")
+        st_title.get_style_context().add_class("setting-title")
+        st_title.set_halign(Gtk.Align.START)
+        st_sub = Gtk.Label(label="Proxy çevrimdışı ise doğrudan internet erişimini kes")
+        st_sub.get_style_context().add_class("setting-subtitle")
+        st_sub.set_halign(Gtk.Align.START)
+        st_text.pack_start(st_title, False, False, 0)
+        st_text.pack_start(st_sub, False, False, 0)
+        card_strict.pack_start(st_text, True, True, 0)
+        
+        strict_switch = Gtk.Switch()
+        strict_switch.set_valign(Gtk.Align.CENTER)
+        has_fw = storage.get_global("proxy_strict_mode", False)
+        strict_switch.set_active(has_fw)
+        card_strict.pack_end(strict_switch, False, False, 0)
+        box.pack_start(card_strict, False, False, 0)
+
+        # 3. Bento Card: Server Details
+        card_details = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        card_details.get_style_context().add_class("settings-card")
+        
+        det_lbl = Gtk.Label(label="Sunucu ve Port Bilgileri")
+        det_lbl.get_style_context().add_class("setting-title")
+        det_lbl.set_halign(Gtk.Align.START)
+        card_details.pack_start(det_lbl, False, False, 0)
 
         entry_ip = Gtk.Entry()
-        entry_ip.set_placeholder_text("Proxy IP (Örn: 192.168.1.50)")
+        entry_ip.set_placeholder_text("Proxy IP / Host (Örn: 192.168.1.50)")
         if current_ip and current_ip != "''":
             entry_ip.set_text(current_ip)
-        box.pack_start(entry_ip, False, False, 0)
-        
+        card_details.pack_start(entry_ip, False, False, 0)
+
         entry_port = Gtk.Entry()
-        entry_port.set_placeholder_text("Bağlantı Noktası (Örn: 8080)")
+        entry_port.set_placeholder_text("Bağlantı Noktası (Port, Örn: 8080 veya 1080)")
         if current_port and current_port != "0":
             entry_port.set_text(current_port)
-        box.pack_start(entry_port, False, False, 0)
+        card_details.pack_start(entry_port, False, False, 0)
+        box.pack_start(card_details, False, False, 0)
+
+        # 4. Bento Card: Bypass Apps
+        card_bypass = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        card_bypass.get_style_context().add_class("settings-card")
+        bp_icon = Gtk.Image.new_from_icon_name("system-run-symbolic", Gtk.IconSize.BUTTON)
+        card_bypass.pack_start(bp_icon, False, False, 0)
         
+        bp_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        bp_title = Gtk.Label(label="Uygulama Ayrımı (Bypass)")
+        bp_title.get_style_context().add_class("setting-title")
+        bp_title.set_halign(Gtk.Align.START)
+        bp_sub = Gtk.Label(label="Seçili uygulamaların proxy tünelinden muaf olmasını sağla")
+        bp_sub.get_style_context().add_class("setting-subtitle")
+        bp_sub.set_halign(Gtk.Align.START)
+        bp_text.pack_start(bp_title, False, False, 0)
+        bp_text.pack_start(bp_sub, False, False, 0)
+        card_bypass.pack_start(bp_text, True, True, 0)
+        
+        btn_exclude = Gtk.Button(label="Uygulamaları Yönet...")
+        btn_exclude.get_style_context().add_class("btn-secondary")
+        btn_exclude.set_valign(Gtk.Align.CENTER)
+        btn_exclude.connect("clicked", self._on_exclude_apps)
+        card_bypass.pack_end(btn_exclude, False, False, 0)
+        box.pack_start(card_bypass, False, False, 0)
+
         dialog.show_all()
         res = dialog.run()
         
@@ -310,7 +388,7 @@ class WifiView(Gtk.Box):
             ip = entry_ip.get_text().strip()
             port = entry_port.get_text().strip()
             is_active = proxy_switch.get_active()
-            is_strict = strict_check.get_active()
+            is_strict = strict_switch.get_active()
             
             if is_active and ip and port:
                 subprocess.run(f"gsettings set org.gnome.system.proxy mode 'manual'", shell=True)
@@ -337,71 +415,166 @@ class WifiView(Gtk.Box):
     def _on_exclude_apps(self, btn):
         import glob, os
         dialog = Gtk.Dialog(title="Hariç Tutulacak Uygulamalar", transient_for=self.get_toplevel())
-        dialog.set_default_size(400, 500)
-        dialog.add_button("Kapat", Gtk.ResponseType.OK)
+        dialog.set_default_size(500, 600)
+        btn_close = dialog.add_button("Tamam", Gtk.ResponseType.OK)
+        btn_close.get_style_context().add_class("btn-primary")
         
         box = dialog.get_content_area()
         box.set_spacing(10)
-        box.set_margin_top(10)
-        box.set_margin_start(10)
-        box.set_margin_end(10)
+        box.set_margin_top(14)
+        box.set_margin_bottom(14)
+        box.set_margin_start(16)
+        box.set_margin_end(16)
         
-        lbl = Gtk.Label(label="Aşağıda seçtiğiniz uygulamalar proxy tüneline girmez, normal internete bağlanır.")
-        lbl.set_line_wrap(True)
-        box.pack_start(lbl, False, False, 0)
-        
+        # Header
+        h_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        h_ic = Gtk.Image.new_from_icon_name("application-x-executable-symbolic", Gtk.IconSize.LARGE_TOOLBAR)
+        h_ic.set_pixel_size(26)
+        h_box.pack_start(h_ic, False, False, 0)
+
+        h_texts = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        h_t = Gtk.Label(label="Proxy Bypass - Uygulama Seçimi")
+        h_t.get_style_context().add_class("device-name")
+        h_t.set_halign(Gtk.Align.START)
+        h_d = Gtk.Label(label="Aktif edilen uygulamalar proxy tünelini atlayarak doğrudan yerel ağdan bağlanır.")
+        h_d.get_style_context().add_class("device-mac")
+        h_d.set_halign(Gtk.Align.START)
+        h_d.set_line_wrap(True)
+        h_texts.pack_start(h_t, False, False, 0)
+        h_texts.pack_start(h_d, False, False, 0)
+        h_box.pack_start(h_texts, True, True, 0)
+        box.pack_start(h_box, False, False, 0)
+
+        # Real-time search entry
+        search_entry = Gtk.SearchEntry()
+        search_entry.get_style_context().add_class("termius-search")
+        search_entry.set_placeholder_text("Uygulama ara (örn: Chrome, Firefox, Burp)...")
+        box.pack_start(search_entry, False, False, 4)
+
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.set_vexpand(True)
         box.pack_start(scroll, True, True, 0)
         
-        listbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        listbox = Gtk.ListBox()
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         scroll.add(listbox)
         
+        icon_theme = Gtk.IconTheme.get_default()
         desktop_files = glob.glob("/usr/share/applications/*.desktop")
         
         for df in sorted(desktop_files):
             try:
                 name = os.path.basename(df)
-                with open(df, "r") as f:
+                icon_name = "application-x-executable-symbolic"
+                exec_cmd = ""
+                with open(df, "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
-                if "NoDisplay=true" in content: continue
+                if "NoDisplay=true" in content:
+                    continue
                 
                 for line in content.split("\n"):
                     if line.startswith("Name="):
-                        name = line.split("=", 1)[1]
-                        break
+                        name = line.split("=", 1)[1].strip()
+                    elif line.startswith("Icon="):
+                        icon_name = line.split("=", 1)[1].strip()
+                    elif line.startswith("Exec="):
+                        exec_cmd = line.split("=", 1)[1].strip()
                 
                 local_df = os.path.expanduser(f"~/.local/share/applications/{os.path.basename(df)}")
                 is_bypassed = False
                 if os.path.exists(local_df):
-                    with open(local_df, "r") as f:
-                        if "dolunay-noproxy" in f.read():
-                            is_bypassed = True
-                            
-                check = Gtk.CheckButton(label=name)
-                check.set_active(is_bypassed)
-                check.connect("toggled", self._on_app_bypass_toggled, df, local_df)
-                listbox.pack_start(check, False, False, 0)
-            except: pass
-            
+                    try:
+                        with open(local_df, "r", encoding="utf-8", errors="ignore") as f:
+                            c = f.read()
+                            if "dolunay-noproxy" in c or "ulak-noproxy" in c:
+                                is_bypassed = True
+                    except Exception:
+                        pass
+                
+                row = Gtk.ListBoxRow()
+                row.get_style_context().add_class("settings-card")
+                row.app_name = name
+                row.app_exec = exec_cmd
+
+                row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+                row_box.set_margin_top(6)
+                row_box.set_margin_bottom(6)
+                row_box.set_margin_start(10)
+                row_box.set_margin_end(10)
+
+                # Icon resolution
+                if icon_name and icon_theme.has_icon(icon_name):
+                    app_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DND)
+                    app_icon.set_pixel_size(24)
+                elif icon_name and os.path.isabs(icon_name) and os.path.exists(icon_name):
+                    try:
+                        pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_name, 24, 24, True)
+                        app_icon = Gtk.Image.new_from_pixbuf(pb)
+                    except Exception:
+                        app_icon = Gtk.Image.new_from_icon_name("application-x-executable-symbolic", Gtk.IconSize.DND)
+                        app_icon.set_pixel_size(24)
+                else:
+                    app_icon = Gtk.Image.new_from_icon_name("application-x-executable-symbolic", Gtk.IconSize.DND)
+                    app_icon.set_pixel_size(24)
+                row_box.pack_start(app_icon, False, False, 0)
+
+                # Labels
+                lbl_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+                name_lbl = Gtk.Label(label=name)
+                name_lbl.get_style_context().add_class("device-name")
+                name_lbl.set_halign(Gtk.Align.START)
+                
+                cmd_display = exec_cmd if len(exec_cmd) < 45 else exec_cmd[:42] + "..."
+                sub_lbl = Gtk.Label(label=cmd_display or os.path.basename(df))
+                sub_lbl.get_style_context().add_class("device-mac")
+                sub_lbl.set_halign(Gtk.Align.START)
+                
+                lbl_box.pack_start(name_lbl, False, False, 0)
+                lbl_box.pack_start(sub_lbl, False, False, 0)
+                row_box.pack_start(lbl_box, True, True, 0)
+
+                # Global Bento Switch
+                sw = Gtk.Switch()
+                sw.set_valign(Gtk.Align.CENTER)
+                sw.set_active(is_bypassed)
+                sw.connect("notify::active", lambda s, _, sdf=df, ldf=local_df: self._on_app_bypass_toggled(s, sdf, ldf))
+                row_box.pack_end(sw, False, False, 0)
+
+                row.add(row_box)
+                listbox.add(row)
+            except Exception:
+                pass
+        
+        def filter_apps(row):
+            q = search_entry.get_text().strip().lower()
+            if not q:
+                return True
+            r_name = getattr(row, 'app_name', '').lower()
+            r_exec = getattr(row, 'app_exec', '').lower()
+            return q in r_name or q in r_exec
+
+        listbox.set_filter_func(filter_apps)
+        search_entry.connect("search-changed", lambda e: listbox.invalidate_filter())
+
         dialog.show_all()
         dialog.run()
         dialog.destroy()
         
-    def _on_app_bypass_toggled(self, check, system_df, local_df):
+    def _on_app_bypass_toggled(self, widget, system_df, local_df):
         import os
-        if check.get_active():
+        is_active = widget.get_active()
+        if is_active:
             os.makedirs(os.path.dirname(local_df), exist_ok=True)
             try:
-                with open(system_df, "r") as f:
+                with open(system_df, "r", encoding="utf-8", errors="ignore") as f:
                     lines = f.readlines()
-                with open(local_df, "w") as f:
+                with open(local_df, "w", encoding="utf-8") as f:
                     for line in lines:
                         if line.startswith("Exec="):
                             cmd = line.strip().split("=", 1)[1]
-                            if "dolunay-noproxy" not in cmd:
-                                f.write(f"Exec=sg dolunay-noproxy -c \"{cmd}\"\n")
+                            if "ulak-noproxy" not in cmd and "dolunay-noproxy" not in cmd:
+                                f.write(f"Exec=sg ulak-noproxy -c \"{cmd}\"\n")
                             else:
                                 f.write(line)
                         else:
@@ -411,8 +584,10 @@ class WifiView(Gtk.Box):
                 print("Bypass error:", e)
         else:
             if os.path.exists(local_df):
-                try: os.remove(local_df)
-                except: pass
+                try:
+                    os.remove(local_df)
+                except Exception:
+                    pass
 
     def _update_bashrc_proxy(self, active, ip=None, port=None):
         import os

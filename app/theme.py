@@ -56,8 +56,9 @@ class ThemeManager:
     def __init__(self):
         self.provider = Gtk.CssProvider()
         Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(), self.provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            Gdk.Screen.get_default(), self.provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
         )
+        self.callbacks = []
         self.current_theme = "termius"
         self.mode = "dark"  # "dark", "light", "auto"
         self.is_light_mode = False
@@ -77,6 +78,17 @@ class ThemeManager:
         except Exception:
             pass
 
+    def add_theme_change_callback(self, cb):
+        if cb not in self.callbacks:
+            self.callbacks.append(cb)
+
+    def _notify_callbacks(self):
+        for cb in list(self.callbacks):
+            try:
+                cb(self.is_light_mode)
+            except Exception as e:
+                print("Theme callback error:", e)
+
     def _auto_check_system_theme(self):
         if self.mode == "auto":
             is_dark = is_system_dark_mode()
@@ -87,6 +99,7 @@ class ThemeManager:
                     self._apply_light_css()
                 else:
                     self._apply_dark_css()
+                self._notify_callbacks()
         return True
 
     def get_themes_list(self):
@@ -117,6 +130,7 @@ class ThemeManager:
             self._apply_light_css()
         else:
             self._apply_dark_css()
+        self._notify_callbacks()
 
     def _apply_dark_css(self):
         css = """
@@ -431,8 +445,11 @@ class ThemeManager:
             border-color: #424b69; 
         }
 
-        /* Pixel-Perfect Apple/Fluent Toggle Switches */
-        switch {
+        /* Pixel-Perfect Apple/Fluent Toggle Switches (Dark Mode) */
+        switch,
+        switch:backdrop,
+        switch:hover,
+        switch:disabled {
             font-size: 0;
             min-width: 44px;
             min-height: 24px;
@@ -441,25 +458,38 @@ class ThemeManager:
             border: 1px solid #38425d;
             outline: none;
             box-shadow: none;
+            background-image: none;
             transition: all 150ms ease;
         }
-        switch:checked {
+        switch:checked,
+        switch:checked:hover,
+        switch:checked:backdrop {
             background-color: #ffffff;
             border-color: #ffffff;
+            background-image: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
         }
-        switch slider {
+        switch slider,
+        switch:hover slider,
+        switch:backdrop slider {
             min-width: 18px;
             min-height: 18px;
             margin: 2px;
-            border-radius: 9px;
-            background-color: #ffffff;
-            border: none;
+            border-radius: 50%;
+            background-color: #8e95a5;
+            border: 1px solid #38425d;
             outline: none;
+            background-image: none;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
             transition: all 150ms ease;
         }
-        switch:checked slider {
+        switch:checked slider,
+        switch:checked:hover slider,
+        switch:checked:backdrop slider,
+        switch:checked > slider {
             background-color: #11131c;
+            border: 1px solid #11131c;
+            background-image: none;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
@@ -682,7 +712,6 @@ class ThemeManager:
             color: #e2e8f0;
             font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Ubuntu Mono', 'Consolas', monospace;
             font-size: 12px;
-            line-height: 1.5;
             border-radius: 10px;
         }
         .terminal-container {
@@ -734,11 +763,47 @@ class ThemeManager:
             color: #ffffff;
             border-color: #3b425f;
             background-color: #1a1d2b;
+            background-image: none;
         }
         radiobutton check:checked {
             color: #11131c;
             background-color: #ffffff;
             border-color: #ffffff;
+            background-image: none;
+        }
+        /* CheckButton monochrome (Dark Mode) */
+        checkbutton {
+            color: #ffffff;
+            font-weight: 500;
+        }
+        checkbutton check {
+            color: #ffffff;
+            border-color: #3b425f;
+            background-color: #1a1d2b;
+            background-image: none;
+            border-radius: 6px;
+            min-width: 18px;
+            min-height: 18px;
+        }
+        checkbutton check:checked {
+            color: #11131c;
+            background-color: #ffffff;
+            border-color: #ffffff;
+            background-image: none;
+        }
+        checkbutton label {
+            color: #ffffff;
+        }
+
+        /* Dialogs (Dark Mode) */
+        dialog, window.dialog, .dialog-box {
+            background-color: #161822;
+            border: 1px solid #2a2f45;
+            border-radius: 16px;
+        }
+        dialog headerbar {
+            background-color: #11131c;
+            border-bottom: 1px solid #1f2334;
         }
 
         /* Frame */
@@ -823,8 +888,8 @@ class ThemeManager:
         }
 
         .main-frame {
-            background-color: #f4f5f8;
-            border: 1px solid #d1d5db;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
             border-radius: 18px;
         }
 
@@ -860,23 +925,37 @@ class ThemeManager:
         .status-dot { color: #94a3b8; font-size: 10px; }
         .status-dot.active { color: #0f172a; }
 
+        /* Universal Button Reset against Kali-Yellow-Dark gradients */
+        button,
+        button:hover,
+        button:active,
+        button:checked,
+        button:backdrop,
+        button:disabled {
+            background-image: none;
+            box-shadow: none;
+        }
+
         /* Bento Theme Switcher (Light Mode) */
         .theme-mode-option {
-            background-color: #f1f3f7;
-            border: 2px solid #e2e8ea;
+            background-color: #ffffff;
+            border: 1.5px solid #cbd5e1;
             border-radius: 12px;
             padding: 12px 14px;
             transition: all 150ms ease;
             box-shadow: none;
+            background-image: none;
         }
         .theme-mode-option:hover {
-            background-color: #e9ecf2;
-            border-color: #cbd5e1;
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+            background-image: none;
         }
         .theme-mode-option.active {
             background-color: #ffffff;
-            border-color: #0f172a;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            border: 2px solid #475569;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            background-image: none;
         }
         .theme-mode-title {
             color: #0f172a;
@@ -889,7 +968,8 @@ class ThemeManager:
             font-weight: 500;
         }
         .theme-mode-option.active .theme-mode-desc {
-            color: #0f172a;
+            color: #334155;
+            font-weight: 600;
         }
         .theme-mode-option image {
             color: #64748b;
@@ -901,7 +981,7 @@ class ThemeManager:
         /* All Sub-View Headers */
         .header {
             padding: 24px 32px 14px 32px;
-            border-bottom: 1px solid #e2e8ea;
+            border-bottom: 1px solid #e2e8f0;
             margin-bottom: 8px;
         }
         .header-title { 
@@ -920,7 +1000,7 @@ class ThemeManager:
         /* App Headerbar (Titlebar) */
         .app-header {
             background-color: #ffffff;
-            border-bottom: 1px solid #e2e8ea;
+            border-bottom: 1px solid #e2e8f0;
             padding: 8px 16px;
             min-height: 48px;
             border-top-left-radius: 18px;
@@ -929,7 +1009,7 @@ class ThemeManager:
 
         .app-footer {
             background-color: #ffffff;
-            border-top: 1px solid #e2e8ea;
+            border-top: 1px solid #e2e8f0;
             padding: 6px 16px;
             min-height: 32px;
             border-bottom-left-radius: 18px;
@@ -938,15 +1018,8 @@ class ThemeManager:
 
         .sidebar-box {
             background-color: #ffffff;
-            border-right: 1px solid #e2e8ea;
+            border-right: 1px solid #e2e8f0;
             min-width: 220px;
-        }
-
-        .app-footer {
-            background-color: #ffffff;
-            border-top: 1px solid #e2e8ea;
-            padding: 6px 16px;
-            min-height: 32px;
         }
 
         /* Typography */
@@ -977,25 +1050,25 @@ class ThemeManager:
         /* Bento Grid Cards */
         .card {
             background-color: #ffffff;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #e2e8f0;
             border-radius: 14px;
             padding: 18px 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
             transition: all 150ms ease;
         }
         .card:hover {
             background-color: #f8fafc;
             border-color: #cbd5e1;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
         }
 
         .settings-card {
             background-color: #ffffff;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 12px 14px;
             margin-bottom: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
         .settings-card:hover {
             background-color: #f8fafc;
@@ -1004,8 +1077,8 @@ class ThemeManager:
 
         /* Search Entry */
         .termius-search {
-            background-color: #f1f3f7;
-            border: 1px solid #e2e8ea;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             color: #0f172a;
             padding: 6px 14px;
@@ -1013,7 +1086,7 @@ class ThemeManager:
             font-size: 13px;
         }
         .termius-search:focus {
-            border-color: #94a3b8;
+            border-color: #64748b;
             background-color: #ffffff;
         }
 
@@ -1037,125 +1110,165 @@ class ThemeManager:
             color: #ffffff;
         }
 
-        /* Tabs */
+        /* Header Tabs (Light Mode) */
         .termius-tab {
-            background-color: #f1f5f9;
-            border: 1px solid #e2e8ea;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 4px 12px;
-            color: #64748b;
+            padding: 5px 14px;
+            color: #475569;
             font-size: 12px;
             font-weight: 600;
+            background-image: none;
+            box-shadow: none;
+            transition: all 120ms ease;
         }
         .termius-tab:hover {
-            background-color: #e2e8f0;
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
             color: #0f172a;
+            background-image: none;
         }
-        .termius-tab.active {
-            background-color: #0f172a;
-            border-color: #0f172a;
-            color: #ffffff;
+        .termius-tab.active, .termius-tab:checked {
+            background-color: #ffffff;
+            border: 1.5px solid #64748b;
+            color: #0f172a;
+            font-weight: 700;
+            background-image: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
-        /* Sidebar Buttons */
+        /* Sidebar Buttons (Light Mode) */
         .sidebar-btn {
             border-radius: 10px;
             border: 1px solid transparent;
-            background: transparent;
+            background-color: transparent;
+            background-image: none;
             padding: 8px 12px;
             margin: 2px 10px;
             transition: all 150ms ease;
         }
         .sidebar-btn label, .sidebar-btn image {
-            color: #64748b;
+            color: #475569;
             font-size: 13px;
             font-weight: 600;
         }
-        
         .sidebar-btn:hover { 
-            background: #f1f5f9; 
+            background-color: #f1f5f9; 
+            border-color: #e2e8f0;
+            background-image: none;
         }
         .sidebar-btn:hover label, .sidebar-btn:hover image { 
             color: #0f172a; 
         }
-        
         .sidebar-btn:checked {
-            background: #0f172a;
-            border: 1px solid #0f172a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            background-image: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .sidebar-btn:checked label, .sidebar-btn:checked image {
-            color: #ffffff;
+            color: #0f172a;
             font-weight: 700;
         }
 
-        /* Primary Button */
+        /* Primary Button (Light Mode - White/Gray, No Black Box) */
         .btn-primary {
-            color: #ffffff;
-            background: #0f172a;
-            border: 1px solid #0f172a;
+            color: #0f172a;
+            background-color: #ffffff;
+            border: 1.5px solid #94a3b8;
             border-radius: 8px;
             font-weight: 700;
             padding: 7px 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background-image: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
             font-size: 13px;
+            transition: all 120ms ease;
         }
         .btn-primary label { 
-            color: #ffffff; 
+            color: #0f172a; 
+            font-weight: 700;
         }
         .btn-primary:hover { 
-            background: #1e293b; 
+            background-color: #f1f5f9; 
+            border-color: #475569;
+            background-image: none;
+        }
+        .btn-primary:active {
+            background-color: #e2e8f0;
+            background-image: none;
         }
         
+        /* Secondary Button */
         .btn-secondary {
-            background: #f1f5f9;
-            color: #0f172a;
+            background-color: #f8fafc;
+            color: #1e293b;
             border-radius: 8px;
             padding: 7px 14px;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #cbd5e1;
             font-weight: 600;
             font-size: 13px;
+            background-image: none;
+            box-shadow: none;
+            transition: all 120ms ease;
         }
         .btn-secondary:hover { 
-            background: #e2e8f0; 
-            border-color: #cbd5e1; 
+            background-color: #f1f5f9; 
+            border-color: #94a3b8; 
+            background-image: none;
         }
 
-        /* Pixel-Perfect Apple/Fluent Toggle Switches (Light Mode) */
-        switch {
+        /* Global Bento Toggle Switches (Light Mode) */
+        switch,
+        switch:backdrop,
+        switch:hover,
+        switch:disabled {
             font-size: 0;
             min-width: 44px;
             min-height: 24px;
             border-radius: 12px;
-            background-color: #cbd5e1;
-            border: 1px solid #94a3b8;
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e1;
             outline: none;
             box-shadow: none;
+            background-image: none;
             transition: all 150ms ease;
         }
-        switch:checked {
-            background-color: #0f172a;
-            border-color: #0f172a;
+        switch:checked,
+        switch:checked:hover,
+        switch:checked:backdrop {
+            background-color: #334155;
+            border-color: #334155;
+            background-image: none;
+            box-shadow: none;
         }
-        switch slider {
+        switch slider,
+        switch:hover slider,
+        switch:backdrop slider {
             min-width: 18px;
             min-height: 18px;
             margin: 2px;
-            border-radius: 9px;
+            border-radius: 50%;
             background-color: #ffffff;
-            border: none;
+            border: 1px solid #cbd5e1;
             outline: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            background-image: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
             transition: all 150ms ease;
         }
-        switch:checked slider {
+        switch:checked slider,
+        switch:checked:hover slider,
+        switch:checked:backdrop slider,
+        switch:checked > slider {
             background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+            background-image: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         entry, spinbutton, combobox {
             background: #ffffff;
-            border: 1px solid #d1d5db;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             color: #0f172a;
             padding: 8px 12px;
@@ -1165,13 +1278,20 @@ class ThemeManager:
             border-color: #64748b; 
         }
 
+        combobox button {
+            background-image: none;
+            background-color: #ffffff;
+            border: none;
+            color: #0f172a;
+        }
+
         /* Bento Lists */
         list {
             background: transparent;
         }
         list row {
             background: #ffffff;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             margin: 4px 6px;
             padding: 12px 16px;
@@ -1203,10 +1323,10 @@ class ThemeManager:
         /* Bento Stat Cards */
         .hw-metric-card, .fw-stat-card {
             background: #ffffff;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #e2e8f0;
             border-radius: 14px;
             padding: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
         .hw-metric-main, .fw-stat-value { 
             font-size: 26px; 
@@ -1231,13 +1351,13 @@ class ThemeManager:
             min-height: 8px;
         }
         progressbar progress { 
-            background: #0f172a; 
+            background: #334155; 
             border-radius: 6px; 
         }
         
         .fw-rule-card {
             background: #ffffff;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #e2e8f0;
             border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 6px;
@@ -1255,7 +1375,7 @@ class ThemeManager:
 
         .metric-pill {
             background: #f1f5f9;
-            border: 1px solid #e2e8ea;
+            border: 1px solid #cbd5e1;
             border-radius: 6px;
             padding: 2px 8px;
             font-size: 11px;
@@ -1270,34 +1390,37 @@ class ThemeManager:
         }
 
         /* Bento Filter Chips & Segmented Controls (Light Mode) */
-        .filter-chip {
-            background-color: #f1f3f7;
-            border: 1px solid #e2e8ea;
+        .filter-chip, radiobutton.filter-chip {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 5px 12px;
-            color: #64748b;
+            padding: 5px 14px;
+            color: #475569;
             font-size: 12px;
             font-weight: 600;
             transition: all 120ms ease;
             box-shadow: none;
+            background-image: none;
         }
-        .filter-chip:hover {
-            background-color: #e9ecf2;
-            border-color: #cbd5e1;
+        .filter-chip:hover, radiobutton.filter-chip:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
             color: #0f172a;
+            background-image: none;
         }
-        .filter-chip:checked {
+        .filter-chip:checked, radiobutton.filter-chip:checked {
             background-color: #ffffff;
-            border-color: #0f172a;
+            border: 1.5px solid #64748b;
             color: #0f172a;
             font-weight: 700;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            background-image: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
         /* Termius Bento Sub-Tabs (Light Mode) */
         .subtab-bar {
-            background-color: #f1f3f7;
-            border: 1px solid #e2e8ea;
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
             border-radius: 10px;
             padding: 4px;
         }
@@ -1306,26 +1429,29 @@ class ThemeManager:
             border: 1px solid transparent;
             border-radius: 8px;
             padding: 6px 14px;
-            color: #64748b;
+            color: #475569;
             font-size: 13px;
             font-weight: 600;
             transition: all 120ms ease;
             box-shadow: none;
+            background-image: none;
         }
         .subtab-btn:hover {
             background: #ffffff;
             color: #0f172a;
             border-color: #cbd5e1;
+            background-image: none;
         }
         .subtab-btn.active {
             background: #ffffff;
             color: #0f172a;
-            border-color: #0f172a;
+            border-color: #94a3b8;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            background-image: none;
         }
         .subtab-btn image {
-            color: #64748b;
+            color: #475569;
         }
         .subtab-btn:hover image, .subtab-btn.active image {
             color: #0f172a;
@@ -1346,21 +1472,25 @@ class ThemeManager:
             border: 1px solid transparent;
             border-radius: 8px;
             padding: 6px 14px;
-            color: #64748b;
+            color: #475569;
             font-size: 13px;
             font-weight: 600;
             transition: all 120ms ease;
+            background-image: none;
         }
         notebook > header > tabs > tab:hover {
             background-color: #ffffff;
             color: #0f172a;
             border-color: #cbd5e1;
+            background-image: none;
         }
         notebook > header > tabs > tab:checked {
             background-color: #ffffff;
             color: #0f172a;
-            border-color: #0f172a;
+            border-color: #94a3b8;
             font-weight: 700;
+            background-image: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
         }
         notebook > stack {
             background-color: transparent;
@@ -1372,7 +1502,6 @@ class ThemeManager:
             color: #0f172a;
             font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Ubuntu Mono', 'Consolas', monospace;
             font-size: 12px;
-            line-height: 1.5;
             border-radius: 10px;
         }
         .terminal-container {
@@ -1424,21 +1553,62 @@ class ThemeManager:
             color: #0f172a;
             border-color: #cbd5e1;
             background-color: #ffffff;
+            background-image: none;
         }
         radiobutton check:checked {
             color: #ffffff;
-            background-color: #0f172a;
-            border-color: #0f172a;
+            background-color: #334155;
+            border-color: #334155;
+            background-image: none;
+        }
+
+        /* CheckButton (Light Mode) */
+        checkbutton {
+            color: #0f172a;
+            font-weight: 500;
+        }
+        checkbutton check {
+            background-color: #ffffff;
+            background-image: none;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
+            min-width: 18px;
+            min-height: 18px;
+            color: #0f172a;
+        }
+        checkbutton check:hover {
+            border-color: #94a3b8;
+            background-color: #f8fafc;
+        }
+        checkbutton check:checked {
+            background-color: #334155;
+            border-color: #334155;
+            color: #ffffff;
+            background-image: none;
+        }
+        checkbutton label {
+            color: #0f172a;
+        }
+
+        /* Dialogs & Modals (Light Mode) */
+        dialog, window.dialog, .dialog-box {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+        }
+        dialog headerbar {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         /* Frame (Light Mode) */
         frame {
-            border: 1px solid #e2e8ea;
+            border: 1px solid #cbd5e1;
             border-radius: 12px;
             padding: 10px 14px;
         }
         frame > border {
-            border: 1px solid #e2e8ea;
+            border: 1px solid #cbd5e1;
             border-radius: 12px;
         }
         frame > label {
@@ -1463,10 +1633,10 @@ class ThemeManager:
         }
         .splash-box {
             background-color: #ffffff;
-            border: 1px solid #e2e4ea;
+            border: 1px solid #cbd5e1;
             border-radius: 20px;
             padding: 24px 32px;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
         }
         .splash-title {
             color: #0f172a;
@@ -1491,7 +1661,7 @@ class ThemeManager:
             min-height: 4px;
         }
         .splash-progress progress {
-            background-color: #0f172a;
+            background-color: #334155;
             border-radius: 6px;
         }
         """

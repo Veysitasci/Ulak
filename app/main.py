@@ -19,9 +19,13 @@ from ui_hacker import HackerView
 from ui_firewall import FirewallView
 from api_firewall import fw_api
 
-def get_ulak_logo_path():
-    """Dynamically find ULAK application logo from standard locations."""
+def get_ulak_logo_path(is_light_mode=False):
+    """Dynamically find ULAK application logo from standard locations based on theme mode."""
+    target_name = "ulak_logo_dark.png" if is_light_mode else "ulak_logo.png"
     candidates = [
+        os.path.join(os.path.dirname(__file__), "..", "assets", target_name),
+        os.path.join(os.path.dirname(__file__), "assets", target_name),
+        f"/usr/lib/ulak/assets/{target_name}",
         os.path.join(os.path.dirname(__file__), "..", "assets", "ulak_logo.png"),
         os.path.join(os.path.dirname(__file__), "assets", "ulak_logo.png"),
         "/usr/share/icons/hicolor/512x512/apps/ulak.png",
@@ -62,6 +66,7 @@ class WirelessManagerWindow(Gtk.Window):
         i18n_instance.set_lang(saved_lang)
         saved_theme_mode = storage.get_global("theme_mode", "dark")
         theme_mgr.apply_mode(saved_theme_mode)
+        theme_mgr.add_theme_change_callback(self._on_theme_changed)
 
         self._build_ui()
         GLib.timeout_add_seconds(2, self._update_telemetry)
@@ -137,12 +142,9 @@ class WirelessManagerWindow(Gtk.Window):
         brand_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         brand_box.set_valign(Gtk.Align.CENTER)
         
-        logo_p = get_ulak_logo_path()
-        if logo_p:
-            try:
-                pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_p, 24, 24, True)
-                brand_box.pack_start(Gtk.Image.new_from_pixbuf(pb), False, False, 0)
-            except: pass
+        self.brand_logo_img = Gtk.Image()
+        self._update_brand_logo(theme_mgr.is_light_mode)
+        brand_box.pack_start(self.brand_logo_img, False, False, 0)
 
         title_lbl = Gtk.Label(label="ULAK")
         title_lbl.get_style_context().add_class("app-brand-title")
@@ -250,6 +252,18 @@ class WirelessManagerWindow(Gtk.Window):
                 self.root_frame.get_style_context().add_class("maximized")
             if hasattr(self, 'btn_max'):
                 self.btn_max.set_label("❐")
+
+    def _update_brand_logo(self, is_light=False):
+        logo_p = get_ulak_logo_path(is_light_mode=is_light)
+        if logo_p and hasattr(self, "brand_logo_img"):
+            try:
+                pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_p, 24, 24, True)
+                self.brand_logo_img.set_from_pixbuf(pb)
+            except Exception as e:
+                print("Failed to set brand logo:", e)
+
+    def _on_theme_changed(self, is_light):
+        self._update_brand_logo(is_light)
 
     def _build_sidebar(self, parent):
         sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
@@ -459,7 +473,7 @@ class UlakSplashScreen(Gtk.Window):
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         main_box.get_style_context().add_class("splash-box")
         
-        logo_path = get_ulak_logo_path()
+        logo_path = get_ulak_logo_path(is_light_mode=theme_mgr.is_light_mode)
         if logo_path and os.path.exists(logo_path):
             try:
                 pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_path, 60, 60, True)
