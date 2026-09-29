@@ -5,7 +5,7 @@ import time, subprocess, threading, urllib.request
 
 from i18n import _
 from api_wifi import wifi_api
-from ui_shared import storage
+from ui_shared import storage, BentoDialog
 
 class WifiView(Gtk.Box):
     def __init__(self, toast_service):
@@ -195,10 +195,9 @@ class WifiView(Gtk.Box):
         threading.Thread(target=run_test, daemon=True).start()
 
     def _on_saved_passwords(self, btn):
-        dialog = Gtk.Dialog(title="Kayıtlı Ağlar", transient_for=self.get_toplevel())
-        dialog.set_default_size(400, 300)
-        dialog.add_button("Kapat", Gtk.ResponseType.OK)
-        content = dialog.get_content_area()
+        dialog = BentoDialog(title="Kayıtlı Ağlar", parent=self.get_toplevel(), icon_name="network-wireless-symbolic", default_width=440, default_height=340)
+        dialog.add_bento_action_button("Kapat", Gtk.ResponseType.OK, is_primary=True)
+        content = dialog.get_bento_content()
         
         tv = Gtk.TextView()
         tv.get_style_context().add_class("log-view")
@@ -213,7 +212,7 @@ class WifiView(Gtk.Box):
             
         scroll = Gtk.ScrolledWindow()
         scroll.add(tv)
-        content.pack_start(scroll, True, True, 10)
+        content.pack_start(scroll, True, True, 0)
         dialog.show_all()
         dialog.run()
         dialog.destroy()
@@ -228,10 +227,9 @@ class WifiView(Gtk.Box):
             self.toast_service.show(f"Hotspot Hata: {e}")
 
     def _on_view_ports(self, btn):
-        dialog = Gtk.Dialog(title="Açık Soketler", transient_for=self.get_toplevel())
-        dialog.set_default_size(500, 400)
-        dialog.add_button("Kapat", Gtk.ResponseType.OK)
-        content = dialog.get_content_area()
+        dialog = BentoDialog(title="Açık Soketler", parent=self.get_toplevel(), icon_name="network-transmit-receive-symbolic", default_width=520, default_height=420)
+        dialog.add_bento_action_button("Kapat", Gtk.ResponseType.OK, is_primary=True)
+        content = dialog.get_bento_content()
         
         tv = Gtk.TextView()
         tv.get_style_context().add_class("log-view")
@@ -244,25 +242,17 @@ class WifiView(Gtk.Box):
             
         scroll = Gtk.ScrolledWindow()
         scroll.add(tv)
-        content.pack_start(scroll, True, True, 10)
+        content.pack_start(scroll, True, True, 0)
         dialog.show_all()
         dialog.run()
         dialog.destroy()
 
     def _on_proxy_settings(self, btn):
-        dialog = Gtk.Dialog(title="Sistem Proxy Ayarları", transient_for=self.get_toplevel())
-        dialog.set_default_size(440, 480)
-        btn_cancel = dialog.add_button("İptal", Gtk.ResponseType.CANCEL)
-        btn_cancel.get_style_context().add_class("btn-secondary")
-        btn_save = dialog.add_button("Kaydet & Uygula", Gtk.ResponseType.OK)
-        btn_save.get_style_context().add_class("btn-primary")
+        dialog = BentoDialog(title="Sistem Proxy Ayarları", parent=self.get_toplevel(), icon_name="preferences-system-network-proxy-symbolic", default_width=460, default_height=530)
+        dialog.add_bento_action_button("İptal", Gtk.ResponseType.CANCEL, is_primary=False)
+        dialog.add_bento_action_button("Kaydet & Uygula", Gtk.ResponseType.OK, is_primary=True)
         
-        box = dialog.get_content_area()
-        box.set_spacing(12)
-        box.set_margin_top(16)
-        box.set_margin_bottom(16)
-        box.set_margin_start(16)
-        box.set_margin_end(16)
+        box = dialog.get_bento_content()
         
         # Header Box
         head_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
@@ -414,17 +404,10 @@ class WifiView(Gtk.Box):
 
     def _on_exclude_apps(self, btn):
         import glob, os
-        dialog = Gtk.Dialog(title="Hariç Tutulacak Uygulamalar", transient_for=self.get_toplevel())
-        dialog.set_default_size(500, 600)
-        btn_close = dialog.add_button("Tamam", Gtk.ResponseType.OK)
-        btn_close.get_style_context().add_class("btn-primary")
+        dialog = BentoDialog(title="Hariç Tutulacak Uygulamalar", parent=self.get_toplevel(), icon_name="application-x-executable-symbolic", default_width=520, default_height=600)
+        dialog.add_bento_action_button("Tamam", Gtk.ResponseType.OK, is_primary=True)
         
-        box = dialog.get_content_area()
-        box.set_spacing(10)
-        box.set_margin_top(14)
-        box.set_margin_bottom(14)
-        box.set_margin_start(16)
-        box.set_margin_end(16)
+        box = dialog.get_bento_content()
         
         # Header
         h_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
@@ -798,16 +781,21 @@ class WifiView(Gtk.Box):
         self.list_box.show_all()
 
     def _prompt_password_and_connect(self, ssid):
-        dialog = Gtk.MessageDialog(
-            transient_for=self.get_toplevel(),
-            flags=0,
-            message_type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            text=_("password_hint")
-        )
+        dialog = BentoDialog(title=f"Ağa Bağlan: {ssid}", parent=self.get_toplevel(), icon_name="dialog-password-symbolic", default_width=380, default_height=220)
+        dialog.add_bento_action_button(_("cancel") if _("cancel") != "cancel" else "İptal", Gtk.ResponseType.CANCEL, is_primary=False)
+        dialog.add_bento_action_button(_("connect") if _("connect") != "connect" else "Bağlan", Gtk.ResponseType.OK, is_primary=True)
+        box = dialog.get_bento_content()
+        
+        lbl = Gtk.Label(label=_("password_hint"))
+        lbl.get_style_context().add_class("setting-subtitle")
+        lbl.set_halign(Gtk.Align.START)
+        box.pack_start(lbl, False, False, 0)
+        
         entry = Gtk.Entry()
         entry.set_visibility(False)
-        dialog.get_content_area().pack_start(entry, True, True, 0)
+        entry.set_activates_default(True)
+        box.pack_start(entry, False, False, 0)
+        
         dialog.show_all()
         res = dialog.run()
         pw = entry.get_text()

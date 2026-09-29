@@ -799,11 +799,25 @@ class ThemeManager:
         dialog, window.dialog, .dialog-box {
             background-color: #161822;
             border: 1px solid #2a2f45;
-            border-radius: 16px;
+            border-radius: 18px;
         }
         dialog headerbar {
             background-color: #11131c;
             border-bottom: 1px solid #1f2334;
+        }
+        .bento-dialog-frame {
+            background-color: #161822;
+            border: 1px solid #2a2f45;
+            border-radius: 18px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+        }
+        .bento-dialog-frame .dialog-header {
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            border-bottom: 1px solid #1f2334;
+            padding: 8px 16px;
+            min-height: 44px;
+            background-color: #11131c;
         }
 
         /* Frame */
@@ -1594,11 +1608,25 @@ class ThemeManager:
         dialog, window.dialog, .dialog-box {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
-            border-radius: 16px;
+            border-radius: 18px;
         }
         dialog headerbar {
             background-color: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
+        }
+        .bento-dialog-frame {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 18px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+        }
+        .bento-dialog-frame .dialog-header {
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            min-height: 44px;
+            background-color: #ffffff;
         }
 
         /* Frame (Light Mode) */

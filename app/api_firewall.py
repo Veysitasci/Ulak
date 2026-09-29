@@ -57,32 +57,8 @@ class DolunayFirewall:
         return False
 
     def enable_firewall(self) -> tuple:
-        """Güvenlik duvarını etkinleştirir. Standart tabloları ve kuralları tek seferde atomik oluşturur."""
-        ruleset = """
-table inet dolunay_fw {
-    chain input_filter {
-        type filter hook input priority 0; policy drop;
-        ct state established,related accept
-        iifname "lo" accept
-        meta l4proto icmp accept
-    }
-    chain output_filter {
-        type filter hook output priority 0; policy accept;
-    }
-}
-"""
-        try:
-            res = subprocess.run(["pkexec", "nft", "-f", "-"], input=ruleset, capture_output=True, text=True, shell=False)
-            if res.returncode == 0:
-                conf = self._load_config()
-                conf["enabled"] = True
-                self._save_config(conf)
-                return True, "Güvenlik duvarı başarıyla etkinleştirildi."
-            return False, f"Hata: {res.stderr}"
-        except subprocess.CalledProcessError as e:
-            return False, f"Hata oluştu: {e.stderr}"
-        except Exception as e:
-            return False, str(e)
+        """Güvenlik duvarını etkinleştirir. Standart kuralları tek seferde atomik oluşturur."""
+        return self.apply_preset("standard")
 
     def disable_firewall(self) -> tuple:
         """Güvenlik duvarını devre dışı bırakır."""
@@ -211,38 +187,133 @@ table inet dolunay_fw {
         except Exception as e:
             return False, str(e)
 
-    def apply_preset(self, preset_name) -> tuple:
-        """Önceden tanımlanmış kural setlerinden birini uygular."""
-        if not self.is_enabled():
-            self.enable_firewall()
-            
+    def apply_preset(self, preset_name: str) -> tuple:
+        """Önceden tanımlanmış kural setlerinden birini tek atomik işlemde uygular."""
+        p = preset_name.lower().strip()
+        if p in ("low", "minimal"):
+            p = "minimal"
+        elif p in ("medium", "standard"):
+            p = "standard"
+        elif p in ("high", "strict"):
+            p = "high"
+        elif p in ("local", "lan"):
+            p = "local"
+        elif p in ("paranoid", "isolation", "airgap"):
+            p = "paranoid"
+        else:
+            return False, f"Bilinmeyen preset adı: {preset_name}"
+
+        if p == "paranoid":
+            # Air-Gap / İzolasyon: PC tamamen yerel ve çevrimdışı. Sıfır dış bağlantı (yalnızca 127.0.0.1 lo).
+            ruleset = """
+table inet dolunay_fw {
+    chain input_filter {
+        type filter hook input priority 0; policy drop;
+        iifname "lo" accept
+    }
+    chain output_filter {
+        type filter hook output priority 0; policy drop;
+        oifname "lo" accept
+    }
+}
+"""
+        elif p == "local":
+            # Tam Yerel (LAN): İnternet (WAN) tamamen kapalı. Yalnızca ev/ofis yerel ağı ve localhost serbest.
+            ruleset = """
+table inet dolunay_fw {
+    chain input_filter {
+        type filter hook input priority 0; policy drop;
+        iifname "lo" accept
+        ct state established,related accept
+        ip saddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 } accept
+        ip6 saddr fe80::/10 accept
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+        udp sport 67 udp dport 68 accept
+        udp sport 547 udp dport 546 accept
+    }
+    chain output_filter {
+        type filter hook output priority 0; policy drop;
+        oifname "lo" accept
+        ct state established,related accept
+        ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16 } accept
+        ip6 daddr fe80::/10 accept
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+        udp sport 68 udp dport 67 accept
+        udp sport 546 udp dport 547 accept
+    }
+}
+"""
+        elif p == "high":
+            # Gelişmiş / Sıkı Web: Yalnızca HTTP (80), HTTPS (443), DNS (53) ve DHCP serbest.
+            ruleset = """
+table inet dolunay_fw {
+    chain input_filter {
+        type filter hook input priority 0; policy drop;
+        iifname "lo" accept
+        ct state established,related accept
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+        udp sport 67 udp dport 68 accept
+        udp sport 547 udp dport 546 accept
+    }
+    chain output_filter {
+        type filter hook output priority 0; policy drop;
+        oifname "lo" accept
+        ct state established,related accept
+        tcp dport { 80, 443 } accept
+        udp dport 53 accept
+        tcp dport 53 accept
+        udp sport 68 udp dport 67 accept
+        udp sport 546 udp dport 547 accept
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+    }
+}
+"""
+        elif p == "standard":
+            # Standart: Gelen saldırılar engellenir. İnternet ve yerel ağ kesintisiz çalışır (asla kopmaz).
+            ruleset = """
+table inet dolunay_fw {
+    chain input_filter {
+        type filter hook input priority 0; policy drop;
+        iifname "lo" accept
+        ct state established,related accept
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+        udp sport 67 udp dport 68 accept
+        udp sport 547 udp dport 546 accept
+        udp sport 53 accept
+    }
+    chain output_filter {
+        type filter hook output priority 0; policy accept;
+    }
+}
+"""
+        else: # minimal
+            ruleset = """
+table inet dolunay_fw {
+    chain input_filter {
+        type filter hook input priority 0; policy accept;
+        iifname "lo" accept
+    }
+    chain output_filter {
+        type filter hook output priority 0; policy accept;
+    }
+}
+"""
         try:
-            subprocess.run(["pkexec", "nft", "flush", "chain", "inet", "dolunay_fw", "input_filter"], capture_output=True, text=True, shell=False)
-            subprocess.run(["pkexec", "nft", "flush", "chain", "inet", "dolunay_fw", "output_filter"], capture_output=True, text=True, shell=False)
-            
-            subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "input_filter", "iifname", "lo", "accept"], capture_output=True, text=True, shell=False)
-            
-            if preset_name == "paranoid":
-                # Drop all incoming (already policy), Drop all outgoing (change policy)
-                subprocess.run(["pkexec", "nft", "chain", "inet", "dolunay_fw", "output_filter", "{", "policy", "drop;", "}"], capture_output=True, text=True, shell=False)
-            elif preset_name == "strict":
-                subprocess.run(["pkexec", "nft", "chain", "inet", "dolunay_fw", "output_filter", "{", "policy", "drop;", "}"], capture_output=True, text=True, shell=False)
-                subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "input_filter", "ct", "state", "established,related", "accept"], capture_output=True, text=True, shell=False)
-                subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "output_filter", "udp", "dport", "53", "accept"], capture_output=True, text=True, shell=False)
-                subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "output_filter", "tcp", "dport", "53", "accept"], capture_output=True, text=True, shell=False)
-            elif preset_name == "standard":
-                subprocess.run(["pkexec", "nft", "chain", "inet", "dolunay_fw", "output_filter", "{", "policy", "drop;", "}"], capture_output=True, text=True, shell=False)
-                subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "input_filter", "ct", "state", "established,related", "accept"], capture_output=True, text=True, shell=False)
-                for p in ["53", "80", "443"]:
-                    subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "output_filter", "tcp", "dport", p, "accept"], capture_output=True, text=True, shell=False)
-                    subprocess.run(["pkexec", "nft", "add", "rule", "inet", "dolunay_fw", "output_filter", "udp", "dport", p, "accept"], capture_output=True, text=True, shell=False)
-            elif preset_name == "minimal":
-                subprocess.run(["pkexec", "nft", "chain", "inet", "dolunay_fw", "input_filter", "{", "policy", "accept;", "}"], capture_output=True, text=True, shell=False)
-                subprocess.run(["pkexec", "nft", "chain", "inet", "dolunay_fw", "output_filter", "{", "policy", "accept;", "}"], capture_output=True, text=True, shell=False)
-            else:
-                return False, "Bilinmeyen preset adı."
-                
-            return True, f"{preset_name} profili başarıyla uygulandı."
+            res = subprocess.run(["pkexec", "nft", "-f", "-"], input=ruleset, capture_output=True, text=True, shell=False)
+            if res.returncode == 0:
+                conf = self._load_config()
+                conf["enabled"] = True
+                conf["preset"] = p
+                self._save_config(conf)
+                return True, f"{p} profili başarıyla uygulandı."
+            return False, f"Hata: {res.stderr}"
+        except subprocess.CalledProcessError as e:
+            return False, f"Hata oluştu: {e.stderr}"
         except Exception as e:
             return False, str(e)
 
@@ -297,15 +368,7 @@ table inet dolunay_fw {
 
     def enable_localhost_only(self) -> tuple:
         """Tüm yerel ağ dışı trafiği keser."""
-        if not self.is_enabled():
-            self.enable_firewall()
-        
-        try:
-            subprocess.run(["pkexec", "nft", "insert", "rule", "inet", "dolunay_fw", "input_filter", "position", "0", "iifname", "!=", "lo", "drop"], capture_output=True, text=True, shell=False)
-            subprocess.run(["pkexec", "nft", "insert", "rule", "inet", "dolunay_fw", "output_filter", "position", "0", "oifname", "!=", "lo", "drop"], capture_output=True, text=True, shell=False)
-            return True, "Sadece localhost kısıtlaması etkinleştirildi."
-        except Exception as e:
-            return False, str(e)
+        return self.apply_preset("local")
 
     def disable_localhost_only(self) -> tuple:
         """Sadece localhost kısıtlamasını kaldırır."""

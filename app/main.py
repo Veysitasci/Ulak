@@ -8,7 +8,7 @@ import psutil
 
 from i18n import _, i18n_instance
 from theme import theme_mgr
-from ui_shared import storage, ToastService
+from ui_shared import storage, ToastService, BentoDialog
 from ui_bt import BluetoothView
 from ui_wifi import WifiView
 from ui_store import StoreView
@@ -417,15 +417,10 @@ class WirelessManagerWindow(Gtk.Window):
                 self.header_page_lbl.set_label(nav_titles.get(page_name, page_name))
 
     def _on_notifications_clicked(self, widget):
-        dialog = Gtk.Dialog(title=_("notif_title"), transient_for=self)
-        dialog.set_default_size(400, 300)
-        dialog.add_button("Kapat", Gtk.ResponseType.OK)
+        dialog = BentoDialog(title=_("notif_title"), parent=self, icon_name="preferences-system-notifications-symbolic", default_width=440, default_height=360)
+        dialog.add_bento_action_button("Kapat", Gtk.ResponseType.OK, is_primary=True)
         
-        content = dialog.get_content_area()
-        content.set_margin_top(15)
-        content.set_margin_start(15)
-        content.set_margin_end(15)
-        content.set_margin_bottom(15)
+        content = dialog.get_bento_content()
         
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)

@@ -4,7 +4,7 @@ from gi.repository import Gtk, Gdk, GLib
 
 from i18n import _
 from theme import theme_mgr
-from ui_shared import storage
+from ui_shared import storage, BentoDialog
 
 class StoreView(Gtk.ScrolledWindow):
     def __init__(self, toast_service):
@@ -100,21 +100,15 @@ class StoreView(Gtk.ScrolledWindow):
         return event_box
 
     def _on_card_clicked(self, widget, event, mod):
-        dialog = Gtk.Dialog(title=_("store_details"), transient_for=self.get_toplevel())
-        dialog.set_default_size(350, 250)
+        dialog = BentoDialog(title=_(mod["name_key"]), parent=self.get_toplevel(), icon_name=mod["icon"], default_width=380, default_height=290)
+        dialog.add_bento_action_button("Kapat", Gtk.ResponseType.CANCEL, is_primary=False)
+        dialog.add_bento_action_button(_("store_launch") if mod["installed"] else _("store_install"), Gtk.ResponseType.OK, is_primary=True)
         
-        # Add Close button manually at bottom left or right if we want, or in Action Area
-        dialog.add_button("Kapat", Gtk.ResponseType.CANCEL)
-        
-        content = dialog.get_content_area()
-        content.set_spacing(16)
-        content.set_margin_top(20)
-        content.set_margin_bottom(20)
-        content.set_margin_start(20)
-        content.set_margin_end(20)
+        content = dialog.get_bento_content()
+        content.set_spacing(12)
         
         icon = Gtk.Image.new_from_icon_name(mod["icon"], Gtk.IconSize.DIALOG)
-        icon.set_pixel_size(64)
+        icon.set_pixel_size(56)
         content.pack_start(icon, False, False, 0)
         
         name = Gtk.Label(label=_(mod["name_key"]))
@@ -126,23 +120,11 @@ class StoreView(Gtk.ScrolledWindow):
         desc.set_justify(Gtk.Justification.CENTER)
         content.pack_start(desc, False, False, 0)
         
-        action_btn = Gtk.Button(label=_("store_launch") if mod["installed"] else _("store_install"))
-        action_btn.get_style_context().add_class("btn-primary")
-        
-        def on_action(btn):
+        dialog.show_all()
+        res = dialog.run()
+        if res == Gtk.ResponseType.OK:
             if not mod["installed"]:
                 self.toast_service.show(f"{_(mod['name_key'])} {str(_('store_install_success'))}")
             else:
                 self.toast_service.show(f"{_(mod['name_key'])} başlatılıyor...")
-            dialog.response(Gtk.ResponseType.OK)
-            
-        action_btn.connect("clicked", on_action)
-        
-        action_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        action_box.set_halign(Gtk.Align.CENTER)
-        action_box.pack_start(action_btn, False, False, 0)
-        
-        content.pack_start(action_box, False, False, 20)
-        dialog.show_all()
-        dialog.run()
         dialog.destroy()

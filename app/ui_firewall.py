@@ -6,6 +6,7 @@ from gi.repository import Gtk, GLib, Gdk, Pango
 
 from i18n import _
 from api_firewall import fw_api
+from ui_shared import BentoDialog
 
 class FirewallView(Gtk.Box):
     def __init__(self, toast_service):
@@ -168,19 +169,19 @@ class ShieldTab(Gtk.Box):
         
         # Segmented Filter-Chip Buttons (Termius Bento Style)
         sec_chips_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.radio_low = Gtk.RadioButton.new_with_label_from_widget(None, _("fw_security_low"))
-        self.radio_med = Gtk.RadioButton.new_with_label_from_widget(self.radio_low, _("fw_security_medium"))
-        self.radio_high = Gtk.RadioButton.new_with_label_from_widget(self.radio_low, _("fw_security_high"))
-        self.radio_paranoid = Gtk.RadioButton.new_with_label_from_widget(self.radio_low, _("fw_security_paranoid"))
+        self.radio_std = Gtk.RadioButton.new_with_label_from_widget(None, _("fw_security_standard"))
+        self.radio_high = Gtk.RadioButton.new_with_label_from_widget(self.radio_std, _("fw_security_high"))
+        self.radio_local = Gtk.RadioButton.new_with_label_from_widget(self.radio_std, _("fw_security_local"))
+        self.radio_paranoid = Gtk.RadioButton.new_with_label_from_widget(self.radio_std, _("fw_security_paranoid"))
         
-        self.sec_radios = [self.radio_low, self.radio_med, self.radio_high, self.radio_paranoid]
+        self.sec_radios = [self.radio_std, self.radio_high, self.radio_local, self.radio_paranoid]
         for r in self.sec_radios:
             r.set_mode(False)  # Remove raw yellow radio dot
             r.get_style_context().add_class("filter-chip")
             r.connect("toggled", self.on_security_level_changed)
             sec_chips_box.pack_start(r, False, False, 0)
             
-        self.radio_med.set_active(True)
+        self.radio_std.set_active(True)
         sec_card.pack_start(sec_chips_box, False, False, 0)
         self.pack_start(sec_card, False, False, 0)
 
@@ -262,16 +263,24 @@ class ShieldTab(Gtk.Box):
     def on_security_level_changed(self, button):
         if not button.get_active():
             return
-        level = "low"
-        if self.radio_med.get_active(): level = "medium"
+        level = "standard"
+        if self.radio_std.get_active(): level = "standard"
         elif self.radio_high.get_active(): level = "high"
+        elif self.radio_local.get_active(): level = "local"
         elif self.radio_paranoid.get_active(): level = "paranoid"
         threading.Thread(target=self._do_set_level, args=(level,), daemon=True).start()
 
     def _do_set_level(self, level):
         try:
             fw_api.set_security_level(level)
-            GLib.idle_add(self.toast_service.show, f"Güvenlik seviyesi: {level.capitalize()}")
+            level_names = {
+                "standard": _("fw_security_standard"),
+                "high": _("fw_security_high"),
+                "local": _("fw_security_local"),
+                "paranoid": _("fw_security_paranoid")
+            }
+            display_name = level_names.get(level, level.capitalize())
+            GLib.idle_add(self.toast_service.show, f"Güvenlik seviyesi: {display_name}")
         except Exception:
             pass
 
@@ -513,18 +522,13 @@ class RulesTab(Gtk.Box):
             GLib.idle_add(self.toast_service.show, f"Error: {e}")
 
 
-class AddRuleDialog(Gtk.Dialog):
+class AddRuleDialog(BentoDialog):
     def __init__(self, parent):
-        super().__init__(title=_("fw_add_rule"), transient_for=parent, flags=0)
-        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK)
-        self.set_default_size(360, -1)
+        super().__init__(title=_("fw_add_rule"), parent=parent, icon_name="list-add-symbolic", default_width=400, default_height=520)
+        self.add_bento_action_button("İptal", Gtk.ResponseType.CANCEL, is_primary=False)
+        self.add_bento_action_button(_("fw_add_rule"), Gtk.ResponseType.OK, is_primary=True)
         
-        box = self.get_content_area()
-        box.set_spacing(10)
-        box.set_margin_start(16)
-        box.set_margin_end(16)
-        box.set_margin_top(16)
-        box.set_margin_bottom(16)
+        box = self.get_bento_content()
 
         # Direction
         self.combo_dir = Gtk.ComboBoxText()
