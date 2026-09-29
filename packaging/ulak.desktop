@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ULAK
+GenericName=Ağ ve Güvenlik Yöneticisi
+GenericName[en]=Network & Security Manager
+Comment=Bluetooth, WiFi, Donanım ve Ağ Güvenlik Duvarı Yöneticisi
+Comment[en]=Bluetooth, WiFi, Hardware & Network Firewall Manager
+Exec=/usr/bin/ulak
+Icon=ulak
+Terminal=false
+Categories=Network;Utility;System;Security;
+Keywords=wireless;bluetooth;wifi;firewall;network;hardware;ulak;security;
+StartupNotify=true

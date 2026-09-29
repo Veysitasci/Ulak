@@ -1,0 +1,132 @@
+name: Publish APT Repository
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version (example: 0.2.0)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: ulak
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev apt-utils gnupg
+
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION_INPUT="${{ github.event.inputs.version }}"
+
+          if [[ -n "$VERSION_INPUT" ]]; then
+            VERSION="$VERSION_INPUT"
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="0.0.${GITHUB_RUN_NUMBER}"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build Debian package
+        run: |
+          chmod +x scripts/build_deb.sh
+          APP_NAME="$APP_NAME" ./scripts/build_deb.sh "${{ steps.version.outputs.version }}"
+
+      - name: Generate APT repository
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPO_DIR="repo"
+          APT_DIR="$REPO_DIR/apt"
+
+          rm -rf "$REPO_DIR"
+          mkdir -p "$APT_DIR/pool/main/d/$APP_NAME"
+          cp "dist/${APP_NAME}_${VERSION}_all.deb" "$APT_DIR/pool/main/d/$APP_NAME/"
+
+          mkdir -p "$APT_DIR/dists/stable/main/binary-all"
+          pushd "$APT_DIR" >/dev/null
+          dpkg-scanpackages --arch all pool > dists/stable/main/binary-all/Packages
+          gzip -kf dists/stable/main/binary-all/Packages
+          popd >/dev/null
+
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="ULAK" \
+            -o APT::FTPArchive::Release::Label="ULAK" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="stable" \
+            -o APT::FTPArchive::Release::Architectures="all" \
+            -o APT::FTPArchive::Release::Components="main" \
+            release "$APT_DIR/dists/stable" > "$APT_DIR/dists/stable/Release"
+
+          if [[ -n "${APT_GPG_PRIVATE_KEY}" ]]; then
+            export GNUPGHOME
+            GNUPGHOME="$(mktemp -d)"
+
+            echo "${APT_GPG_PRIVATE_KEY}" | gpg --batch --import
+            KEY_ID="$(gpg --batch --list-keys --with-colons | awk -F: '/^pub/{print $5; exit}')"
+
+            if [[ -n "${APT_GPG_PASSPHRASE}" ]]; then
+              printf "%s" "${APT_GPG_PASSPHRASE}" > gpg-passphrase.txt
+              PASS_ARGS=(--pinentry-mode loopback --passphrase-file gpg-passphrase.txt)
+            else
+              PASS_ARGS=()
+            fi
+
+            gpg --batch --yes "${PASS_ARGS[@]}" -u "$KEY_ID" \
+              --armor --output "$APT_DIR/public.key" --export "$KEY_ID"
+
+            gpg --batch --yes "${PASS_ARGS[@]}" -u "$KEY_ID" \
+              -abs -o "$APT_DIR/dists/stable/Release.gpg" "$APT_DIR/dists/stable/Release"
+
+            gpg --batch --yes "${PASS_ARGS[@]}" -u "$KEY_ID" \
+              --clearsign -o "$APT_DIR/dists/stable/InRelease" "$APT_DIR/dists/stable/Release"
+          else
+            echo "Warning: APT_GPG_PRIVATE_KEY secret not set. Repository will be unsigned."
+          fi
+
+          cat > "$REPO_DIR/index.html" <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>DolunayKit APT Repository</title>
+          </head>
+          <body>
+            <h1>DolunayKit APT Repository</h1>
+            <p>APT path: <code>/apt</code></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./repo
+          force_orphan: true
