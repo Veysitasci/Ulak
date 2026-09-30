@@ -308,6 +308,92 @@ class WirelessManagerWindow(Gtk.Window):
         header.pack_start(actions_box, False, False, 0)
         parent.pack_start(event_box, False, False, 0)
 
+
+    def _apply_tile_geometry(self, mode):
+        """
+        Modes:
+        - 'left_half': x=0, y=0, w=mon_w//2, h=mon_h
+        - 'right_half': x=mon_w//2, y=0, w=mon_w//2, h=mon_h
+        - 'top_left_quarter': x=0, y=0, w=mon_w//2, h=mon_h//2
+        - 'top_right_quarter': x=mon_w//2, y=0, w=mon_w//2, h=mon_h//2
+        - 'bottom_left_quarter': x=0, y=mon_h//2, w=mon_w//2, h=mon_h//2
+        - 'bottom_right_quarter': x=mon_w//2, y=mon_h//2, w=mon_w//2, h=mon_h//2
+        """
+        display = Gdk.Display.get_default()
+        gdk_win = self.get_window()
+        if not display or not gdk_win:
+            return
+            
+        monitor = display.get_monitor_at_window(gdk_win) or display.get_primary_monitor() or display.get_monitor(0)
+        geom = monitor.get_geometry()
+        
+        # Save previous normal size if not yet snapped
+        if not getattr(self, '_is_snapped', False):
+            alloc = self.get_allocation()
+            self._normal_width = alloc.width
+            self._normal_height = alloc.height
+            
+        self._is_snapped = True
+        half_w = geom.width // 2
+        half_h = geom.height // 2
+        
+        if mode == 'left_half':
+            self.move(geom.x, geom.y)
+            self.resize(half_w, geom.height)
+        elif mode == 'right_half':
+            self.move(geom.x + half_w, geom.y)
+            self.resize(half_w, geom.height)
+        elif mode == 'top_left_quarter':
+            self.move(geom.x, geom.y)
+            self.resize(half_w, half_h)
+        elif mode == 'top_right_quarter':
+            self.move(geom.x + half_w, geom.y)
+            self.resize(half_w, half_h)
+        elif mode == 'bottom_left_quarter':
+            self.move(geom.x, geom.y + half_h)
+            self.resize(half_w, half_h)
+        elif mode == 'bottom_right_quarter':
+            self.move(geom.x + half_w, geom.y + half_h)
+            self.resize(half_w, half_h)
+
+    def _check_and_snap_cursor(self, root_x, root_y, threshold=20):
+        display = Gdk.Display.get_default()
+        monitor = display.get_primary_monitor() or display.get_monitor(0)
+        geom = monitor.get_geometry()
+        
+        rel_x = root_x - geom.x
+        rel_y = root_y - geom.y
+        
+        # Corner 4-way detection
+        is_left = rel_x <= threshold
+        is_right = rel_x >= geom.width - threshold
+        is_top = rel_y <= threshold
+        is_bottom = rel_y >= geom.height - threshold
+        
+        if is_top and is_left:
+            self._apply_tile_geometry('top_left_quarter')
+            return True
+        elif is_top and is_right:
+            self._apply_tile_geometry('top_right_quarter')
+            return True
+        elif is_bottom and is_left:
+            self._apply_tile_geometry('bottom_left_quarter')
+            return True
+        elif is_bottom and is_right:
+            self._apply_tile_geometry('bottom_right_quarter')
+            return True
+        elif is_left:
+            self._apply_tile_geometry('left_half')
+            return True
+        elif is_right:
+            self._apply_tile_geometry('right_half')
+            return True
+        elif is_top:
+            self.maximize()
+            return True
+            
+        return False
+
     def _select_tab(self, page_name):
         btn_map = {
             "firewall": getattr(self, "btn_firewall", None),
@@ -322,12 +408,40 @@ class WirelessManagerWindow(Gtk.Window):
 
     def _on_window_drag(self, widget, event):
         if event.button == 1 and event.type == Gdk.EventType.BUTTON_PRESS:
-            # If window was maximized, unmaximize gently at drag position
             if self.is_maximized():
                 self._toggle_maximize()
+            elif getattr(self, '_is_snapped', False):
+                self._is_snapped = False
+                if hasattr(self, '_normal_width') and hasattr(self, '_normal_height'):
+                    self.resize(self._normal_width, self._normal_height)
+
+            # Polling timer during drag to check if user released near screen border
+            self._drag_start_x = int(event.x_root)
+            self._drag_start_y = int(event.y_root)
             self.begin_move_drag(event.button, int(event.x_root), int(event.y_root), event.time)
+            
+            # Start a liveness tracker for edge release
+            self._track_drag_release()
         elif event.button == 1 and event.type == Gdk.EventType._2BUTTON_PRESS:
             self._toggle_maximize()
+
+    def _track_drag_release(self):
+        def _check_mouse_release():
+            # Query pointer root coordinates
+            device_mgr = Gdk.Display.get_default().get_device_manager()
+            pointer = device_mgr.get_client_pointer()
+            _, root_x, root_y, mask = pointer.get_position()
+            
+            # If left mouse button is still pressed, continue tracking
+            if mask & Gdk.ModifierType.BUTTON1_MASK:
+                return True
+                
+            # Mouse has been released! Check if released at screen edge
+            self._check_and_snap_cursor(root_x, root_y, threshold=24)
+            return False
+
+        GLib.timeout_add(50, _check_mouse_release)
+
 
     def _toggle_maximize(self, *args):
         if self.is_maximized():
