@@ -286,7 +286,22 @@ class WirelessManagerWindow(Gtk.Window):
     def _populate_sidebar(self):
         import os, json
         
-        # Base categories and modules
+        # Scrolled Window for dynamic content
+        self.sidebar_scroll = Gtk.ScrolledWindow()
+        self.sidebar_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.sidebar_scroll.get_style_context().add_class("sidebar-scroll")
+        
+        self.sidebar_scroll_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.sidebar_scroll.add(self.sidebar_scroll_box)
+        
+        self.sidebar.pack_start(self.sidebar_scroll, True, True, 0)
+        
+        # Bottom Fixed Box for System/Store/Settings
+        self.sidebar_bottom_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.sidebar_bottom_box.set_margin_top(8)
+        self.sidebar.pack_end(self.sidebar_bottom_box, False, False, 0)
+        
+        # Base categories (excluding Store and Settings, which are fixed at bottom)
         categories = {
             "GÜVENLİK": [
                 {"id": "firewall", "icon": "security-high-symbolic", "name": _("tab_firewall").replace("🛡️", "").strip()},
@@ -296,11 +311,9 @@ class WirelessManagerWindow(Gtk.Window):
                 {"id": "bt", "icon": "bluetooth-active-symbolic", "name": _("tab_bluetooth")},
                 {"id": "wifi", "icon": "network-wireless-symbolic", "name": _("tab_wifi")}
             ],
-            "SİSTEM": [
+            "DONANIM": [
                 {"id": "hw", "icon": "computer-symbolic", "name": _("tab_hw")},
-                {"id": "admin", "icon": "security-medium-symbolic", "name": _("tab_admin")},
-                {"id": "store", "icon": "system-software-install-symbolic", "name": _("tab_store")},
-                {"id": "settings", "icon": "emblem-system-symbolic", "name": _("settings")}
+                {"id": "admin", "icon": "security-medium-symbolic", "name": _("tab_admin")}
             ]
         }
         
@@ -313,6 +326,10 @@ class WirelessManagerWindow(Gtk.Window):
                     try:
                         with open(man_path, "r") as f:
                             man = json.load(f)
+                        # Skip legacy test modules
+                        if man["id"] in ["test_mod", "uzay_istasyonu"]:
+                            continue
+                            
                         cat = man.get("category", "EKSTRALAR").upper()
                         if cat not in categories:
                             categories[cat] = []
@@ -364,19 +381,29 @@ class WirelessManagerWindow(Gtk.Window):
             btn.connect("toggled", self._on_nav_toggled, name)
             return btn
             
+        # 1. Fill Scrollable Content
         for cat_name, items in categories.items():
             if not items: continue
             lbl_sec = Gtk.Label(label=cat_name.upper())
             lbl_sec.get_style_context().add_class("nav-section-title")
             lbl_sec.set_halign(Gtk.Align.START)
-            self.sidebar.pack_start(lbl_sec, False, False, 0)
+            self.sidebar_scroll_box.pack_start(lbl_sec, False, False, 0)
             
             for item in items:
                 btn = create_nav_btn(item["icon"], item["name"], item["id"])
-                self.sidebar.pack_start(btn, False, False, 0)
+                self.sidebar_scroll_box.pack_start(btn, False, False, 0)
                 
-        spacer = Gtk.Box()
-        self.sidebar.pack_start(spacer, True, True, 0)
+        # 2. Fill Bottom Fixed Content (Mağaza ve Ayarlar)
+        lbl_fixed = Gtk.Label(label="SİSTEM")
+        lbl_fixed.get_style_context().add_class("nav-section-title")
+        lbl_fixed.set_halign(Gtk.Align.START)
+        self.sidebar_bottom_box.pack_start(lbl_fixed, False, False, 0)
+        
+        btn_store = create_nav_btn("system-software-install-symbolic", _("tab_store"), "store")
+        self.sidebar_bottom_box.pack_start(btn_store, False, False, 0)
+        
+        btn_settings = create_nav_btn("emblem-system-symbolic", _("settings"), "settings")
+        self.sidebar_bottom_box.pack_start(btn_settings, False, False, 0)
 
     def _build_footer(self, parent):
         footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
