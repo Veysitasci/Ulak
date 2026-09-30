@@ -262,7 +262,7 @@ class ShieldTab(Gtk.Box):
         terminal_box.pack_start(term_header, False, False, 0)
         
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_size_request(-1, 220)
         self.events_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         scroll.add(self.events_list)
@@ -540,7 +540,7 @@ class RulesTab(Gtk.Box):
 
         # Rules List
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.rules_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         scroll.add(self.rules_list)
         self.pack_start(scroll, True, True, 0)
@@ -753,7 +753,7 @@ class AppsTab(Gtk.Box):
         self.pack_start(top, False, False, 0)
         
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.apps_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         scroll.add(self.apps_list)
         self.pack_start(scroll, True, True, 0)
@@ -898,7 +898,7 @@ class LocalTab(Gtk.Box):
         
         # Whitelist Items
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.wl_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         scroll.add(self.wl_list)
         self.pack_start(scroll, True, True, 0)

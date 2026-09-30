@@ -81,7 +81,7 @@ class HardwareView(Gtk.Box):
         self.pack_start(header, False, False, 0)
 
         scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.pack_start(scrolled, True, True, 0)
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=15)
@@ -383,7 +383,7 @@ class HardwareView(Gtk.Box):
 
     def _create_terminal_tab(self, notebook, label, command):
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_size_request(-1, 280)
         
         container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)

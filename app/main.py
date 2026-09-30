@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
+from gi.repository import Gtk, Gdk, GLib, GdkPixbuf, Pango
 import os
 import socket
 import psutil
@@ -52,8 +52,8 @@ class WirelessManagerWindow(Gtk.Window):
         self.set_resizable(True)
         # Allow resizing from borders and corners even when frameless
         geometry = Gdk.Geometry()
-        geometry.min_width = 520
-        geometry.min_height = 400
+        geometry.min_width = 380
+        geometry.min_height = 300
         self.set_geometry_hints(None, geometry, Gdk.WindowHints.MIN_SIZE)
         
         # Enable RGBA visual for rounded window corners
@@ -111,29 +111,40 @@ class WirelessManagerWindow(Gtk.Window):
         self.stack = Gtk.Stack()
         self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
 
+        def add_scroll_view(view_widget, name):
+            # If view is not already a ScrolledWindow, wrap it so it never blocks window from shrinking
+            if not isinstance(view_widget, Gtk.ScrolledWindow):
+                sc = Gtk.ScrolledWindow()
+                sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+                sc.add(view_widget)
+                self.stack.add_named(sc, name)
+            else:
+                view_widget.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+                self.stack.add_named(view_widget, name)
+
         self.firewall_view = FirewallView(self.toast_service)
-        self.stack.add_named(self.firewall_view, "firewall")
+        add_scroll_view(self.firewall_view, "firewall")
 
         self.bt_view = BluetoothView(self.toast_service)
-        self.stack.add_named(self.bt_view, "bt")
+        add_scroll_view(self.bt_view, "bt")
 
         self.wifi_view = WifiView(self.toast_service)
-        self.stack.add_named(self.wifi_view, "wifi")
+        add_scroll_view(self.wifi_view, "wifi")
 
         self.hw_view = HardwareView(self.toast_service)
-        self.stack.add_named(self.hw_view, "hw")
+        add_scroll_view(self.hw_view, "hw")
 
         self.admin_view = AdminView(self.toast_service)
-        self.stack.add_named(self.admin_view, "admin")
+        add_scroll_view(self.admin_view, "admin")
 
         self.hacker_view = HackerView(self.toast_service)
-        self.stack.add_named(self.hacker_view, "hack")
+        add_scroll_view(self.hacker_view, "hack")
 
         self.store_view = StoreView(self.toast_service)
-        self.stack.add_named(self.store_view, "store")
+        add_scroll_view(self.store_view, "store")
 
         self.settings_view = SettingsView(self.toast_service)
-        self.stack.add_named(self.settings_view, "settings")
+        add_scroll_view(self.settings_view, "settings")
 
         # Load any installed external modules into stack immediately
         self._load_external_module_views()
@@ -171,17 +182,17 @@ class WirelessManagerWindow(Gtk.Window):
         return edge
 
     def _on_size_allocate(self, widget, allocation):
-        # Responsive adaptation for 4-way split / narrow screens
-        if allocation.width < 760:
-            if hasattr(self, 'search_entry'):
-                self.search_entry.set_visible(False)
-            if hasattr(self, 'tab_box'):
-                self.tab_box.set_visible(False)
-        else:
-            if hasattr(self, 'search_entry'):
-                self.search_entry.set_visible(True)
-            if hasattr(self, 'tab_box'):
-                self.tab_box.set_visible(True)
+        is_compact = allocation.width < 800
+        is_ultra_compact = allocation.width < 600
+        
+        if hasattr(self, 'search_box_container'):
+            self.search_box_container.set_visible(not is_compact)
+        if hasattr(self, 'tab_box'):
+            self.tab_box.set_visible(not is_compact)
+        if hasattr(self, 'footer_status_lbl'):
+            self.footer_status_lbl.set_visible(not is_compact)
+        if hasattr(self, 'footer_sys_lbl'):
+            self.footer_sys_lbl.set_visible(not is_ultra_compact)
 
     def _on_root_motion(self, widget, event):
         if self.is_maximized():
@@ -233,6 +244,7 @@ class WirelessManagerWindow(Gtk.Window):
         brand_box.pack_start(self.brand_logo_img, False, False, 0)
 
         title_lbl = Gtk.Label(label="ULAK")
+        title_lbl.set_ellipsize(Pango.EllipsizeMode.END)
         title_lbl.get_style_context().add_class("app-brand-title")
         brand_box.pack_start(title_lbl, False, False, 0)
 
@@ -256,21 +268,22 @@ class WirelessManagerWindow(Gtk.Window):
         tab_hw.connect("clicked", lambda w: self._select_tab("hw"))
         tab_box.pack_start(tab_hw, False, False, 0)
 
-        brand_box.pack_start(tab_box, False, False, 0)
         header.pack_start(brand_box, False, False, 0)
+        header.pack_start(tab_box, False, False, 0)
 
         # Center: Termius Search Entry
-        center_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        center_box.set_hexpand(True)
-        center_box.set_halign(Gtk.Align.CENTER)
-        center_box.set_valign(Gtk.Align.CENTER)
+        self.search_box_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.search_box_container.set_hexpand(True)
+        self.search_box_container.set_halign(Gtk.Align.CENTER)
+        self.search_box_container.set_valign(Gtk.Align.CENTER)
 
         self.search_entry = Gtk.SearchEntry()
-        self.search_entry.set_placeholder_text("Cihaz, kural, port veya IP ara...")
+        self.search_entry.set_placeholder_text("Ara...")
+        self.search_entry.set_width_chars(12)
         self.search_entry.get_style_context().add_class("termius-search")
-        center_box.pack_start(self.search_entry, False, False, 0)
+        self.search_box_container.pack_start(self.search_entry, False, False, 0)
 
-        header.pack_start(center_box, True, True, 0)
+        header.pack_start(self.search_box_container, True, True, 0)
 
         # Right: Notifications & Custom Window Control Buttons (—, ▢, ✕)
         actions_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
@@ -356,30 +369,34 @@ class WirelessManagerWindow(Gtk.Window):
             self.move(geom.x + half_w, geom.y + half_h)
             self.resize(half_w, half_h)
 
-    def _check_and_snap_cursor(self, root_x, root_y, threshold=20):
+    def _check_and_snap_cursor(self, root_x, root_y, threshold=45):
         display = Gdk.Display.get_default()
-        monitor = display.get_primary_monitor() or display.get_monitor(0)
+        gdk_win = self.get_window()
+        if not display:
+            return False
+            
+        monitor = (display.get_monitor_at_window(gdk_win) if gdk_win else None) or display.get_primary_monitor() or display.get_monitor(0)
         geom = monitor.get_geometry()
         
         rel_x = root_x - geom.x
         rel_y = root_y - geom.y
         
-        # Corner 4-way detection
         is_left = rel_x <= threshold
-        is_right = rel_x >= geom.width - threshold
+        is_right = rel_x >= (geom.width - threshold)
         is_top = rel_y <= threshold
-        is_bottom = rel_y >= geom.height - threshold
+        is_bottom = rel_y >= (geom.height - threshold)
         
-        if is_top and is_left:
+        corner_margin = 100
+        if is_top and (rel_x <= corner_margin):
             self._apply_tile_geometry('top_left_quarter')
             return True
-        elif is_top and is_right:
+        elif is_top and (rel_x >= geom.width - corner_margin):
             self._apply_tile_geometry('top_right_quarter')
             return True
-        elif is_bottom and is_left:
+        elif is_bottom and (rel_x <= corner_margin):
             self._apply_tile_geometry('bottom_left_quarter')
             return True
-        elif is_bottom and is_right:
+        elif is_bottom and (rel_x >= geom.width - corner_margin):
             self._apply_tile_geometry('bottom_right_quarter')
             return True
         elif is_left:
@@ -630,7 +647,14 @@ class WirelessManagerWindow(Gtk.Window):
                                     break
                             if view_class:
                                 view_instance = view_class(self.toast_service)
-                                self.stack.add_named(view_instance, mod_id)
+                                if not isinstance(view_instance, Gtk.ScrolledWindow):
+                                    sc = Gtk.ScrolledWindow()
+                                    sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+                                    sc.add(view_instance)
+                                    self.stack.add_named(sc, mod_id)
+                                else:
+                                    view_instance.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+                                    self.stack.add_named(view_instance, mod_id)
                     except Exception as e:
                         print(f"Error loading external view {d}:", e)
 
@@ -659,9 +683,9 @@ class WirelessManagerWindow(Gtk.Window):
 
         # Right Host/OS Info
         host = os.uname().nodename
-        sys_lbl = Gtk.Label(label=f"127.0.0.1 • {host} • ULAK v2.0")
-        sys_lbl.get_style_context().add_class("footer-text")
-        footer.pack_start(sys_lbl, False, False, 0)
+        self.footer_sys_lbl = Gtk.Label(label=f"127.0.0.1 • {host} • ULAK v2.0")
+        self.footer_sys_lbl.get_style_context().add_class("footer-text")
+        footer.pack_start(self.footer_sys_lbl, False, False, 0)
 
         parent.pack_start(footer, False, False, 0)
 

@@ -333,7 +333,7 @@ class ThemeManager:
             border-radius: 8px;
             color: #ffffff;
             padding: 6px 14px;
-            min-width: 320px;
+            min-width: 140px;
             font-size: 13px;
         }
         .termius-search:focus {
@@ -1096,7 +1096,7 @@ class ThemeManager:
             border-radius: 8px;
             color: #0f172a;
             padding: 6px 14px;
-            min-width: 320px;
+            min-width: 140px;
             font-size: 13px;
         }
         .termius-search:focus {

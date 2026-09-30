@@ -30,7 +30,7 @@ class HackerView(Gtk.Box):
         self.pack_start(header, False, False, 0)
 
         scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.pack_start(scrolled, True, True, 0)
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)

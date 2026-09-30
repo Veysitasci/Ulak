@@ -47,7 +47,7 @@ class UsageGraph(Gtk.DrawingArea):
 class SystemCleanerView(Gtk.ScrolledWindow):
     def __init__(self, toast_service):
         super().__init__()
-        self.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.toast_service = toast_service
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)

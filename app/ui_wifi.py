@@ -132,7 +132,7 @@ class WifiView(Gtk.Box):
         self.pack_start(header, False, False, 0)
 
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.pack_start(scroll, True, True, 0)
         
         main_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -477,7 +477,7 @@ class WifiView(Gtk.Box):
         box.pack_start(search_entry, False, False, 4)
 
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_vexpand(True)
         box.pack_start(scroll, True, True, 0)
         

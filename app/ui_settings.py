@@ -37,7 +37,7 @@ class SettingsView(Gtk.Box):
         
         # Scrollable content
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         self.content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         self.content_box.set_margin_top(16)

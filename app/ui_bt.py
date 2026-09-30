@@ -124,7 +124,7 @@ class BluetoothView(Gtk.Box):
         self.pack_start(header, False, False, 0)
 
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_margin_start(32)
         scroll.set_margin_end(32)
         scroll.set_margin_top(12)

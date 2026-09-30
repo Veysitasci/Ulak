@@ -10,7 +10,7 @@ class StoreView(Gtk.ScrolledWindow):
     def __init__(self, toast_service):
         super().__init__()
         self.toast_service = toast_service
-        self.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
         main_box.set_margin_top(10)
