@@ -1,38 +1,95 @@
-# ULAK UI / Tasarım Kuralları
+# ULAK UI & Tasarım Kuralları (Bento / Modern GTK3 Standartları)
 
-Yeni bir modül veya araç eklerken ULAK'ın tasarım bütünlüğünü korumak için aşağıdaki kurallara uyulmalıdır:
+Bu belge, ULAK projesine eklenecek tüm yeni modüller, pencereler ve ayarlar için kesin tasarım kurallarını içerir. Tüm geliştirmelerde bu kurallara harfiyen uyulmalıdır.
 
-## 1. Genel Prensip (Bento UI)
-Kullanıcıya sunulan araçlar, ayarlar veya modül içerikleri daima **Gtk.Box (veya Gtk.Frame)** içerisine alınmalı ve `.card` CSS sınıfı kullanılmalıdır. 
-Hiçbir zaman doğrudan sayfaya çıplak buton veya text eklemeyin. Her işlev kendi kapsülünde (Bento Grid stili) yer almalıdır.
-Kutular genellikle yatay (HORIZONTAL) hizalanır; solda İkon + Yazılar, sağda ise İşlem Butonu veya Toggle Anahtarı bulunur.
+---
 
-## 2. Kenar Boşlukları ve Hizalama
-Sayfa genelinde (Gtk.Box veya Gtk.FlowBox kullanırken) padding ve margin değerleri genellikle **20px** olarak seçilir. Modül kutularının kendi iç boşlukları ise **15px** olmalıdır.
+## 1. Genel Mimari (Bento Grid)
+- **Çıplak Widget Yasağı:** Asla doğrudan sayfaya çıplak buton, switch veya text koymayın.
+- Her işlev kendi kapsülünde (`Gtk.Box` veya `Gtk.Frame`) yer almalı ve `.card` veya `.settings-card` CSS sınıfı taşımalıdır.
+- Kartlar genellikle **Yatay (HORIZONTAL)** hizalanır:
+  - **Sol:** İkon (`18-24px` sembolik simge)
+  - **Orta:** Dikey kutuda Başlık (`.setting-title` veya `.device-name`) + Alt Açıklama (`.setting-subtitle` veya `.device-mac`)
+  - **Sağ:** İşlem Butonu (`.btn-primary` / `.btn-secondary`) veya `Gtk.Switch` (Toggle anahtarı).
 
-## 3. Toast Bildirimleri (Geri Bildirim)
-Kullanıcının yaptığı eylemlerde pop-up dialog (MessageDialog) yerine kesinlikle `ToastService` kullanılmalıdır:
+---
+
+## 2. Toggle (Switch) ve Ayar Kartı Standardı (Proxy Modeli)
+Proxy ve Ayarlar ekranındaki Bento Switch kartı şablonu:
 ```python
-# Başarı mesajı (Koyu Yeşil Arkaplan)
-self.toast_service.show("İşlem tamamlandı", type="success")
+card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+card.get_style_context().add_class("settings-card")
 
-# Bilgi mesajı (Zümrüt Yeşili Arkaplan)
-self.toast_service.show("Mod değiştirildi", type="info")
+# Sol İkon
+icon = Gtk.Image.new_from_icon_name("network-server-symbolic", Gtk.IconSize.BUTTON)
+card.pack_start(icon, False, False, 0)
 
-# Uyarı (Sarı) ve Hata (Kırmızı)
-self.toast_service.show("Bağlantı koptu!", type="warning")
-self.toast_service.show("Yetki reddedildi!", type="error")
+# Orta Metinler
+vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+title = Gtk.Label(label="Özellik Başlığı")
+title.get_style_context().add_class("setting-title")
+title.set_halign(Gtk.Align.START)
+
+sub = Gtk.Label(label="Özelliğin yaptığı işlevi anlatan kısa açıklama metni.")
+sub.get_style_context().add_class("setting-subtitle")
+sub.set_halign(Gtk.Align.START)
+vbox.pack_start(title, False, False, 0)
+vbox.pack_start(sub, False, False, 0)
+card.pack_start(vbox, True, True, 0)
+
+# Sağ Toggle (Switch)
+switch = Gtk.Switch()
+switch.set_valign(Gtk.Align.CENTER)
+switch.set_active(current_state)
+switch.connect("notify::active", on_toggle_callback)
+card.pack_end(switch, False, False, 0)
 ```
 
-## 4. Renk ve Çizgiler (Tema Uyumu)
-ULAK içerisinde widgetlara `.override_background_color` veya benzeri statik GTK3 renk atamaları yapmaktan kaçının. Renkler her zaman `theme.py` içindeki sistem teması veya CSS sınıfları (ör: `title-label`, `action-btn`, `card`) ile belirlenmelidir. Özel renk zorunluluğunda her zaman dinamik bir `Gtk.CssProvider` oluşturup bağlayın.
+---
 
-## 5. Küresel Bento Dialog ve Açılır Pencere Standardı (DeviceDetailsDialog)
-Uygulama içerisinde herhangi bir yeni cihaz, modül veya ayar için açılacak pencereler **asla ham Gtk.Window veya OS varsayılan penceresi olmamalıdır**.
-Bunun yerine `ui_shared.py` içindeki `DeviceDetailsDialog` (veya `BentoDialog`) sınıfı kullanılmalıdır.
+## 3. Liste ve Uygulama Seçim Ekranı Standardı (App Selector / Searchable List)
+Proxy ekranındaki "Hariç Tutulacak Uygulamalar" gibi filtreli / aramalı listeler için standart:
+1. **Üst Arama Çubuğu:** `Gtk.SearchEntry()` kullanılır (`.termius-search` sınıfı).
+2. **Kaydırılabilir Liste:** `Gtk.ScrolledWindow` içinde `Gtk.ListBox` (`selection_mode=NONE`).
+3. **Satır Yapısı (`Gtk.ListBoxRow`):**
+   - Her satır `.settings-card` sınıfına sahiptir.
+   - Sol tarafta uygulamanın veya ögenin simgesi (Gtk.Image), yanında adı ve komutu.
+   - Sağ tarafta açıp kapatma için `Gtk.Switch` veya seçim kutusu.
+4. **Gerçek Zamanlı Filtreleme:**
+   ```python
+   def filter_func(row):
+       q = search_entry.get_text().strip().lower()
+       return q in getattr(row, 'name', '').lower()
+   listbox.set_filter_func(filter_func)
+   search_entry.connect("search-changed", lambda e: listbox.invalidate_filter())
+   ```
 
-### Tasarım Kriterleri:
-- **Çerçevesiz ve Yuvarlak (18px) Başlık Çubuğu:** Sürüklenebilir özel başlık ve sağ üst köşede kapatma butonu (`✕`).
-- **Üst Özet Kartı (`set_header_info`):** Sol tarafta 44px ikon, ortada cihaz/özellik başlığı ve altında yeşil/gri renkli durum noktası (`● Bağlı` veya `● Pasif`).
-- **Bento Satırları (`set_items_list`):** Her özellik `settings-card` stiliyle yatay Bento kartı olarak listelenmeli; solunda ikon ve özellik adı, sağında kopyalanabilir/seçilebilir açık renkli değer yer almalıdır.
-- **Standart Kapatma Butonu:** Alt kısımda `add_bento_action_button` ile oluşturulmuş birincil (Primary) buton yer almalıdır.
+---
+
+## 4. Küresel Bento Dialog Standardı (DeviceDetailsDialog & BentoDialog)
+Yeni açılacak hiçbir pencere varsayılan işletim sistemi penceresi (`Gtk.Window`) olmamalıdır:
+- `ui_shared.py` içindeki `BentoDialog` veya `DeviceDetailsDialog` kullanılmalıdır.
+- **Başlık Çubuğu:** Çerçevesiz (`set_decorated(False)`), 18px yuvarlak hatlı, sürüklenebilir ve sağ üstte kapat butonu (`✕`).
+- **Özet Kartı:** En üstte 44px ikon, cihaz/işlem adı ve canlı durum noktası (`● Aktif` yeşil / `● Pasif` gri).
+- **Detay Satırları:** Her özellik yatay Bento kartı olarak dizilir (`set_items_list`).
+
+---
+
+## 5. Toast Bildirimleri (Geri Bildirim)
+Kullanıcı işlem yaptığında asla bloklayıcı alert/dialog çıkarmayın, `ToastService` kullanın:
+```python
+# Bilgi (Yeşil)
+self.toast_service.show("İşlem başlatıldı", type="info")
+
+# Başarı (Koyu Yeşil)
+self.toast_service.show("Yapılandırma kaydedildi", type="success")
+
+# Uyarı (Sarı) ve Hata (Kırmızı)
+self.toast_service.show("Bağlantı kesildi!", type="warning")
+self.toast_service.show("Hata oluştu!", type="error")
+```
+
+---
+
+## 6. Dairesel Grafik (Circular Usage Graph)
+ProgressBar yerine daima `Cairo` ile çizilen dinamik dairesel pasta grafikleri (`UsageGraph`) tercih edilir. Yüzde değeri grafiğin ortasında yer alır.
