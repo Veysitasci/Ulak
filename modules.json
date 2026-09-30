@@ -4,13 +4,33 @@
         "name_key": "Uzay İstasyonu Takipçisi",
         "desc_key": "Canlı olarak uluslararası uzay istasyonunu (ISS) takip edin.",
         "icon": "weather-clear-night-symbolic",
-        "is_new": true
+        "is_new": true,
+        "category": "Bilim",
+        "popularity": 4.8,
+        "downloads": "12 B+",
+        "features": [
+            "Anlık harita konumu",
+            "Mürettebat bilgileri",
+            "Geçiş saatleri uyarıları"
+        ],
+        "size": "1.2 MB",
+        "update_date": "Bugün"
     },
     {
         "id": "test_mod",
         "name_key": "Test Eklentisi v1",
         "desc_key": "Sistemin doğru çalışıp çalışmadığını gösteren bir deneme modülü.",
         "icon": "applications-science-symbolic",
-        "is_new": false
+        "is_new": false,
+        "category": "Geliştirici",
+        "popularity": 3.2,
+        "downloads": "500+",
+        "features": [
+            "UI test bileşenleri",
+            "Mock veri üretici",
+            "Bellek sızıntı analizi"
+        ],
+        "size": "5.4 MB",
+        "update_date": "Geçen Hafta"
     }
 ]

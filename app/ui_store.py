@@ -55,7 +55,7 @@ class StoreView(Gtk.ScrolledWindow):
         # FlowBox for Apps
         self.flowbox = Gtk.FlowBox()
         self.flowbox.set_valign(Gtk.Align.START)
-        self.flowbox.set_max_children_per_line(3)
+        self.flowbox.set_max_children_per_line(2)
         self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
         self.flowbox.set_row_spacing(15)
         self.flowbox.set_column_spacing(15)
@@ -131,43 +131,107 @@ class StoreView(Gtk.ScrolledWindow):
         self.show_all()
 
     def _create_module_card(self, mod):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.get_style_context().add_class("card")
-        box.set_size_request(200, 160)
+        # We'll use an EventBox as the base for clicking and background color styling
+        event_box = Gtk.EventBox()
         
-        icon = Gtk.Image.new_from_icon_name(mod["icon"], Gtk.IconSize.DIALOG)
-        icon.set_pixel_size(48)
-        icon.set_margin_top(15)
-        box.pack_start(icon, False, False, 0)
-        
-        name = Gtk.Label(label=_(mod["name_key"]))
-        name.get_style_context().add_class("device-name")
-        box.pack_start(name, False, False, 0)
-        
-        status_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        status_box.set_halign(Gtk.Align.CENTER)
-        status_label = Gtk.Label()
-        
+        # Determine background color classes or direct CSS
+        bg_css = ""
         if mod["installed"]:
-            status_text = _("store_installed")
-            # Default theme color (White in dark mode, Dark in light mode)
-            status_label.set_markup(f"<b>{status_text}</b>")
+            # Default theme card style
+            bg_css = ""
         else:
             if mod.get("is_new", False):
-                status_text = "✨ YENİ GELDİ (KUR)"
-                # Green color for newly added
-                status_label.set_markup(f"<span foreground='#10b981'><b>{status_text}</b></span>")
+                # Greenish background
+                bg_css = "* { background-color: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); }"
             else:
-                status_text = _("store_install")
-                # Gray color for uninstalled
-                status_label.set_markup(f"<span foreground='#64748b'><b>{status_text}</b></span>")
+                # Grayish background
+                bg_css = "* { background-color: rgba(100, 116, 139, 0.1); border: 1px solid rgba(100, 116, 139, 0.2); }"
+
+        # Card Container (Horizontal)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=15)
+        box.get_style_context().add_class("card")
+        box.set_margin_all(8)
+        
+        if bg_css:
+            provider = Gtk.CssProvider()
+            provider.load_from_data(bg_css.encode("utf-8"))
+            box.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            
+        # Left: Icon
+        icon_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        icon_box.set_valign(Gtk.Align.CENTER)
+        icon_box.set_size_request(80, -1)
+        icon = Gtk.Image.new_from_icon_name(mod["icon"], Gtk.IconSize.DIALOG)
+        icon.set_pixel_size(48)
+        icon_box.pack_start(icon, True, True, 0)
+        box.pack_start(icon_box, False, False, 0)
+        
+        # Center: Info & Features
+        center_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        center_box.set_valign(Gtk.Align.CENTER)
+        
+        # Title and Category Row
+        title_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        name = Gtk.Label()
+        name.set_markup(f"<b>{_(mod['name_key'])}</b>")
+        title_row.pack_start(name, False, False, 0)
+        
+        if "category" in mod:
+            cat_lbl = Gtk.Label()
+            cat_lbl.set_markup(f"<span background='#334155' foreground='white' size='x-small'>  {mod['category']}  </span>")
+            title_row.pack_start(cat_lbl, False, False, 0)
+            
+        center_box.pack_start(title_row, False, False, 0)
+        
+        # Features List
+        if "features" in mod:
+            for feat in mod["features"][:3]: # Max 3 features
+                feat_lbl = Gtk.Label()
+                feat_lbl.set_markup(f"<span size='small'>• {feat}</span>")
+                feat_lbl.set_halign(Gtk.Align.START)
+                center_box.pack_start(feat_lbl, False, False, 0)
+        else:
+            desc_lbl = Gtk.Label()
+            desc_lbl.set_markup(f"<span size='small'>{_(mod['desc_key'])}</span>")
+            desc_lbl.set_halign(Gtk.Align.START)
+            desc_lbl.set_line_wrap(True)
+            desc_lbl.set_max_width_chars(30)
+            center_box.pack_start(desc_lbl, False, False, 0)
+            
+        box.pack_start(center_box, True, True, 0)
+        
+        # Right: Popularity & Status
+        right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        right_box.set_valign(Gtk.Align.CENTER)
+        right_box.set_size_request(100, -1)
+        
+        if "popularity" in mod:
+            pop_lbl = Gtk.Label()
+            pop_lbl.set_markup(f"<span foreground='#eab308'>★ {mod['popularity']}</span>")
+            pop_lbl.set_halign(Gtk.Align.END)
+            right_box.pack_start(pop_lbl, False, False, 0)
+            
+        if "downloads" in mod:
+            dl_lbl = Gtk.Label()
+            dl_lbl.set_markup(f"<span size='x-small' foreground='#64748b'>↓ {mod['downloads']}</span>")
+            dl_lbl.set_halign(Gtk.Align.END)
+            right_box.pack_start(dl_lbl, False, False, 0)
+            
+        status_label = Gtk.Label()
+        status_label.set_halign(Gtk.Align.END)
+        
+        if mod["installed"]:
+            status_label.set_markup(f"<b>{_('store_installed')}</b>")
+            status_label.get_style_context().add_class("status-connected")
+        else:
+            if mod.get("is_new", False):
+                status_label.set_markup(f"<span foreground='#10b981'><b>YENİ (KUR)</b></span>")
+            else:
+                status_label.set_markup(f"<span foreground='#64748b'><b>{_('store_install')}</b></span>")
                 
-        status_box.pack_start(status_label, False, False, 0)
+        right_box.pack_end(status_label, False, False, 0)
+        box.pack_start(right_box, False, False, 0)
         
-        box.pack_start(status_box, False, False, 0)
-        
-        # Add event box for click
-        event_box = Gtk.EventBox()
         event_box.add(box)
         event_box.connect("button-press-event", self._on_card_clicked, mod)
         
