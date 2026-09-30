@@ -142,10 +142,10 @@ class StoreView(Gtk.ScrolledWindow):
         else:
             if mod.get("is_new", False):
                 # Greenish background
-                bg_css = "box.card { background-color: rgba(16, 185, 129, 0.1) !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }"
+                bg_css = "box.card { background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); }"
             else:
                 # Grayish background
-                bg_css = "box.card { background-color: rgba(100, 116, 139, 0.05) !important; border: 1px solid rgba(100, 116, 139, 0.2) !important; }"
+                bg_css = "box.card { background-color: rgba(100, 116, 139, 0.05); border: 1px solid rgba(100, 116, 139, 0.2); }"
 
         # Card Container (Horizontal)
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=15)
