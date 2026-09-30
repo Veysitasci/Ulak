@@ -150,7 +150,10 @@ class StoreView(Gtk.ScrolledWindow):
         # Card Container (Horizontal)
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=15)
         box.get_style_context().add_class("card")
-        box.set_margin_all(8)
+        box.set_margin_top(8)
+        box.set_margin_bottom(8)
+        box.set_margin_start(8)
+        box.set_margin_end(8)
         
         if bg_css:
             provider = Gtk.CssProvider()

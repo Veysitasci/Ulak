@@ -143,7 +143,10 @@ class ToastService:
         lbl = Gtk.Label(label=message)
         lbl.set_line_wrap(True)
         lbl.set_xalign(0.0) # Left align text
-        lbl.set_margin_all(12)
+        lbl.set_margin_top(12)
+        lbl.set_margin_bottom(12)
+        lbl.set_margin_start(12)
+        lbl.set_margin_end(12)
         
         css = f"""
         * {{
