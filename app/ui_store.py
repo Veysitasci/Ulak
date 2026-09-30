@@ -174,9 +174,9 @@ class StoreView(Gtk.ScrolledWindow):
         return event_box
 
     def _on_card_clicked(self, widget, event, mod):
-        dialog = BentoDialog(title=_(mod["name_key"]), parent=self.get_toplevel(), icon_name=mod["icon"], default_width=380, default_height=290)
+        dialog = BentoDialog(title=_(mod["name_key"]), parent=self.get_toplevel(), icon_name=mod["icon"], default_width=380, default_height=320)
         dialog.add_bento_action_button("Kapat", Gtk.ResponseType.CANCEL, is_primary=False)
-        dialog.add_bento_action_button(_("store_launch") if mod["installed"] else _("store_install"), Gtk.ResponseType.OK, is_primary=True)
+        btn_action = dialog.add_bento_action_button(_("store_launch") if mod["installed"] else _("store_install"), Gtk.ResponseType.OK, is_primary=True)
         
         content = dialog.get_bento_content()
         content.set_spacing(12)
@@ -194,11 +194,69 @@ class StoreView(Gtk.ScrolledWindow):
         desc.set_justify(Gtk.Justification.CENTER)
         content.pack_start(desc, False, False, 0)
         
+        # Meta Info
+        meta_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=20)
+        meta_box.set_halign(Gtk.Align.CENTER)
+        meta_box.set_margin_top(10)
+        
+        lbl_size = Gtk.Label()
+        lbl_size.set_markup(f"<span foreground='#64748b' size='small'>Boyut: {mod.get('size', '2.4 MB')}</span>")
+        meta_box.pack_start(lbl_size, False, False, 0)
+        
+        lbl_date = Gtk.Label()
+        date_text = "Kurulma Zamanı: " + mod.get("installed_date", "Bilinmiyor") if mod["installed"] else "Güncellenme: " + mod.get("update_date", "Bugün")
+        lbl_date.set_markup(f"<span foreground='#64748b' size='small'>{date_text}</span>")
+        meta_box.pack_start(lbl_date, False, False, 0)
+        content.pack_start(meta_box, False, False, 0)
+        
+        # Progress Bar for installation
+        prog_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        prog_box.set_margin_top(15)
+        prog_lbl = Gtk.Label(label="Modül İndiriliyor...")
+        prog_lbl.set_halign(Gtk.Align.START)
+        prog_lbl.get_style_context().add_class("status-dot")
+        prog = Gtk.ProgressBar()
+        prog_box.pack_start(prog_lbl, False, False, 0)
+        prog_box.pack_start(prog, False, False, 0)
+        
         dialog.show_all()
+        
+        def _run_installation():
+            btn_action.set_sensitive(False)
+            content.pack_start(prog_box, False, False, 0)
+            prog_box.show_all()
+            
+            self.install_step = 0
+            
+            def _step():
+                self.install_step += 0.05
+                prog.set_fraction(self.install_step)
+                if self.install_step < 0.5:
+                    prog_lbl.set_label("Uzak sunucudan indiriliyor...")
+                elif self.install_step < 0.8:
+                    prog_lbl.set_label("Bağımlılıklar çözümleniyor...")
+                else:
+                    prog_lbl.set_label("Sisteme entegre ediliyor...")
+                    
+                if self.install_step >= 1.0:
+                    dialog.destroy()
+                    self.toast_service.show(f"{_(mod['name_key'])} başarıyla kuruldu!", type="success")
+                    # Fake install success, trigger refresh
+                    import os
+                    os.makedirs(os.path.expanduser(f"~/.local/share/ulak/modules/{mod['id']}"), exist_ok=True)
+                    self._on_refresh_clicked(None)
+                    return False
+                return True
+                
+            GLib.timeout_add(100, _step)
+        
         res = dialog.run()
         if res == Gtk.ResponseType.OK:
             if not mod["installed"]:
-                self.toast_service.show(f"{_(mod['name_key'])} {str(_('store_install_success'))}")
+                _run_installation()
+                return # Don't destroy dialog yet
             else:
-                self.toast_service.show(f"{_(mod['name_key'])} başlatılıyor...")
-        dialog.destroy()
+                self.toast_service.show(f"{_(mod['name_key'])} başlatılıyor...", type="info")
+                dialog.destroy()
+        else:
+            dialog.destroy()

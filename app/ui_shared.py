@@ -69,55 +69,99 @@ class Storage:
         self.save(data)
 
 
-# Toast Service for unified overlay messages
 class ToastService:
     def __init__(self, overlay):
         self.overlay = overlay
-        self._current_toast = None
         self.history = []
+        # Create a persistent VBox for stacking toasts on top right
+        self.toast_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.toast_container.set_halign(Gtk.Align.END)
+        self.toast_container.set_valign(Gtk.Align.START)
+        self.toast_container.set_margin_top(20)
+        self.toast_container.set_margin_end(20)
+        self.overlay.add_overlay(self.toast_container)
+        self.toast_container.show()
 
-    def show(self, message, timeout_ms=3000):
+    def show(self, message, type="info", timeout_ms=5000):
         import time
         ts = time.strftime("[%H:%M:%S]")
-        self.history.insert(0, f"{ts} {message}")
+        self.history.insert(0, f"{ts} [{type.upper()}] {message}")
         self.history = self.history[:50]
+
+        # Colors based on type
+        if type == "warning": 
+            bg_color = "#f59e0b" # Yellow
+            fg_color = "#ffffff"
+        elif type in ["error", "critical"]: 
+            bg_color = "#ef4444" # Red
+            fg_color = "#ffffff"
+        elif type == "success":
+            bg_color = "#10b981" # Green
+            fg_color = "#ffffff"
+        else: # info / normal
+            bg_color = "#34d399" # Light Green
+            fg_color = "#0f172a"
+
+        # Toast UI
+        toast_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         
-        if self._current_toast is not None:
-            self.overlay.remove(self._current_toast)
-            self._current_toast = None
-
-        toast_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        toast_box.get_style_context().add_class("toast-container")
-        toast_box.set_halign(Gtk.Align.CENTER)
-        toast_box.set_valign(Gtk.Align.END)
-        toast_box.set_margin_bottom(20)
-
+        # Message Label
         lbl = Gtk.Label(label=message)
-        toast_box.pack_start(lbl, True, True, 0)
-        toast_box.show_all()
-
-        self.overlay.add_overlay(toast_box)
-        self._current_toast = toast_box
-
-        # Auto remove
-        GLib.timeout_add(timeout_ms, self._hide_toast, toast_box)
+        lbl.set_margin_start(16)
+        lbl.set_margin_end(16)
+        lbl.set_margin_top(12)
+        lbl.set_margin_bottom(12)
         
-        # Desktop Fallback Notify (optional)
-        try:
-            import gi
-            gi.require_version('Notify', '0.7')
-            from gi.repository import Notify
-            if not Notify.is_initted():
-                Notify.init("Wireless Manager")
-            Notify.Notification.new("Wireless Manager", message, "network-wireless").show()
-        except:
-            pass
-
-    def _hide_toast(self, toast_box):
-        if self._current_toast == toast_box:
-            self.overlay.remove(toast_box)
-            self._current_toast = None
-        return False
+        # Applying color directly via CSS
+        css = f"""
+        * {{
+            background-color: {bg_color};
+            color: {fg_color};
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+        }}
+        """
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css.encode('utf-8'))
+        lbl.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        toast_box.pack_start(lbl, True, True, 0)
+        
+        # Progress Bar
+        prog = Gtk.ProgressBar()
+        prog.set_size_request(-1, 4)
+        prog_css = f"""
+        progressbar trough {{ min-height: 4px; background-color: rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; }}
+        progressbar progress {{ background-color: rgba(255,255,255,0.7); border-radius: 0 0 8px 8px; }}
+        """
+        p_provider = Gtk.CssProvider()
+        p_provider.load_from_data(prog_css.encode('utf-8'))
+        prog.get_style_context().add_provider(p_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        toast_box.pack_start(prog, False, False, 0)
+        
+        revealer = Gtk.Revealer()
+        revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
+        revealer.set_transition_duration(300)
+        revealer.add(toast_box)
+        revealer.show_all()
+        
+        self.toast_container.pack_start(revealer, False, False, 0)
+        
+        # Animate in
+        GLib.idle_add(revealer.set_reveal_child, True)
+        
+        start_time = time.time()
+        duration = timeout_ms / 1000.0
+        
+        def _update_prog():
+            elapsed = time.time() - start_time
+            if elapsed >= duration:
+                revealer.set_reveal_child(False)
+                GLib.timeout_add(300, lambda: self.toast_container.remove(revealer))
+                return False
+            prog.set_fraction(1.0 - (elapsed / duration))
+            return True
+            
+        GLib.timeout_add(30, _update_prog)
 
 storage = Storage()
 
