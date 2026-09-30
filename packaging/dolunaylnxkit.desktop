@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Dolunay LnxKit
+GenericName=Sistem ve Güvenlik Yöneticisi
+GenericName[en]=System & Security Manager
+Comment=Bluetooth, WiFi, Donanım ve Dolunay Güvenlik Duvarı Yöneticisi
+Comment[en]=Bluetooth, WiFi, Hardware & Dolunay Security Firewall Manager
+Exec=/home/veysitasci/WirelessManager/start.sh
+Icon=/home/veysitasci/WirelessManager/assets/dolunay_logo.png
+Path=/home/veysitasci/WirelessManager
+Terminal=false
+Categories=Network;Utility;System;Security;
+Keywords=wireless;bluetooth;wifi;firewall;network;hardware;dolunay;security;
+StartupNotify=true

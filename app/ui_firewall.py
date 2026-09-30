@@ -1,3 +1,4 @@
+import os
 import threading
 import gi
 
@@ -7,6 +8,7 @@ from gi.repository import Gtk, GLib, Gdk, Pango
 from i18n import _
 from api_firewall import fw_api
 from ui_shared import BentoDialog
+from antivirus_engine import av_engine
 
 class FirewallView(Gtk.Box):
     def __init__(self, toast_service):
@@ -169,21 +171,68 @@ class ShieldTab(Gtk.Box):
         
         # Segmented Filter-Chip Buttons (Termius Bento Style)
         sec_chips_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.radio_std = Gtk.RadioButton.new_with_label_from_widget(None, _("fw_security_standard"))
-        self.radio_high = Gtk.RadioButton.new_with_label_from_widget(self.radio_std, _("fw_security_high"))
-        self.radio_local = Gtk.RadioButton.new_with_label_from_widget(self.radio_std, _("fw_security_local"))
-        self.radio_paranoid = Gtk.RadioButton.new_with_label_from_widget(self.radio_std, _("fw_security_paranoid"))
+        self.radio_low = Gtk.RadioButton.new_with_label_from_widget(None, _("fw_security_low"))
+        self.radio_med = Gtk.RadioButton.new_with_label_from_widget(self.radio_low, _("fw_security_medium"))
+        self.radio_high = Gtk.RadioButton.new_with_label_from_widget(self.radio_low, _("fw_security_high"))
+        self.radio_paranoid = Gtk.RadioButton.new_with_label_from_widget(self.radio_low, _("fw_security_paranoid"))
         
-        self.sec_radios = [self.radio_std, self.radio_high, self.radio_local, self.radio_paranoid]
+        self.sec_radios = [self.radio_low, self.radio_med, self.radio_high, self.radio_paranoid]
         for r in self.sec_radios:
             r.set_mode(False)  # Remove raw yellow radio dot
             r.get_style_context().add_class("filter-chip")
-            r.connect("toggled", self.on_security_level_changed)
             sec_chips_box.pack_start(r, False, False, 0)
             
-        self.radio_std.set_active(True)
+        # Önceden kayıtlı seviyeyi sinyal tetiklemeden (sessizce) seç
+        saved_preset = fw_api.get_preset()
+        if saved_preset == "low":
+            self.radio_low.set_active(True)
+        elif saved_preset == "high":
+            self.radio_high.set_active(True)
+        elif saved_preset == "paranoid":
+            self.radio_paranoid.set_active(True)
+        else:
+            self.radio_med.set_active(True)
+
+        # Sinyalleri seçim yapıldıktan SONRA bağla (böylece açılışta kendi kendine açılmaz!)
+        for r in self.sec_radios:
+            r.connect("toggled", self.on_security_level_changed)
+
         sec_card.pack_start(sec_chips_box, False, False, 0)
         self.pack_start(sec_card, False, False, 0)
+
+        # 3. Derin Görsel & Dosya Antivirüs Ayrıştırıcısı (Bento Card)
+        scan_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        scan_card.get_style_context().add_class("card")
+        
+        scan_head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        sc_icon = Gtk.Image.new_from_icon_name("security-high-symbolic", Gtk.IconSize.LARGE_TOOLBAR)
+        sc_icon.set_pixel_size(24)
+        scan_head.pack_start(sc_icon, False, False, 0)
+        
+        sc_titles = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        lbl_sc_title = Gtk.Label(label=_("fw_scanner_title"))
+        lbl_sc_title.set_halign(Gtk.Align.START)
+        lbl_sc_title.get_style_context().add_class("device-name")
+        lbl_sc_desc = Gtk.Label(label=_("fw_scanner_desc"))
+        lbl_sc_desc.set_halign(Gtk.Align.START)
+        lbl_sc_desc.get_style_context().add_class("device-mac")
+        sc_titles.pack_start(lbl_sc_title, False, False, 0)
+        sc_titles.pack_start(lbl_sc_desc, False, False, 0)
+        scan_head.pack_start(sc_titles, True, True, 0)
+        
+        btn_scan = Gtk.Button(label=_("fw_scanner_btn"))
+        btn_scan.get_style_context().add_class("btn-secondary")
+        btn_scan.set_valign(Gtk.Align.CENTER)
+        btn_scan.connect("clicked", self._on_deep_scan_clicked)
+        scan_head.pack_end(btn_scan, False, False, 0)
+        scan_card.pack_start(scan_head, False, False, 0)
+
+        # Sonuç Alanı (Inline Sonuç Kartı)
+        self.scan_result_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.scan_result_box.set_no_show_all(True)
+        scan_card.pack_start(self.scan_result_box, False, False, 0)
+        
+        self.pack_start(scan_card, False, False, 0)
 
         # 3. Stats Row (Bento Metric Tiles)
         stats_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
@@ -263,26 +312,120 @@ class ShieldTab(Gtk.Box):
     def on_security_level_changed(self, button):
         if not button.get_active():
             return
-        level = "standard"
-        if self.radio_std.get_active(): level = "standard"
+        level = "medium"
+        if self.radio_low.get_active(): level = "low"
+        elif self.radio_med.get_active(): level = "medium"
         elif self.radio_high.get_active(): level = "high"
-        elif self.radio_local.get_active(): level = "local"
         elif self.radio_paranoid.get_active(): level = "paranoid"
         threading.Thread(target=self._do_set_level, args=(level,), daemon=True).start()
 
     def _do_set_level(self, level):
         try:
-            fw_api.set_security_level(level)
+            success, msg = fw_api.set_security_level(level)
             level_names = {
-                "standard": _("fw_security_standard"),
+                "low": _("fw_security_low"),
+                "medium": _("fw_security_medium"),
                 "high": _("fw_security_high"),
-                "local": _("fw_security_local"),
                 "paranoid": _("fw_security_paranoid")
             }
             display_name = level_names.get(level, level.capitalize())
             GLib.idle_add(self.toast_service.show, f"Güvenlik seviyesi: {display_name}")
         except Exception:
             pass
+
+    def _on_deep_scan_clicked(self, btn):
+        dialog = Gtk.FileChooserDialog(
+            title=_("fw_scanner_btn"),
+            parent=self.get_toplevel(),
+            action=Gtk.FileChooserAction.OPEN
+        )
+        dialog.add_button("İptal", Gtk.ResponseType.CANCEL)
+        dialog.add_button("Parçala ve Tara", Gtk.ResponseType.OK)
+        
+        filter_img = Gtk.FileFilter()
+        filter_img.set_name("Görseller (PNG, JPG, SVG, GIF)")
+        filter_img.add_mime_type("image/png")
+        filter_img.add_mime_type("image/jpeg")
+        filter_img.add_mime_type("image/svg+xml")
+        filter_img.add_mime_type("image/gif")
+        filter_img.add_pattern("*.png")
+        filter_img.add_pattern("*.jpg")
+        filter_img.add_pattern("*.jpeg")
+        filter_img.add_pattern("*.svg")
+        filter_img.add_pattern("*.gif")
+        dialog.add_filter(filter_img)
+
+        filter_all = Gtk.FileFilter()
+        filter_all.set_name("Tüm Dosyalar")
+        filter_all.add_pattern("*")
+        dialog.add_filter(filter_all)
+
+        res = dialog.run()
+        selected_file = dialog.get_filename() if res == Gtk.ResponseType.OK else None
+        dialog.destroy()
+
+        if selected_file:
+            self.toast_service.show(f"Parçalanıyor: {os.path.basename(selected_file)}...")
+            threading.Thread(target=self._run_file_dissection, args=(selected_file,), daemon=True).start()
+
+    def _run_file_dissection(self, filepath):
+        report = av_engine.scan_file(filepath)
+        GLib.idle_add(self._display_scan_report, report)
+
+    def _display_scan_report(self, report):
+        for child in self.scan_result_box.get_children():
+            self.scan_result_box.remove(child)
+
+        self.scan_result_box.set_no_show_all(False)
+        self.scan_result_box.show()
+
+        res_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        res_card.get_style_context().add_class("terminal-container")
+        res_card.set_margin_top(4)
+
+        top_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        lbl_file = Gtk.Label(label=f"📄 {report.get('filename', '')} ({report.get('detected_format', '')}, {report.get('file_size', 0)} bayt, Entropi: {report.get('entropy', 0)})")
+        lbl_file.get_style_context().add_class("terminal-header")
+        lbl_file.set_halign(Gtk.Align.START)
+        top_row.pack_start(lbl_file, True, True, 0)
+
+        lbl_badge = Gtk.Label(label=f"● {report.get('verdict', '')}")
+        lbl_badge.get_style_context().add_class("terminal-status-badge")
+        top_row.pack_end(lbl_badge, False, False, 0)
+        res_card.pack_start(top_row, False, False, 0)
+
+        dissect = report.get("dissection", {})
+        if dissect:
+            fmt = dissect.get("format", "Bilinmeyen")
+            chunks_str = ", ".join(dissect.get("chunks", [])) or ", ".join(dissect.get("segments", [])) or "Standart veri akışı"
+            lbl_chunks = Gtk.Label(label=f"🧩 Ayrıştırılan Bloklar ({fmt}): {chunks_str}")
+            lbl_chunks.get_style_context().add_class("device-mac")
+            lbl_chunks.set_halign(Gtk.Align.START)
+            res_card.pack_start(lbl_chunks, False, False, 0)
+
+        threats = report.get("threats", [])
+        if not threats:
+            lbl_clean = Gtk.Label(label="✓ Kod ve bayt analizi tamamlandı. Herhangi bir steganografi, web shell veya zararlı kod bulunamadı.")
+            lbl_clean.get_style_context().add_class("terminal-empty")
+            lbl_clean.set_halign(Gtk.Align.START)
+            res_card.pack_start(lbl_clean, False, False, 0)
+        else:
+            for t in threats:
+                row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+                lbl_warn = Gtk.Label(label=f"⚠️ [{t.get('severity', 'WARN')}] {t.get('description', '')}")
+                lbl_warn.get_style_context().add_class("terminal-line")
+                lbl_warn.set_halign(Gtk.Align.START)
+                lbl_warn.set_line_wrap(True)
+                row.pack_start(lbl_warn, True, True, 0)
+                res_card.pack_start(row, False, False, 0)
+
+        self.scan_result_box.pack_start(res_card, True, True, 0)
+        self.scan_result_box.show_all()
+
+        if threats:
+            self.toast_service.show(f"🚨 ZARARLI KOD BULUNDU: {len(threats)} tehdit tespit edildi!")
+        else:
+            self.toast_service.show(f"✓ {report.get('filename', '')} temiz — zararlı kod yok.")
 
     def on_auto_refresh(self):
         self.refresh_data()

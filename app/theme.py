@@ -445,15 +445,15 @@ class ThemeManager:
             border-color: #424b69; 
         }
 
-        /* Pixel-Perfect Apple/Fluent Toggle Switches (Dark Mode) */
+        /* Pixel-Perfect Sleek Toggle Switches (Dark Mode) */
         switch,
         switch:backdrop,
         switch:hover,
         switch:disabled {
             font-size: 0;
-            min-width: 44px;
-            min-height: 24px;
-            border-radius: 12px;
+            min-width: 38px;
+            min-height: 20px;
+            border-radius: 10px;
             background-color: #252b3d;
             border: 1px solid #38425d;
             outline: none;
@@ -464,16 +464,16 @@ class ThemeManager:
         switch:checked,
         switch:checked:hover,
         switch:checked:backdrop {
-            background-color: #ffffff;
-            border-color: #ffffff;
+            background-color: #3b4461;
+            border-color: #525d82;
             background-image: none;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
         }
         switch slider,
         switch:hover slider,
         switch:backdrop slider {
-            min-width: 18px;
-            min-height: 18px;
+            min-width: 14px;
+            min-height: 14px;
             margin: 2px;
             border-radius: 50%;
             background-color: #8e95a5;
@@ -487,10 +487,10 @@ class ThemeManager:
         switch:checked:hover slider,
         switch:checked:backdrop slider,
         switch:checked > slider {
-            background-color: #11131c;
-            border: 1px solid #11131c;
+            background-color: #ffffff;
+            border: 1px solid #ffffff;
             background-image: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
         }
 
         entry, spinbutton, combobox {
@@ -1232,15 +1232,15 @@ class ThemeManager:
             background-image: none;
         }
 
-        /* Global Bento Toggle Switches (Light Mode) */
+        /* Global Bento Sleek Toggle Switches (Light Mode) */
         switch,
         switch:backdrop,
         switch:hover,
         switch:disabled {
             font-size: 0;
-            min-width: 44px;
-            min-height: 24px;
-            border-radius: 12px;
+            min-width: 38px;
+            min-height: 20px;
+            border-radius: 10px;
             background-color: #e2e8f0;
             border: 1px solid #cbd5e1;
             outline: none;
@@ -1259,8 +1259,8 @@ class ThemeManager:
         switch slider,
         switch:hover slider,
         switch:backdrop slider {
-            min-width: 18px;
-            min-height: 18px;
+            min-width: 14px;
+            min-height: 14px;
             margin: 2px;
             border-radius: 50%;
             background-color: #ffffff;

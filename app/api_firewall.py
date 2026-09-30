@@ -6,6 +6,8 @@ import time
 import re
 import psutil
 
+from antivirus_engine import av_engine
+
 CONFIG_DIR = pathlib.Path(os.path.expanduser("~/.config/dolunay"))
 CONFIG_FILE = CONFIG_DIR / "firewall.json"
 
@@ -22,7 +24,7 @@ class DolunayFirewall:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         if not CONFIG_FILE.exists():
             with open(CONFIG_FILE, "w") as f:
-                json.dump({"whitelist": []}, f)
+                json.dump({"whitelist": [], "enabled": False, "preset": "medium"}, f)
 
     def _load_config(self):
         """Yapılandırmayı yükler."""
@@ -30,7 +32,7 @@ class DolunayFirewall:
             with open(CONFIG_FILE, "r") as f:
                 return json.load(f)
         except Exception:
-            return {"whitelist": []}
+            return {"whitelist": [], "enabled": False, "preset": "medium"}
 
     def _save_config(self, data):
         """Yapılandırmayı kaydeder."""
@@ -43,25 +45,29 @@ class DolunayFirewall:
     def is_enabled(self) -> bool:
         """Güvenlik duvarının etkin olup olmadığını kontrol eder."""
         conf = self._load_config()
-        # Eğer config'de kayıtlı ise öncelikle oradan doğrula
-        if conf.get("enabled", False):
-            return True
-        try:
-            res = subprocess.run(["nft", "list", "table", "inet", "dolunay_fw"], capture_output=True, text=True, shell=False)
-            if res.returncode == 0:
-                conf["enabled"] = True
-                self._save_config(conf)
-                return True
-        except Exception:
-            pass
-        return False
+        return conf.get("enabled", False)
+
+    def get_preset(self) -> str:
+        """Kayıtlı güvenlik seviyesini döndürür."""
+        conf = self._load_config()
+        return conf.get("preset", "medium")
 
     def enable_firewall(self) -> tuple:
-        """Güvenlik duvarını etkinleştirir. Standart kuralları tek seferde atomik oluşturur."""
-        return self.apply_preset("standard")
+        """Güvenlik duvarını kullanıcı talebiyle etkinleştirir."""
+        conf = self._load_config()
+        preset = conf.get("preset", "medium")
+        success, msg = self._apply_ruleset(preset)
+        if success:
+            conf["enabled"] = True
+            self._save_config(conf)
+            if preset in ("high", "paranoid"):
+                av_engine.start_download_watcher()
+            return True, f"Güvenlik duvarı etkinleştirildi ({preset.capitalize()} Seviyesi)."
+        return False, msg
 
     def disable_firewall(self) -> tuple:
         """Güvenlik duvarını devre dışı bırakır."""
+        av_engine.stop_download_watcher()
         try:
             res = subprocess.run(["pkexec", "nft", "delete", "table", "inet", "dolunay_fw"], capture_output=True, text=True, shell=False)
             conf = self._load_config()
@@ -188,23 +194,43 @@ class DolunayFirewall:
             return False, str(e)
 
     def apply_preset(self, preset_name: str) -> tuple:
-        """Önceden tanımlanmış kural setlerinden birini tek atomik işlemde uygular."""
-        p = preset_name.lower().strip()
-        if p in ("low", "minimal"):
-            p = "minimal"
-        elif p in ("medium", "standard"):
-            p = "standard"
-        elif p in ("high", "strict"):
-            p = "high"
-        elif p in ("local", "lan"):
-            p = "local"
-        elif p in ("paranoid", "isolation", "airgap"):
-            p = "paranoid"
-        else:
-            return False, f"Bilinmeyen preset adı: {preset_name}"
+        """
+        Önceden tanımlanmış kural setlerinden birini seçer veya uygular.
+        Eğer güvenlik duvarı kapalıysa SADECE konfigürasyona kaydeder, firewall'u ASLA kendiliğinden açmaz!
+        """
+        p = self._normalize_preset(preset_name)
+        conf = self._load_config()
+        conf["preset"] = p
+        self._save_config(conf)
 
+        if not self.is_enabled():
+            return True, f"{p.capitalize()} seviyesi seçildi (Güvenlik duvarı açıldığında devreye girecek)."
+
+        success, msg = self._apply_ruleset(p)
+        if p in ("high", "paranoid"):
+            av_engine.start_download_watcher()
+        else:
+            av_engine.stop_download_watcher()
+        return success, msg
+
+    def _normalize_preset(self, preset_name: str) -> str:
+        p = preset_name.lower().strip()
+        if p in ("low", "minimal", "dusuk", "düşük"):
+            return "low"
+        elif p in ("medium", "standard", "orta", "standart"):
+            return "medium"
+        elif p in ("high", "strict", "yuksek", "yüksek"):
+            return "high"
+        elif p in ("paranoid", "isolation", "airgap", "izolasyon"):
+            return "paranoid"
+        elif p in ("local", "lan", "yerel"):
+            return "local"
+        return "medium"
+
+    def _apply_ruleset(self, p: str) -> tuple:
+        """Belirtilen seviyenin nftables kurallarını tek bir atomik işlemde yükler."""
         if p == "paranoid":
-            # Air-Gap / İzolasyon: PC tamamen yerel ve çevrimdışı. Sıfır dış bağlantı (yalnızca 127.0.0.1 lo).
+            # Paranoid: %100 Air-Gap İzolasyonu (Yalnızca 127.0.0.1 lo serbest, tüm dış ağ kilitli)
             ruleset = """
 table inet dolunay_fw {
     chain input_filter {
@@ -217,8 +243,41 @@ table inet dolunay_fw {
     }
 }
 """
+        elif p == "high":
+            # Yüksek Seviye: Sıkı Web (80/443), DNS (53), DHCP, NTP (123) + Hacker/Tarama Koruması
+            ruleset = """
+table inet dolunay_fw {
+    chain input_filter {
+        type filter hook input priority 0; policy drop;
+        iifname "lo" accept
+        ct state established,related accept
+        ct state invalid drop
+        tcp flags syn / fin,syn,rst,ack limit rate 25/second burst 50 packets accept
+        icmp type echo-request limit rate 2/second accept
+        tcp dport { 23, 135, 139, 445, 3389, 5900 } drop
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+        udp sport 67 udp dport 68 accept
+        udp sport 547 udp dport 546 accept
+        udp sport 53 accept
+    }
+    chain output_filter {
+        type filter hook output priority 0; policy drop;
+        oifname "lo" accept
+        ct state established,related accept
+        tcp dport { 80, 443 } accept
+        udp dport 53 accept
+        tcp dport 53 accept
+        udp sport 68 udp dport 67 accept
+        udp sport 546 udp dport 547 accept
+        udp dport 123 accept
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+    }
+}
+"""
         elif p == "local":
-            # Tam Yerel (LAN): İnternet (WAN) tamamen kapalı. Yalnızca ev/ofis yerel ağı ve localhost serbest.
+            # Tam Yerel (LAN): Sadece yerel ağ IP blokları ve localhost serbest
             ruleset = """
 table inet dolunay_fw {
     chain input_filter {
@@ -245,41 +304,15 @@ table inet dolunay_fw {
     }
 }
 """
-        elif p == "high":
-            # Gelişmiş / Sıkı Web: Yalnızca HTTP (80), HTTPS (443), DNS (53) ve DHCP serbest.
+        elif p == "low":
+            # Düşük Seviye: Temel ağ koruması (İnternet ve yerel ağ sınırsız açık)
             ruleset = """
 table inet dolunay_fw {
     chain input_filter {
         type filter hook input priority 0; policy drop;
         iifname "lo" accept
         ct state established,related accept
-        meta l4proto icmp accept
-        meta l4proto ipv6-icmp accept
-        udp sport 67 udp dport 68 accept
-        udp sport 547 udp dport 546 accept
-    }
-    chain output_filter {
-        type filter hook output priority 0; policy drop;
-        oifname "lo" accept
-        ct state established,related accept
-        tcp dport { 80, 443 } accept
-        udp dport 53 accept
-        tcp dport 53 accept
-        udp sport 68 udp dport 67 accept
-        udp sport 546 udp dport 547 accept
-        meta l4proto icmp accept
-        meta l4proto ipv6-icmp accept
-    }
-}
-"""
-        elif p == "standard":
-            # Standart: Gelen saldırılar engellenir. İnternet ve yerel ağ kesintisiz çalışır (asla kopmaz).
-            ruleset = """
-table inet dolunay_fw {
-    chain input_filter {
-        type filter hook input priority 0; policy drop;
-        iifname "lo" accept
-        ct state established,related accept
+        ct state invalid drop
         meta l4proto icmp accept
         meta l4proto ipv6-icmp accept
         udp sport 67 udp dport 68 accept
@@ -291,12 +324,22 @@ table inet dolunay_fw {
     }
 }
 """
-        else: # minimal
+        else: # medium (Orta - Standart Hacker & Port Scan Koruması)
             ruleset = """
 table inet dolunay_fw {
     chain input_filter {
-        type filter hook input priority 0; policy accept;
+        type filter hook input priority 0; policy drop;
         iifname "lo" accept
+        ct state established,related accept
+        ct state invalid drop
+        tcp flags syn / fin,syn,rst,ack limit rate 25/second burst 50 packets accept
+        icmp type echo-request limit rate 2/second accept
+        tcp dport { 23, 135, 139, 445, 3389, 5900 } drop
+        meta l4proto icmp accept
+        meta l4proto ipv6-icmp accept
+        udp sport 67 udp dport 68 accept
+        udp sport 547 udp dport 546 accept
+        udp sport 53 accept
     }
     chain output_filter {
         type filter hook output priority 0; policy accept;
@@ -306,11 +349,7 @@ table inet dolunay_fw {
         try:
             res = subprocess.run(["pkexec", "nft", "-f", "-"], input=ruleset, capture_output=True, text=True, shell=False)
             if res.returncode == 0:
-                conf = self._load_config()
-                conf["enabled"] = True
-                conf["preset"] = p
-                self._save_config(conf)
-                return True, f"{p} profili başarıyla uygulandı."
+                return True, f"{p.capitalize()} seviyesi başarıyla uygulandı."
             return False, f"Hata: {res.stderr}"
         except subprocess.CalledProcessError as e:
             return False, f"Hata oluştu: {e.stderr}"

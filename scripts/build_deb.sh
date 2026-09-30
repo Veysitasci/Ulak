@@ -15,6 +15,7 @@ rm -rf "$BUILD_ROOT"
 mkdir -p "$BUILD_ROOT/DEBIAN" \
          "$BUILD_ROOT/usr/bin" \
          "$BUILD_ROOT/usr/share/applications" \
+         "$BUILD_ROOT/usr/share/pixmaps" \
          "$BUILD_ROOT/usr/share/icons/hicolor/512x512/apps" \
          "$APP_LIB_DIR/assets" \
          "$DIST_DIR"
@@ -49,6 +50,21 @@ fi
 if ! getent group ulak-noproxy >/dev/null 2>&1; then
     groupadd -r ulak-noproxy || true
 fi
+
+# Add shortcut to active user desktop if available
+for user_home in /home/*; do
+    if [[ -d "$user_home" ]]; then
+        uname=$(basename "$user_home")
+        for desk in "$user_home/Masaüstü" "$user_home/Desktop"; do
+            if [[ -d "$desk" ]]; then
+                cp -f /usr/share/applications/ulak.desktop "$desk/ULAK.desktop" 2>/dev/null || true
+                chmod +x "$desk/ULAK.desktop" 2>/dev/null || true
+                chown "$uname:$uname" "$desk/ULAK.desktop" 2>/dev/null || true
+            fi
+        done
+    fi
+done
+
 exit 0
 POSTINST_EOF
 chmod 0755 "$BUILD_ROOT/DEBIAN/postinst"
@@ -98,6 +114,7 @@ if [[ ! -f "$ICON_SRC" ]]; then
 fi
 if [[ -f "$ICON_SRC" ]]; then
     install -m 0644 "$ICON_SRC" "$BUILD_ROOT/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png"
+    install -m 0644 "$ICON_SRC" "$BUILD_ROOT/usr/share/pixmaps/${APP_NAME}.png"
 fi
 
 # 9. Build Debian Package
