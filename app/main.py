@@ -5,6 +5,10 @@ from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
 import os
 import socket
 import psutil
+import sys
+app_dir = os.path.dirname(os.path.abspath(__file__))
+if app_dir not in sys.path:
+    sys.path.insert(0, app_dir)
 
 from i18n import _, i18n_instance
 from theme import theme_mgr
@@ -117,6 +121,9 @@ class WirelessManagerWindow(Gtk.Window):
 
         self.settings_view = SettingsView(self.toast_service)
         self.stack.add_named(self.settings_view, "settings")
+
+        # Load any installed external modules into stack immediately
+        self._load_external_module_views()
 
         body_box.pack_start(self.stack, True, True, 0)
 
@@ -404,6 +411,32 @@ class WirelessManagerWindow(Gtk.Window):
         
         btn_settings = create_nav_btn("emblem-system-symbolic", _("settings"), "settings")
         self.sidebar_bottom_box.pack_start(btn_settings, False, False, 0)
+
+    def _load_external_module_views(self):
+        import os, json, importlib
+        modules_dir = os.path.expanduser("~/.local/share/ulak/modules")
+        if os.path.exists(modules_dir):
+            for d in os.listdir(modules_dir):
+                man_path = os.path.join(modules_dir, d, "manifest.json")
+                if os.path.exists(man_path):
+                    try:
+                        with open(man_path, "r") as f:
+                            man = json.load(f)
+                        mod_id = man.get("id")
+                        if mod_id and self.stack.get_child_by_name(mod_id) is None:
+                            mod_name = f"ui_{mod_id}"
+                            module = importlib.import_module(mod_name)
+                            view_class = None
+                            for attr_name in dir(module):
+                                attr = getattr(module, attr_name)
+                                if isinstance(attr, type) and issubclass(attr, Gtk.Widget) and attr_name.endswith("View"):
+                                    view_class = attr
+                                    break
+                            if view_class:
+                                view_instance = view_class(self.toast_service)
+                                self.stack.add_named(view_instance, mod_id)
+                    except Exception as e:
+                        print(f"Error loading external view {d}:", e)
 
     def _build_footer(self, parent):
         footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
