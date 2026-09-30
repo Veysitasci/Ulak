@@ -502,15 +502,35 @@ class UlakSplashScreen(Gtk.Window):
         
         self.step = 0
         self.steps = [
-            (0.30, "Ağ servisleri ve Wi-Fi denetleniyor..."),
-            (0.60, "Ulak Kalkan güvenlik motoru yükleniyor..."),
-            (0.85, "Yetkiler ve donanım doğrulanıyor..."),
+            (0.20, "Güncellemeler kontrol ediliyor..."),
+            (0.40, "Ağ servisleri ve Wi-Fi denetleniyor..."),
+            (0.70, "Ulak Kalkan güvenlik motoru yükleniyor..."),
+            (0.90, "Yetkiler ve donanım doğrulanıyor..."),
             (1.00, "Hazır. ULAK açılıyor..."),
         ]
         GLib.timeout_add(320, self._step_forward)
         
     def _step_forward(self):
-        if self.step < len(self.steps):
+        if self.step == 0:
+            # Check updates on the first step
+            from updater import Updater
+            frac, text = self.steps[self.step]
+            self.prog.set_fraction(frac)
+            self.status_lbl.set_label(text)
+            
+            def on_update_checked(has_update, version, deb_url):
+                if has_update and deb_url:
+                    self.status_lbl.set_label(f"Yeni sürüm ({version}) bulundu! Yükleniyor...")
+                    Updater.apply_update(deb_url, lambda msg: self.status_lbl.set_label(msg))
+                    # We wait here, app will restart. If it fails, we just continue.
+                else:
+                    self.step += 1
+                    GLib.timeout_add(320, self._step_forward)
+                    
+            Updater.check_for_updates(on_update_checked)
+            return False # Stop timer, wait for callback
+            
+        elif self.step < len(self.steps):
             frac, text = self.steps[self.step]
             self.prog.set_fraction(frac)
             self.status_lbl.set_label(text)

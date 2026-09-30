@@ -50,18 +50,55 @@ class StoreView(Gtk.ScrolledWindow):
         self._load_modules()
         
     def _load_modules(self):
-        # We define a static list of modules.
-        modules = [
+        # Base modules that come pre-installed
+        self.base_modules = [
             {"id": "firewall", "name_key": "module_firewall", "desc_key": "module_firewall_desc", "icon": "security-high-symbolic", "installed": True},
             {"id": "hw", "name_key": "module_hw", "desc_key": "module_hw_desc", "icon": "computer-symbolic", "installed": True},
             {"id": "bt", "name_key": "module_bt", "desc_key": "module_bt_desc", "icon": "bluetooth-symbolic", "installed": True},
             {"id": "wifi", "name_key": "module_wifi", "desc_key": "module_wifi_desc", "icon": "network-wireless-symbolic", "installed": True},
-            {"id": "admin", "name_key": "module_admin", "desc_key": "module_admin_desc", "icon": "preferences-system-symbolic", "installed": True},
-            {"id": "youtube", "name_key": "module_youtube", "desc_key": "module_youtube_desc", "icon": "video-display-symbolic", "installed": False},
-            {"id": "quran", "name_key": "module_quran", "desc_key": "module_quran_desc", "icon": "accessories-dictionary-symbolic", "installed": False},
-            {"id": "fikir", "name_key": "module_fikir", "desc_key": "module_fikir_desc", "icon": "utilities-system-monitor-symbolic", "installed": False}
+            {"id": "admin", "name_key": "module_admin", "desc_key": "module_admin_desc", "icon": "preferences-system-symbolic", "installed": True}
         ]
         
+        self._render_modules(self.base_modules)
+        
+        # Async fetch remote modules from GitHub
+        import threading
+        threading.Thread(target=self._fetch_remote_modules, daemon=True).start()
+
+    def _fetch_remote_modules(self):
+        import urllib.request
+        import json
+        import os
+        url = "https://raw.githubusercontent.com/Veysitasci/ulak/main/modules.json"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "ULAK-Store"})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                
+                # Check installed status for remote modules (e.g. checking if a file/dir exists)
+                # We'll just assume they are installed if a specific file exists in ~/.local/share/ulak/modules/
+                for mod in data:
+                    mod_path = os.path.expanduser(f"~/.local/share/ulak/modules/{mod['id']}")
+                    mod["installed"] = os.path.exists(mod_path)
+                    
+                GLib.idle_add(self._on_remote_modules_fetched, data)
+        except Exception as e:
+            print("Could not fetch remote modules:", e)
+
+    def _on_remote_modules_fetched(self, remote_modules):
+        # Render only new ones
+        existing_ids = [m["id"] for m in self.base_modules]
+        for mod in remote_modules:
+            if mod["id"] not in existing_ids:
+                card = self._create_module_card(mod)
+                self.flowbox.add(card)
+        self.flowbox.show_all()
+
+    def _render_modules(self, modules):
+        # Clear existing
+        for child in self.flowbox.get_children():
+            self.flowbox.remove(child)
+            
         for mod in modules:
             card = self._create_module_card(mod)
             self.flowbox.add(card)

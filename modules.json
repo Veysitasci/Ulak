@@ -1,0 +1,14 @@
+[
+    {
+        "id": "youtube",
+        "name_key": "YouTube Downloader",
+        "desc_key": "YouTube'dan video indirmenizi sağlar.",
+        "icon": "video-display-symbolic"
+    },
+    {
+        "id": "quran",
+        "name_key": "Kuran API",
+        "desc_key": "Kuran-ı Kerim API modülü.",
+        "icon": "accessories-dictionary-symbolic"
+    }
+]
