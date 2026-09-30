@@ -181,7 +181,8 @@ class HardwareView(Gtk.Box):
         insights_sub.set_margin_bottom(6)
         insights_box.pack_start(insights_sub, False, False, 0)
 
-        insights_grid = Gtk.Grid(column_spacing=10, row_spacing=10)
+        insights_grid = Gtk.Grid(column_spacing=12, row_spacing=12)
+        insights_grid.set_column_homogeneous(True)
 
         net_card, self.net_main_lbl, self.net_sub_lbl = self._create_metric_tile("network-wireless-signal-excellent-symbolic", _("hw_net_speed"))
         freq_card, self.freq_main_lbl, self.freq_sub_lbl = self._create_metric_tile("cpu-symbolic", _("hw_cpu_freq"))
@@ -284,18 +285,12 @@ class HardwareView(Gtk.Box):
         top_row.pack_end(progress_bar, False, False, 0)
 
         if get_details_func:
-            arrow_lbl = Gtk.Label(label="▼")
-            arrow_lbl.get_style_context().add_class("dim-label")
-            arrow_lbl.set_valign(Gtk.Align.CENTER)
-            arrow_lbl.set_margin_end(6)
-            top_row.pack_end(arrow_lbl, False, False, 0)
-
             details_revealer = Gtk.Revealer()
             details_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
             details_revealer.set_transition_duration(250)
             
-            det_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-            det_box.set_margin_top(4)
+            det_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            det_box.set_margin_top(6)
             det_box.set_margin_start(16)
             det_box.set_margin_end(16)
             det_box.set_margin_bottom(12)
@@ -322,10 +317,8 @@ class HardwareView(Gtk.Box):
                     det_box.pack_start(grid, False, False, 0)
                     det_box.show_all()
                     details_revealer.set_reveal_child(True)
-                    arrow_lbl.set_label("▲")
                 else:
                     details_revealer.set_reveal_child(False)
-                    arrow_lbl.set_label("▼")
 
             ev_box.connect("button-press-event", lambda w, e: toggle_details())
             ev_box.add(top_row)
@@ -389,56 +382,124 @@ class HardwareView(Gtk.Box):
         return vbox
 
     def _create_terminal_tab(self, notebook, label, command):
-        tv = Gtk.TextView()
-        tv.set_editable(False)
-        tv.set_cursor_visible(False)
-        tv.set_wrap_mode(Gtk.WrapMode.NONE)
-        tv.set_left_margin(10)
-        tv.set_top_margin(10)
-        tv.get_style_context().add_class("log-view")
-        
         scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_size_request(-1, 300)
-        scroll.add(tv)
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_size_request(-1, 280)
         
-        lbl = Gtk.Label(label=label)
-        notebook.append_page(scroll, lbl)
+        container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        container.set_margin_top(12)
+        container.set_margin_bottom(12)
+        container.set_margin_start(12)
+        container.set_margin_end(12)
+        scroll.add(container)
         
-        # Async execution
+        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        cmd_title = Gtk.Label(label=label)
+        cmd_title.get_style_context().add_class("device-name")
+        header_box.pack_start(cmd_title, False, False, 0)
+        
+        badge = Gtk.Label(label="Yükleniyor...")
+        badge.set_margin_start(8)
+        header_box.pack_start(badge, False, False, 0)
+        container.pack_start(header_box, False, False, 0)
+
+        list_box = Gtk.ListBox()
+        list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        list_box.get_style_context().add_class("card")
+        container.pack_start(list_box, True, True, 0)
+        
+        lbl_tab = Gtk.Label(label=label.split()[0])
+        notebook.append_page(scroll, lbl_tab)
+        
         def run_cmd():
             try:
-                # Use a small timeout for safety
                 output = subprocess.getoutput(command)
-                GLib.idle_add(tv.get_buffer().set_text, output)
+                lines = [l for l in output.splitlines() if l.strip()]
+                
+                def update_ui():
+                    badge.set_markup("<span foreground='#10b981' font_weight='bold'>● Aktif</span>")
+                    for line in lines[:50]:
+                        row = Gtk.ListBoxRow()
+                        rbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+                        rbox.set_margin_top(6)
+                        rbox.set_margin_bottom(6)
+                        rbox.set_margin_start(10)
+                        rbox.set_margin_end(10)
+                        
+                        low_line = line.lower()
+                        dot = "•"
+                        color = "#94a3b8"
+                        if "running" in low_line or "active" in low_line or "up" in low_line:
+                            color = "#10b981"
+                        elif "failed" in low_line or "error" in low_line or "dead" in low_line or "inactive" in low_line or "down" in low_line:
+                            color = "#ef4444"
+                        elif "waiting" in low_line or "warning" in low_line:
+                            color = "#eab308"
+                            
+                        dot_lbl = Gtk.Label()
+                        dot_lbl.set_markup(f"<span foreground='{color}'>{dot}</span>")
+                        rbox.pack_start(dot_lbl, False, False, 0)
+                        
+                        txt_lbl = Gtk.Label(label=line)
+                        txt_lbl.set_halign(Gtk.Align.START)
+                        txt_lbl.set_line_wrap(True)
+                        txt_lbl.set_selectable(True)
+                        rbox.pack_start(txt_lbl, True, True, 0)
+                        
+                        row.add(rbox)
+                        list_box.add(row)
+                    list_box.show_all()
+                    
+                GLib.idle_add(update_ui)
             except Exception as e:
-                GLib.idle_add(tv.get_buffer().set_text, str(e))
+                def show_err():
+                    badge.set_markup("<span foreground='#ef4444' font_weight='bold'>● Başarısız</span>")
+                    err_lbl = Gtk.Label(label=str(e))
+                    list_box.add(err_lbl)
+                    list_box.show_all()
+                GLib.idle_add(show_err)
                 
         threading.Thread(target=run_cmd, daemon=True).start()
 
     def _create_metric_tile(self, icon_name, title):
-        tile = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        tile.get_style_context().add_class("hw-metric-card")
+        tile = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        tile.get_style_context().add_class("card")
+        tile.set_size_request(240, 95)
+        tile.set_margin_top(4)
+        tile.set_margin_bottom(4)
+        tile.set_margin_start(4)
+        tile.set_margin_end(4)
 
         top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        top.set_margin_top(8)
+        top.set_margin_start(10)
+        top.set_margin_end(10)
         icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.BUTTON)
         title_lbl = Gtk.Label(label=title)
-        title_lbl.get_style_context().add_class("header-sub")
+        title_lbl.get_style_context().add_class("dim-label")
         title_lbl.set_halign(Gtk.Align.START)
         top.pack_start(icon, False, False, 0)
         top.pack_start(title_lbl, False, False, 0)
 
-        main_lbl = Gtk.Label(label="-")
-        main_lbl.get_style_context().add_class("hw-metric-main")
+        main_lbl = Gtk.Label(label="--")
+        main_lbl.get_style_context().add_class("device-name")
         main_lbl.set_halign(Gtk.Align.START)
+        main_lbl.set_margin_start(10)
+        main_lbl.set_margin_end(10)
+        main_lbl.set_ellipsize(Pango.EllipsizeMode.END)
 
-        sub_lbl = Gtk.Label(label="")
+        sub_lbl = Gtk.Label(label="--")
         sub_lbl.get_style_context().add_class("header-sub")
         sub_lbl.set_halign(Gtk.Align.START)
+        sub_lbl.set_margin_start(10)
+        sub_lbl.set_margin_end(10)
+        sub_lbl.set_margin_bottom(8)
+        sub_lbl.set_ellipsize(Pango.EllipsizeMode.END)
 
         tile.pack_start(top, False, False, 0)
         tile.pack_start(main_lbl, False, False, 0)
         tile.pack_start(sub_lbl, False, False, 0)
+
         return tile, main_lbl, sub_lbl
 
     def _make_prop_label(self, text):
