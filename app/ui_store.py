@@ -146,10 +146,22 @@ class StoreView(Gtk.ScrolledWindow):
         
         status_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         status_box.set_halign(Gtk.Align.CENTER)
-        status_label = Gtk.Label(label=_("store_installed") if mod["installed"] else _("store_install"))
-        status_label.get_style_context().add_class("status-tag")
+        status_label = Gtk.Label()
+        
         if mod["installed"]:
-            status_label.get_style_context().add_class("status-connected")
+            status_text = _("store_installed")
+            # Default theme color (White in dark mode, Dark in light mode)
+            status_label.set_markup(f"<b>{status_text}</b>")
+        else:
+            if mod.get("is_new", False):
+                status_text = "✨ YENİ GELDİ (KUR)"
+                # Green color for newly added
+                status_label.set_markup(f"<span foreground='#10b981'><b>{status_text}</b></span>")
+            else:
+                status_text = _("store_install")
+                # Gray color for uninstalled
+                status_label.set_markup(f"<span foreground='#64748b'><b>{status_text}</b></span>")
+                
         status_box.pack_start(status_label, False, False, 0)
         
         box.pack_start(status_box, False, False, 0)
