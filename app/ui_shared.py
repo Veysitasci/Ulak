@@ -128,11 +128,49 @@ class ToastService:
         elif type == "success": bg_color = "#059669"
         elif type == "info": bg_color = "#2563eb"
 
-        toast_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        toast_box.set_size_request(280, -1)
+        toast_frame = Gtk.Frame()
+        toast_frame.set_size_request(280, -1)
+        toast_frame.set_shadow_type(Gtk.ShadowType.NONE)
         
-        # Clickable event box to navigate
+        css = f"""
+        frame.toast-frame {{
+            background-color: {bg_color};
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.15);
+        }}
+        label.toast-lbl {{
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+        }}
+        progressbar.toast-prog {{
+            font-size: 0;
+            padding: 0;
+            margin: 0;
+        }}
+        progressbar.toast-prog trough {{
+            background-color: rgba(0,0,0,0.1);
+            border: none;
+            min-height: 4px;
+            border-radius: 0 0 12px 12px;
+        }}
+        progressbar.toast-prog progress {{
+            background-color: rgba(255,255,255,0.85);
+            border: none;
+            border-radius: 0 0 12px 12px;
+        }}
+        """
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css.encode('utf-8'))
+        toast_frame.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        toast_frame.get_style_context().add_class("toast-frame")
+        
+        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        
+        # Clickable event box
         eb = Gtk.EventBox()
+        eb.set_visible_window(False) # Make transparent so frame background shows
         if target_tab is not None and self.main_window:
             def _on_toast_click(w, e):
                 if hasattr(self.main_window, 'notebook'):
@@ -143,43 +181,28 @@ class ToastService:
         lbl = Gtk.Label(label=message)
         lbl.set_line_wrap(True)
         lbl.set_xalign(0.0) # Left align text
-        lbl.set_margin_top(12)
-        lbl.set_margin_bottom(12)
-        lbl.set_margin_start(12)
-        lbl.set_margin_end(12)
-        
-        css = f"""
-        * {{
-            background-color: {bg_color};
-            color: #ffffff;
-            border-radius: 8px 8px 0 0;
-            font-size: 13px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }}
-        """
-        provider = Gtk.CssProvider()
-        provider.load_from_data(css.encode('utf-8'))
+        lbl.set_margin_top(14)
+        lbl.set_margin_bottom(14)
+        lbl.set_margin_start(16)
+        lbl.set_margin_end(16)
         lbl.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        lbl.get_style_context().add_class("toast-lbl")
         
         eb.add(lbl)
-        toast_box.pack_start(eb, True, True, 0)
+        inner_box.pack_start(eb, True, True, 0)
         
         # Thin Progress Bar
         prog = Gtk.ProgressBar()
-        prog.set_size_request(-1, 3)
-        prog_css = f"""
-        progressbar trough {{ min-height: 3px; background-color: {bg_color}; border-radius: 0 0 8px 8px; }}
-        progressbar progress {{ background-color: rgba(255,255,255,0.8); border-radius: 0 0 8px 8px; }}
-        """
-        p_provider = Gtk.CssProvider()
-        p_provider.load_from_data(prog_css.encode('utf-8'))
-        prog.get_style_context().add_provider(p_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        toast_box.pack_start(prog, False, False, 0)
+        prog.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        prog.get_style_context().add_class("toast-prog")
+        inner_box.pack_start(prog, False, False, 0)
+        
+        toast_frame.add(inner_box)
         
         revealer = Gtk.Revealer()
-        revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
-        revealer.set_transition_duration(400)
-        revealer.add(toast_box)
+        revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
+        revealer.set_transition_duration(300)
+        revealer.add(toast_frame)
         revealer.show_all()
         
         self.toast_container.pack_start(revealer, False, False, 0)
@@ -194,7 +217,7 @@ class ToastService:
             elapsed = time.time() - start_time
             if elapsed >= duration:
                 revealer.set_reveal_child(False)
-                GLib.timeout_add(400, lambda: self.toast_container.remove(revealer))
+                GLib.timeout_add(300, lambda: self.toast_container.remove(revealer))
                 return False
             prog.set_fraction(1.0 - (elapsed / duration))
             return True
