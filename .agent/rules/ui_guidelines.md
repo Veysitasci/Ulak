@@ -93,3 +93,24 @@ self.toast_service.show("Hata oluştu!", type="error")
 
 ## 6. Dairesel Grafik (Circular Usage Graph)
 ProgressBar yerine daima `Cairo` ile çizilen dinamik dairesel pasta grafikleri (`UsageGraph`) tercih edilir. Yüzde değeri grafiğin ortasında yer alır.
+
+---
+
+## 7. Pencere Boyutlandırma, Duyarlılık (Responsive) & Kenara Yapışma (Snapping) Standartları
+Uygulama içerisindeki ana pencere veya sonradan açılacak her bağımsız pencere için geçerli boyutlandırma ve ekran yerleşimi kuralları:
+
+### 1. Küçülmeyi Engelleyen Sabit Genişlik Yasağı
+- Hiçbir widget'a zorunlu olmadıkça `> 300px` sabit genişlik (`set_size_request(w, -1)`) veya katı CSS `min-width` verilmemelidir.
+- Tüm içerik alanları mutlaka `Gtk.ScrolledWindow` içinde yer almalı ve scroll politikası daima yatayda da esnek olmalıdır:
+  ```python
+  scrolled_win.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+  ```
+  *(Asla `PolicyType.NEVER` ile yatay kaydırma kapatılarak pencerenin daralması kilitlenmemelidir).*
+
+### 2. Ekranı İkiye ve Dörde Bölme (Window Snapping & Tiling)
+- Pencereler işletim sisteminin (Linux/XFCE/GNOME/Windows) çoklu pencere bölme standartlarına tam uyumlu olmalıdır.
+- Minimum pencere sınırları (`MIN_SIZE`) küçük ekranlara ve 4'e bölünmüş çeyrek pencerelere izin verecek şekilde `380x300` ila `520x400` aralığında tutulmalıdır.
+- Başlık çubuğundan (`Gtk.EventBox` veya `Gtk.HeaderBar`) tutulup ekranın **sol / sağ kenarlarına (45px)** fırlatıldığında pencere ekranın %50'sini kaplayarak kenara yapışmalı (`Half-Screen Snap`); **köşelere (100px)** fırlatıldığında ise ekranı 4'e bölerek çeyrek alana oturmalıdır (`Quarter-Screen Snap`).
+
+### 3. Kompakt Ekran Uyumu (`size-allocate`)
+- Ekran daraldığında (`< 750px`) başlık çubuğundaki uzun arama çubukları, yardımcı sekmeler veya alt durum çubuğundaki kalabalık yazılar `set_visible(False)` yapılarak gizlenmeli; pencere genişletildiğinde tekrar görünür olmalıdır.
