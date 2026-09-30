@@ -122,87 +122,82 @@ class ToastService:
             pass
 
         # 2. In-App Elegant Toast (Bottom Right)
-        bg_color = "#334155" # Default dark slate
-        if type == "warning": bg_color = "#d97706"
-        elif type in ["error", "critical"]: bg_color = "#dc2626"
-        elif type == "success": bg_color = "#059669"
-        elif type == "info": bg_color = "#2563eb"
+        bg_color = "#10b981" # Default normal/info is Green
+        if type == "warning": bg_color = "#eab308" # Yellow
+        elif type in ["error", "critical"]: bg_color = "#ef4444" # Red
+        elif type == "success": bg_color = "#059669" # Darker Green
 
-        toast_frame = Gtk.Frame()
-        toast_frame.set_size_request(280, -1)
-        toast_frame.set_shadow_type(Gtk.ShadowType.NONE)
+        # Main Toast Container
+        toast_eb = Gtk.EventBox()
+        toast_eb.set_name("toast-box")
+        toast_eb.set_size_request(280, -1)
         
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        
+        lbl = Gtk.Label(label=message)
+        lbl.set_name("toast-lbl")
+        lbl.set_line_wrap(True)
+        lbl.set_xalign(0.0)
+        lbl.set_margin_top(16)
+        lbl.set_margin_bottom(12)
+        lbl.set_margin_start(16)
+        lbl.set_margin_end(16)
+        
+        vbox.pack_start(lbl, True, True, 0)
+        
+        # Custom Progress Bar (Bypassing GTK's ugly default ProgressBar)
+        prog_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        prog_container.set_margin_start(16)
+        prog_container.set_margin_end(16)
+        prog_container.set_margin_bottom(8)
+        
+        prog_bar = Gtk.EventBox()
+        prog_bar.set_name("toast-prog")
+        prog_bar.set_size_request(248, 4) # 280 - 32 margins
+        prog_bar.set_halign(Gtk.Align.START)
+        
+        prog_container.pack_start(prog_bar, False, False, 0)
+        vbox.pack_start(prog_container, False, False, 0)
+        
+        toast_eb.add(vbox)
+        
+        # CSS with ID selectors to FORCE override GTK Theme
         css = f"""
-        frame.toast-frame {{
+        #toast-box {{
             background-color: {bg_color};
-            border-radius: 20px;
-            box-shadow: 0px 6px 16px rgba(0,0,0,0.4);
-            border: none;
+            border-radius: 16px;
         }}
-        label.toast-lbl {{
+        #toast-lbl {{
             color: #ffffff;
             font-size: 13px;
             font-weight: bold;
         }}
-        progressbar.toast-prog {{
-            font-size: 0;
-            padding: 0;
-            margin: 0;
-        }}
-        progressbar.toast-prog trough {{
-            background-color: rgba(0,0,0,0.1);
-            border: none;
-            min-height: 4px;
-            border-radius: 0 0 20px 20px;
-        }}
-        progressbar.toast-prog progress {{
-            background-color: rgba(255,255,255,0.85);
-            border: none;
-            border-radius: 0 0 20px 20px;
+        #toast-prog {{
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 4px;
         }}
         """
         provider = Gtk.CssProvider()
         provider.load_from_data(css.encode('utf-8'))
-        toast_frame.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        toast_frame.get_style_context().add_class("toast-frame")
         
-        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        # Apply CSS globally to this widget hierarchy
+        def apply_css(widget):
+            widget.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            if isinstance(widget, Gtk.Container):
+                widget.forall(apply_css)
+        apply_css(toast_eb)
         
-        # Clickable event box
-        eb = Gtk.EventBox()
-        eb.set_visible_window(False) # Make transparent so frame background shows
         if target_tab is not None and self.main_window:
             def _on_toast_click(w, e):
                 if hasattr(self.main_window, 'notebook'):
                     self.main_window.notebook.set_current_page(target_tab)
                 return True
-            eb.connect("button-press-event", _on_toast_click)
-        
-        lbl = Gtk.Label(label=message)
-        lbl.set_line_wrap(True)
-        lbl.set_xalign(0.0) # Left align text
-        lbl.set_margin_top(14)
-        lbl.set_margin_bottom(14)
-        lbl.set_margin_start(16)
-        lbl.set_margin_end(16)
-        lbl.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        lbl.get_style_context().add_class("toast-lbl")
-        
-        eb.add(lbl)
-        inner_box.pack_start(eb, True, True, 0)
-        
-        # Thin Progress Bar
-        prog = Gtk.ProgressBar()
-        prog.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        prog.get_style_context().add_class("toast-prog")
-        inner_box.pack_start(prog, False, False, 0)
-        
-        toast_frame.add(inner_box)
-        
+            toast_eb.connect("button-press-event", _on_toast_click)
+            
         revealer = Gtk.Revealer()
         revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
         revealer.set_transition_duration(300)
-        revealer.add(toast_frame)
+        revealer.add(toast_eb)
         revealer.show_all()
         
         self.toast_container.pack_start(revealer, False, False, 0)
@@ -219,7 +214,8 @@ class ToastService:
                 revealer.set_reveal_child(False)
                 GLib.timeout_add(300, lambda: self.toast_container.remove(revealer))
                 return False
-            prog.set_fraction(1.0 - (elapsed / duration))
+            remaining_ratio = 1.0 - (elapsed / duration)
+            prog_bar.set_size_request(int(248 * remaining_ratio), 4)
             return True
             
         GLib.timeout_add(30, _update_prog)
