@@ -124,9 +124,9 @@ class WirelessManagerWindow(Gtk.Window):
         self._build_footer(self.root_frame)
 
         # Start on Firewall view by default
-        self.btn_firewall.set_active(True)
-        self._on_nav_toggled(self.btn_firewall, "firewall")
-
+        if hasattr(self, 'first_nav_btn') and self.first_nav_btn:
+            self.first_nav_btn.set_active(True)
+            self._on_nav_toggled(self.first_nav_btn, "firewall")
         self.show_all()
         self._update_telemetry()
 
@@ -266,13 +266,90 @@ class WirelessManagerWindow(Gtk.Window):
     def _on_theme_changed(self, is_light):
         self._update_brand_logo(is_light)
 
-    def _build_sidebar(self, parent):
-        sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        sidebar.get_style_context().add_class("sidebar-box")
-        sidebar.set_size_request(220, -1)
+    def rebuild_sidebar(self):
+        # Clear sidebar
+        for child in self.sidebar.get_children():
+            self.sidebar.remove(child)
+        self.nav_group = None
+        self._populate_sidebar()
+        self.sidebar.show_all()
 
-        def create_nav_btn(group, icon_name, text, name):
-            btn = Gtk.RadioButton(group=group)
+    def _build_sidebar(self, parent):
+        self.sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.sidebar.get_style_context().add_class("sidebar-box")
+        self.sidebar.set_size_request(220, -1)
+        self.nav_group = None
+        self._populate_sidebar()
+        parent.pack_start(self.sidebar, False, False, 0)
+        return self.sidebar
+        
+    def _populate_sidebar(self):
+        import os, json
+        
+        # Base categories and modules
+        categories = {
+            "GÜVENLİK": [
+                {"id": "firewall", "icon": "security-high-symbolic", "name": _("tab_firewall").replace("🛡️", "").strip()},
+                {"id": "hack", "icon": "system-search-symbolic", "name": _("tab_hacker")}
+            ],
+            "BAĞLANTI": [
+                {"id": "bt", "icon": "bluetooth-active-symbolic", "name": _("tab_bluetooth")},
+                {"id": "wifi", "icon": "network-wireless-symbolic", "name": _("tab_wifi")}
+            ],
+            "SİSTEM": [
+                {"id": "hw", "icon": "computer-symbolic", "name": _("tab_hw")},
+                {"id": "admin", "icon": "security-medium-symbolic", "name": _("tab_admin")},
+                {"id": "store", "icon": "system-software-install-symbolic", "name": _("tab_store")},
+                {"id": "settings", "icon": "emblem-system-symbolic", "name": _("settings")}
+            ]
+        }
+        
+        # Load external modules dynamically
+        modules_dir = os.path.expanduser("~/.local/share/ulak/modules")
+        if os.path.exists(modules_dir):
+            for d in os.listdir(modules_dir):
+                man_path = os.path.join(modules_dir, d, "manifest.json")
+                if os.path.exists(man_path):
+                    try:
+                        with open(man_path, "r") as f:
+                            man = json.load(f)
+                        cat = man.get("category", "EKSTRALAR").upper()
+                        if cat not in categories:
+                            categories[cat] = []
+                        categories[cat].append({
+                            "id": man["id"],
+                            "icon": man.get("icon", "application-x-executable-symbolic"),
+                            "name": _(man.get("name_key", man["id"]))
+                        })
+                        
+                        # Dynamically add view to stack if not exists
+                        if hasattr(self, 'stack') and self.stack.get_child_by_name(man["id"]) is None:
+                            try:
+                                import importlib
+                                mod_name = f"ui_{man['id']}"
+                                module = importlib.import_module(mod_name)
+                                view_class = None
+                                for attr_name in dir(module):
+                                    attr = getattr(module, attr_name)
+                                    if isinstance(attr, type) and issubclass(attr, Gtk.Widget) and attr_name.endswith("View"):
+                                        view_class = attr
+                                        break
+                                if view_class:
+                                    view_instance = view_class(self.toast_service)
+                                    self.stack.add_named(view_instance, man["id"])
+                                    self.stack.show_all()
+                            except Exception as e:
+                                print(f"Could not load UI for module {man['id']}: {e}")
+                    except Exception as e:
+                        print("Error loading module manifest", e)
+
+        # UI Building helper
+        def create_nav_btn(icon_name, text, name):
+            btn = Gtk.RadioButton(group=self.nav_group)
+            if not self.nav_group:
+                self.nav_group = btn
+            if not hasattr(self, 'first_nav_btn') or self.first_nav_btn is None:
+                self.first_nav_btn = btn
             btn.set_mode(False)
             btn.get_style_context().add_class("sidebar-btn")
             
@@ -286,55 +363,20 @@ class WirelessManagerWindow(Gtk.Window):
             btn.add(box)
             btn.connect("toggled", self._on_nav_toggled, name)
             return btn
-
-        # Section 1: Güvenlik
-        lbl_sec = Gtk.Label(label="GÜVENLİK")
-        lbl_sec.get_style_context().add_class("nav-section-title")
-        lbl_sec.set_halign(Gtk.Align.START)
-        sidebar.pack_start(lbl_sec, False, False, 0)
-
-        fw_title = _("tab_firewall").replace("🛡️", "").strip()
-        self.btn_firewall = create_nav_btn(None, "security-high-symbolic", fw_title, "firewall")
-        sidebar.pack_start(self.btn_firewall, False, False, 0)
-
-        self.btn_hacker = create_nav_btn(self.btn_firewall, "system-search-symbolic", _("tab_hacker"), "hack")
-        sidebar.pack_start(self.btn_hacker, False, False, 0)
-
-        # Section 2: Bağlantılar
-        lbl_conn = Gtk.Label(label="BAĞLANTI")
-        lbl_conn.get_style_context().add_class("nav-section-title")
-        lbl_conn.set_halign(Gtk.Align.START)
-        sidebar.pack_start(lbl_conn, False, False, 0)
-
-        self.btn_bt = create_nav_btn(self.btn_firewall, "bluetooth-active-symbolic", _("tab_bluetooth"), "bt")
-        sidebar.pack_start(self.btn_bt, False, False, 0)
-
-        self.btn_wifi = create_nav_btn(self.btn_firewall, "network-wireless-symbolic", _("tab_wifi"), "wifi")
-        sidebar.pack_start(self.btn_wifi, False, False, 0)
-
-        # Section 3: Sistem
-        lbl_sys = Gtk.Label(label="SİSTEM")
-        lbl_sys.get_style_context().add_class("nav-section-title")
-        lbl_sys.set_halign(Gtk.Align.START)
-        sidebar.pack_start(lbl_sys, False, False, 0)
-
-        self.btn_hw = create_nav_btn(self.btn_firewall, "computer-symbolic", _("tab_hw"), "hw")
-        sidebar.pack_start(self.btn_hw, False, False, 0)
-
-        self.btn_admin = create_nav_btn(self.btn_firewall, "security-medium-symbolic", _("tab_admin"), "admin")
-        sidebar.pack_start(self.btn_admin, False, False, 0)
-
-        self.btn_store = create_nav_btn(self.btn_firewall, "system-software-install-symbolic", _("tab_store"), "store")
-        sidebar.pack_start(self.btn_store, False, False, 0)
-
-        self.btn_settings = create_nav_btn(self.btn_firewall, "emblem-system-symbolic", _("settings"), "settings")
-        sidebar.pack_start(self.btn_settings, False, False, 0)
-
+            
+        for cat_name, items in categories.items():
+            if not items: continue
+            lbl_sec = Gtk.Label(label=cat_name.upper())
+            lbl_sec.get_style_context().add_class("nav-section-title")
+            lbl_sec.set_halign(Gtk.Align.START)
+            self.sidebar.pack_start(lbl_sec, False, False, 0)
+            
+            for item in items:
+                btn = create_nav_btn(item["icon"], item["name"], item["id"])
+                self.sidebar.pack_start(btn, False, False, 0)
+                
         spacer = Gtk.Box()
-        sidebar.pack_start(spacer, True, True, 0)
-
-        parent.pack_start(sidebar, False, False, 0)
-        return sidebar
+        self.sidebar.pack_start(spacer, True, True, 0)
 
     def _build_footer(self, parent):
         footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)

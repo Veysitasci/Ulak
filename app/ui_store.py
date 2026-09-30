@@ -308,10 +308,17 @@ class StoreView(Gtk.ScrolledWindow):
                 if self.install_step >= 1.0:
                     dialog.destroy()
                     self.toast_service.show(f"{_(mod['name_key'])} başarıyla kuruldu!", type="success")
-                    # Fake install success, trigger refresh
-                    import os
-                    os.makedirs(os.path.expanduser(f"~/.local/share/ulak/modules/{mod['id']}"), exist_ok=True)
+                    # Fake install success, trigger refresh and save manifest
+                    import os, json
+                    mod_dir = os.path.expanduser(f"~/.local/share/ulak/modules/{mod['id']}")
+                    os.makedirs(mod_dir, exist_ok=True)
+                    with open(os.path.join(mod_dir, "manifest.json"), "w") as f:
+                        json.dump(mod, f)
                     self._on_refresh_clicked(None)
+                    # Trigger sidebar rebuild via main window
+                    main_window = self.get_toplevel()
+                    if hasattr(main_window, "rebuild_sidebar"):
+                        main_window.rebuild_sidebar()
                     return False
                 return True
                 
