@@ -135,9 +135,9 @@ class ToastService:
         css = f"""
         frame.toast-frame {{
             background-color: {bg_color};
-            border-radius: 12px;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            box-shadow: 0px 6px 16px rgba(0,0,0,0.4);
+            border: none;
         }}
         label.toast-lbl {{
             color: #ffffff;
@@ -153,12 +153,12 @@ class ToastService:
             background-color: rgba(0,0,0,0.1);
             border: none;
             min-height: 4px;
-            border-radius: 0 0 12px 12px;
+            border-radius: 0 0 20px 20px;
         }}
         progressbar.toast-prog progress {{
             background-color: rgba(255,255,255,0.85);
             border: none;
-            border-radius: 0 0 12px 12px;
+            border-radius: 0 0 20px 20px;
         }}
         """
         provider = Gtk.CssProvider()
