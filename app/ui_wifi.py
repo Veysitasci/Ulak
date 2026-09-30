@@ -8,6 +8,113 @@ from api_wifi import wifi_api
 from ui_shared import storage, BentoDialog
 
 class WifiView(Gtk.Box):
+    def _show_wifi_details_window(self, network_data):
+        ssid = network_data.get("ssid", "Bilinmeyen Ağ")
+        win = Gtk.Window(title=f"Ağ Özellikleri - {ssid}")
+        win.set_default_size(480, 520)
+        win.set_position(Gtk.WindowPosition.CENTER)
+        win.set_modal(False)
+        
+        main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        main_vbox.set_margin_top(20)
+        main_vbox.set_margin_bottom(20)
+        main_vbox.set_margin_start(20)
+        main_vbox.set_margin_end(20)
+        win.add(main_vbox)
+
+        # Header with network icon and name
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
+        head.get_style_context().add_class("card")
+        head.set_margin_bottom(4)
+        
+        ic = Gtk.Image.new_from_icon_name(network_data.get("icon_name", "network-wireless-symbolic"), Gtk.IconSize.DIALOG)
+        ic.set_pixel_size(48)
+        head.pack_start(ic, False, False, 10)
+        
+        htxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        htxt.set_valign(Gtk.Align.CENTER)
+        title_lbl = Gtk.Label(label=ssid)
+        title_lbl.get_style_context().add_class("title-label")
+        title_lbl.set_halign(Gtk.Align.START)
+        htxt.pack_start(title_lbl, False, False, 0)
+        
+        status_txt = "Bağlı (Aktif)" if network_data.get("active") else "Bağlı Değil"
+        color = "#10b981" if network_data.get("active") else "#94a3b8"
+        status_lbl = Gtk.Label()
+        status_lbl.set_markup(f"<span foreground='{color}'>● {status_txt}</span>")
+        status_lbl.set_halign(Gtk.Align.START)
+        htxt.pack_start(status_lbl, False, False, 0)
+        head.pack_start(htxt, True, True, 0)
+        main_vbox.pack_start(head, False, False, 0)
+
+        # Bento Details List
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_vexpand(True)
+        main_vbox.pack_start(scroll, True, True, 0)
+        
+        details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        details_box.get_style_context().add_class("card")
+        details_box.set_margin_top(6)
+        details_box.set_margin_start(6)
+        details_box.set_margin_end(6)
+        details_box.set_margin_bottom(6)
+        scroll.add(details_box)
+
+        # Dynamic diagnostic queries for this SSID/BSSID
+        bssid = network_data.get("bssid", "Bilinmiyor")
+        channel = str(network_data.get("channel", "Bilinmiyor"))
+        security = network_data.get("security", "Açık").upper()
+        signal = str(network_data.get("signal", "--")) + " %"
+        freq = "5 GHz" if int(network_data.get("channel", 1) or 1) > 14 else "2.4 GHz"
+        
+        # Extended details via nmcli if possible
+        details = [
+            ("SSID Adı", ssid),
+            ("BSSID / MAC Adresi", bssid),
+            ("Sinyal Kalitesi", signal),
+            ("Güvenlik Türü", security),
+            ("Kanal Numarası", channel),
+            ("Frekans Bandı", freq),
+            ("Kablosuz Arayüz", getattr(self, 'active_iface', 'wlan0')),
+        ]
+        
+        if network_data.get("active"):
+            try:
+                ip_addr = subprocess.getoutput("hostname -I").split()[0] if subprocess.getoutput("hostname -I").strip() else ""
+                if ip_addr: details.append(("Atanan Yerel IP", ip_addr))
+                gw = subprocess.getoutput("ip route | grep default | awk '{print $3}'").strip()
+                if gw: details.append(("Varsayılan Ağ Geçidi", gw))
+                dns = subprocess.getoutput("grep -m1 'nameserver' /etc/resolv.conf | awk '{print $2}'").strip()
+                if dns: details.append(("Aktif DNS Sunucusu", dns))
+            except: pass
+
+        for k, v in details:
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            row.set_margin_top(8)
+            row.set_margin_bottom(8)
+            row.set_margin_start(12)
+            row.set_margin_end(12)
+            
+            klbl = Gtk.Label(label=k)
+            klbl.get_style_context().add_class("dim-label")
+            klbl.set_halign(Gtk.Align.START)
+            row.pack_start(klbl, False, False, 0)
+            
+            vlbl = Gtk.Label(label=v)
+            vlbl.set_halign(Gtk.Align.END)
+            vlbl.set_selectable(True)
+            row.pack_end(vlbl, False, False, 0)
+            details_box.pack_start(row, False, False, 0)
+
+        # Bottom Close Button
+        btn_close = Gtk.Button(label="Pencereyi Kapat")
+        btn_close.get_style_context().add_class("btn-secondary")
+        btn_close.connect("clicked", lambda b: win.destroy())
+        main_vbox.pack_end(btn_close, False, False, 0)
+
+        win.show_all()
+
     def __init__(self, toast_service):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.toast_service = toast_service
@@ -723,6 +830,20 @@ class WifiView(Gtk.Box):
         for child in self.list_box.get_children(): self.list_box.remove(child)
 
         for i, n in enumerate(networks):
+            ev_card = Gtk.EventBox()
+            ev_card.set_visible_window(False)
+            ev_card.set_tooltip_text("Ağ detayları ve özellikleri için sağ tıklayın")
+            
+            def make_wifi_right_click(net_dict):
+                def _on_card_press(w, event):
+                    if event.button == 3: # Right click
+                        self._show_wifi_details_window(net_dict)
+                        return True
+                    return False
+                return _on_card_press
+                
+            ev_card.connect("button-press-event", make_wifi_right_click(n))
+
             card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
             card.get_style_context().add_class("card")
             card.get_style_context().add_class("fade-in")
@@ -776,7 +897,8 @@ class WifiView(Gtk.Box):
                 actions.pack_start(connect_btn, False, False, 0)
 
             card.pack_start(actions, False, False, 0)
-            self.list_box.pack_start(card, False, False, 0)
+            ev_card.add(card)
+            self.list_box.pack_start(ev_card, False, False, 0)
             
         self.list_box.show_all()
 
