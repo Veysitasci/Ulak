@@ -26,15 +26,24 @@ class UsageGraph(Gtk.DrawingArea):
         
         # Background circle
         cr.set_source_rgba(0.2, 0.2, 0.2, 0.12)
-        cr.set_line_width(6)
+        cr.set_line_width(5.5)
         cr.arc(width/2, height/2, radius, 0, 2*math.pi)
         cr.stroke()
         
         # Foreground arc
         cr.set_source_rgba(*self.color_rgba)
-        cr.set_line_width(6)
+        cr.set_line_width(5.5)
         cr.arc(width/2, height/2, radius, -math.pi/2, -math.pi/2 + (2*math.pi * self.fraction))
         cr.stroke()
+
+        # Text in center
+        pct_text = f"{int(self.fraction * 100)}%"
+        cr.set_source_rgba(*self.color_rgba)
+        cr.select_font_face("Sans", 0, 1) # Bold
+        cr.set_font_size(12)
+        extents = cr.text_extents(pct_text)
+        cr.move_to(width/2 - extents.width/2 - extents.x_bearing, height/2 + extents.height/2)
+        cr.show_text(pct_text)
 
 class HardwareView(Gtk.Box):
     def __init__(self, toast_service):
@@ -241,15 +250,20 @@ class HardwareView(Gtk.Box):
         card.set_margin_start(4)
         card.set_margin_end(4)
 
-        top_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        top_row.set_margin_top(8)
-        top_row.set_margin_start(8)
-        top_row.set_margin_end(8)
+        # Make whole top area an interactive EventBox if details exist
+        ev_box = Gtk.EventBox()
+        ev_box.set_visible_window(False)
 
-        # Graph on the left
+        top_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
+        top_row.set_margin_top(8)
+        top_row.set_margin_bottom(8)
+        top_row.set_margin_start(10)
+        top_row.set_margin_end(10)
+
+        # 1. Circular Graph on Left
         top_row.pack_start(graph, False, False, 0)
 
-        # Title + details in center
+        # 2. Text Info (Title & Value/Cores) in Center
         vbox_txt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         vbox_txt.set_valign(Gtk.Align.CENTER)
         
@@ -265,35 +279,35 @@ class HardwareView(Gtk.Box):
         vbox_txt.pack_start(detail_lbl, False, False, 0)
         top_row.pack_start(vbox_txt, True, True, 0)
 
-        # Progress bar under or right
-        progress_bar.set_size_request(80, 6)
-        progress_bar.set_valign(Gtk.Align.CENTER)
-        top_row.pack_end(progress_bar, False, False, 8)
+        # Hide ugly default progress bar completely (circular graph handles visualization)
+        progress_bar.set_visible(False)
+        top_row.pack_end(progress_bar, False, False, 0)
 
         if get_details_func:
-            btn_details = Gtk.Button()
-            btn_details.set_relief(Gtk.ReliefStyle.NONE)
-            d_icon = Gtk.Image.new_from_icon_name("pan-down-symbolic", Gtk.IconSize.BUTTON)
-            btn_details.set_image(d_icon)
-            btn_details.get_style_context().add_class("btn-icon-subtle")
-            
+            arrow_lbl = Gtk.Label(label="▼")
+            arrow_lbl.get_style_context().add_class("dim-label")
+            arrow_lbl.set_valign(Gtk.Align.CENTER)
+            arrow_lbl.set_margin_end(6)
+            top_row.pack_end(arrow_lbl, False, False, 0)
+
             details_revealer = Gtk.Revealer()
             details_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
             details_revealer.set_transition_duration(250)
             
             det_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-            det_box.set_margin_start(12)
-            det_box.set_margin_end(12)
-            det_box.set_margin_bottom(8)
+            det_box.set_margin_top(4)
+            det_box.set_margin_start(16)
+            det_box.set_margin_end(16)
+            det_box.set_margin_bottom(12)
             details_revealer.add(det_box)
             
-            def on_toggle_details(btn):
+            def toggle_details(*args):
                 is_revealed = details_revealer.get_reveal_child()
                 if not is_revealed:
                     for child in det_box.get_children():
                         det_box.remove(child)
                     data = get_details_func()
-                    grid = Gtk.Grid(column_spacing=12, row_spacing=4)
+                    grid = Gtk.Grid(column_spacing=16, row_spacing=6)
                     r = 0
                     for k, v in data.items():
                         klbl = Gtk.Label(label=k)
@@ -308,17 +322,18 @@ class HardwareView(Gtk.Box):
                     det_box.pack_start(grid, False, False, 0)
                     det_box.show_all()
                     details_revealer.set_reveal_child(True)
-                    d_icon.set_from_icon_name("pan-up-symbolic", Gtk.IconSize.BUTTON)
+                    arrow_lbl.set_label("▲")
                 else:
                     details_revealer.set_reveal_child(False)
-                    d_icon.set_from_icon_name("pan-down-symbolic", Gtk.IconSize.BUTTON)
+                    arrow_lbl.set_label("▼")
 
-            btn_details.connect("clicked", on_toggle_details)
-            top_row.pack_end(btn_details, False, False, 0)
-
-        card.pack_start(top_row, True, True, 0)
-        if get_details_func:
+            ev_box.connect("button-press-event", lambda w, e: toggle_details())
+            ev_box.add(top_row)
+            card.pack_start(ev_box, True, True, 0)
             card.pack_start(details_revealer, False, False, 0)
+        else:
+            ev_box.add(top_row)
+            card.pack_start(ev_box, True, True, 0)
 
         return card
 
