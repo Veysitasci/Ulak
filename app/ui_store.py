@@ -19,11 +19,13 @@ class StoreView(Gtk.ScrolledWindow):
         main_box.set_margin_end(20)
         self.add(main_box)
         
-        # Header
-        header_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        header_box.get_style_context().add_class("header")
-        header_box.set_margin_top(10)
-        header_box.set_margin_bottom(10)
+        # Header Box (Horizontal to hold titles and button)
+        header_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        
+        titles_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        titles_box.get_style_context().add_class("header")
+        titles_box.set_margin_top(10)
+        titles_box.set_margin_bottom(10)
         
         title = Gtk.Label(label=_("store_title"))
         title.set_halign(Gtk.Align.START)
@@ -33,9 +35,22 @@ class StoreView(Gtk.ScrolledWindow):
         subtitle.set_halign(Gtk.Align.START)
         subtitle.get_style_context().add_class("header-sub")
         
-        header_box.pack_start(title, False, False, 0)
-        header_box.pack_start(subtitle, False, False, 0)
-        main_box.pack_start(header_box, False, False, 0)
+        titles_box.pack_start(title, False, False, 0)
+        titles_box.pack_start(subtitle, False, False, 0)
+        
+        # Refresh Button
+        self.btn_refresh = Gtk.Button()
+        icon = Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.BUTTON)
+        self.btn_refresh.add(icon)
+        self.btn_refresh.get_style_context().add_class("action-btn")
+        self.btn_refresh.set_valign(Gtk.Align.CENTER)
+        self.btn_refresh.connect("clicked", self._on_refresh_clicked)
+        self.btn_refresh.set_tooltip_text("Mağazayı Yenile")
+        
+        header_row.pack_start(titles_box, True, True, 0)
+        header_row.pack_end(self.btn_refresh, False, False, 0)
+        
+        main_box.pack_start(header_row, False, False, 0)
         
         # FlowBox for Apps
         self.flowbox = Gtk.FlowBox()
@@ -60,8 +75,11 @@ class StoreView(Gtk.ScrolledWindow):
         ]
         
         self._render_modules(self.base_modules)
-        
-        # Async fetch remote modules from GitHub
+        self._on_refresh_clicked(None)
+
+    def _on_refresh_clicked(self, widget):
+        if hasattr(self, 'btn_refresh'):
+            self.btn_refresh.set_sensitive(False)
         import threading
         threading.Thread(target=self._fetch_remote_modules, daemon=True).start()
 
@@ -69,14 +87,15 @@ class StoreView(Gtk.ScrolledWindow):
         import urllib.request
         import json
         import os
-        url = "https://raw.githubusercontent.com/Veysitasci/ulak/main/modules.json"
+        import time
+        # Append timestamp to bypass caching
+        url = f"https://raw.githubusercontent.com/Veysitasci/ulak/main/modules.json?t={time.time()}"
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "ULAK-Store"})
+            req = urllib.request.Request(url, headers={"User-Agent": "ULAK-Store", "Cache-Control": "no-cache"})
             with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
                 
-                # Check installed status for remote modules (e.g. checking if a file/dir exists)
-                # We'll just assume they are installed if a specific file exists in ~/.local/share/ulak/modules/
+                # Check installed status for remote modules
                 for mod in data:
                     mod_path = os.path.expanduser(f"~/.local/share/ulak/modules/{mod['id']}")
                     mod["installed"] = os.path.exists(mod_path)
@@ -84,15 +103,21 @@ class StoreView(Gtk.ScrolledWindow):
                 GLib.idle_add(self._on_remote_modules_fetched, data)
         except Exception as e:
             print("Could not fetch remote modules:", e)
+            GLib.idle_add(self._on_remote_modules_fetched, [])
 
     def _on_remote_modules_fetched(self, remote_modules):
-        # Render only new ones
-        existing_ids = [m["id"] for m in self.base_modules]
+        if hasattr(self, 'btn_refresh'):
+            self.btn_refresh.set_sensitive(True)
+            
+        # Combine base modules with new remote modules, avoiding duplicates by id
+        existing_ids = {m["id"] for m in self.base_modules}
+        all_modules = list(self.base_modules)
+        
         for mod in remote_modules:
             if mod["id"] not in existing_ids:
-                card = self._create_module_card(mod)
-                self.flowbox.add(card)
-        self.flowbox.show_all()
+                all_modules.append(mod)
+                
+        self._render_modules(all_modules)
 
     def _render_modules(self, modules):
         # Clear existing
