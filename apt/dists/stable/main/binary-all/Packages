@@ -1,0 +1,16 @@
+Package: ulak
+Version: 2.0.0
+Architecture: all
+Maintainer: ULAK Gelistirici Ekibi <contact@ulak.app>
+Depends: python3, python3-gi, gir1.2-gtk-3.0, python3-psutil, python3-dbus, python3-pil, network-manager, bluez, pciutils, usbutils, nftables, iptables, redsocks, policykit-1
+Filename: pool/main/d/ulak/ulak_2.0.0_all.deb
+Size: 295164
+MD5sum: c4caa2c3421a5b02b2c0ace951898999
+SHA1: 0465bf7d1c9f0212419bd7b9247395d3d001f6fe
+SHA256: 7ec254f07d2a935bf071a17e2e33fea76527d601e2cc5fb4c0751172d52f2b51
+Section: utils
+Priority: optional
+Description: ULAK - Ag ve Guvenlik Kiti
+ Termius tarzi modern bento grid arayuzu ile WiFi, Bluetooth, Donanim
+ telemetrisi ve Guvenlik Duvari/Proxy yonetim kiti.
+
