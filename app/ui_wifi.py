@@ -5,115 +5,50 @@ import time, subprocess, threading, urllib.request
 
 from i18n import _
 from api_wifi import wifi_api
-from ui_shared import storage, BentoDialog
+from ui_shared import storage, BentoDialog, DeviceDetailsDialog
 
 class WifiView(Gtk.Box):
     def _show_wifi_details_window(self, network_data):
         ssid = network_data.get("ssid", "Bilinmeyen Ağ")
-        win = Gtk.Window(title=f"Ağ Özellikleri - {ssid}")
-        win.set_default_size(480, 520)
-        win.set_position(Gtk.WindowPosition.CENTER)
-        win.set_modal(False)
+        dialog = DeviceDetailsDialog(title=f"Ağ Özellikleri - {ssid}", parent=self.get_toplevel(), icon_name=network_data.get("icon_name", "network-wireless-symbolic"), default_width=470, default_height=560)
         
-        main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
-        main_vbox.set_margin_top(20)
-        main_vbox.set_margin_bottom(20)
-        main_vbox.set_margin_start(20)
-        main_vbox.set_margin_end(20)
-        win.add(main_vbox)
-
-        # Header with network icon and name
-        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
-        head.get_style_context().add_class("card")
-        head.set_margin_bottom(4)
-        
-        ic = Gtk.Image.new_from_icon_name(network_data.get("icon_name", "network-wireless-symbolic"), Gtk.IconSize.DIALOG)
-        ic.set_pixel_size(48)
-        head.pack_start(ic, False, False, 10)
-        
-        htxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        htxt.set_valign(Gtk.Align.CENTER)
-        title_lbl = Gtk.Label(label=ssid)
-        title_lbl.get_style_context().add_class("title-label")
-        title_lbl.set_halign(Gtk.Align.START)
-        htxt.pack_start(title_lbl, False, False, 0)
-        
-        status_txt = "Bağlı (Aktif)" if network_data.get("active") else "Bağlı Değil"
-        color = "#10b981" if network_data.get("active") else "#94a3b8"
-        status_lbl = Gtk.Label()
-        status_lbl.set_markup(f"<span foreground='{color}'>● {status_txt}</span>")
-        status_lbl.set_halign(Gtk.Align.START)
-        htxt.pack_start(status_lbl, False, False, 0)
-        head.pack_start(htxt, True, True, 0)
-        main_vbox.pack_start(head, False, False, 0)
-
-        # Bento Details List
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_vexpand(True)
-        main_vbox.pack_start(scroll, True, True, 0)
-        
-        details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        details_box.get_style_context().add_class("card")
-        details_box.set_margin_top(6)
-        details_box.set_margin_start(6)
-        details_box.set_margin_end(6)
-        details_box.set_margin_bottom(6)
-        scroll.add(details_box)
-
-        # Dynamic diagnostic queries for this SSID/BSSID
         bssid = network_data.get("bssid", "Bilinmiyor")
         channel = str(network_data.get("channel", "Bilinmiyor"))
         security = network_data.get("security", "Açık").upper()
         signal = str(network_data.get("signal", "--")) + " %"
         freq = "5 GHz" if int(network_data.get("channel", 1) or 1) > 14 else "2.4 GHz"
         
-        # Extended details via nmcli if possible
-        details = [
-            ("SSID Adı", ssid),
-            ("BSSID / MAC Adresi", bssid),
-            ("Sinyal Kalitesi", signal),
-            ("Güvenlik Türü", security),
-            ("Kanal Numarası", channel),
-            ("Frekans Bandı", freq),
-            ("Kablosuz Arayüz", getattr(self, 'active_iface', 'wlan0')),
+        dialog.set_header_info(
+            icon_name=network_data.get("icon_name", "network-wireless-symbolic"),
+            title=ssid,
+            subtitle=f"{bssid} • {freq} Bandı",
+            status_active=network_data.get("active", False)
+        )
+        
+        items = [
+            ("SSID Kimliği", ssid, "network-wireless-symbolic"),
+            ("Donanım Adresi (BSSID)", bssid, "network-wired-symbolic"),
+            ("Sinyal Kalitesi", signal, "network-wireless-signal-excellent-symbolic"),
+            ("Şifreleme & Güvenlik", security, "changes-prevent-symbolic"),
+            ("İletim Kanalı", f"Kanal {channel}", "preferences-system-symbolic"),
+            ("Frekans Aralığı", freq, "network-transmit-receive-symbolic"),
+            ("Ağ Arayüzü (Interface)", getattr(self, 'active_iface', 'wlan0'), "computer-symbolic"),
         ]
         
         if network_data.get("active"):
             try:
                 ip_addr = subprocess.getoutput("hostname -I").split()[0] if subprocess.getoutput("hostname -I").strip() else ""
-                if ip_addr: details.append(("Atanan Yerel IP", ip_addr))
+                if ip_addr: items.append(("Yerel IP Adresi", ip_addr, "network-server-symbolic"))
                 gw = subprocess.getoutput("ip route | grep default | awk '{print $3}'").strip()
-                if gw: details.append(("Varsayılan Ağ Geçidi", gw))
+                if gw: items.append(("Varsayılan Ağ Geçidi", gw, "network-workgroup-symbolic"))
                 dns = subprocess.getoutput("grep -m1 'nameserver' /etc/resolv.conf | awk '{print $2}'").strip()
-                if dns: details.append(("Aktif DNS Sunucusu", dns))
+                if dns: items.append(("DNS Çözümleyici", dns, "system-search-symbolic"))
             except: pass
-
-        for k, v in details:
-            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-            row.set_margin_top(8)
-            row.set_margin_bottom(8)
-            row.set_margin_start(12)
-            row.set_margin_end(12)
             
-            klbl = Gtk.Label(label=k)
-            klbl.get_style_context().add_class("dim-label")
-            klbl.set_halign(Gtk.Align.START)
-            row.pack_start(klbl, False, False, 0)
-            
-            vlbl = Gtk.Label(label=v)
-            vlbl.set_halign(Gtk.Align.END)
-            vlbl.set_selectable(True)
-            row.pack_end(vlbl, False, False, 0)
-            details_box.pack_start(row, False, False, 0)
-
-        # Bottom Close Button
-        btn_close = Gtk.Button(label="Pencereyi Kapat")
-        btn_close.get_style_context().add_class("btn-secondary")
-        btn_close.connect("clicked", lambda b: win.destroy())
-        main_vbox.pack_end(btn_close, False, False, 0)
-
-        win.show_all()
+        dialog.set_items_list(items)
+        dialog.show_all()
+        dialog.run()
+        dialog.destroy()
 
     def __init__(self, toast_service):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)

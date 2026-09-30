@@ -343,3 +343,91 @@ class BentoDialog(Gtk.Dialog):
         if self.action_box.get_parent() is None:
             self.body_box.pack_end(self.action_box, False, False, 0)
         return btn
+
+class DeviceDetailsDialog(BentoDialog):
+    """
+    Standard Global Bento Details Window for WiFi, Bluetooth and future hardware/modules.
+    Follows the exact UI guidelines (Proxy/Bento card pattern with icon, header and property cards).
+    """
+    def __init__(self, title="Cihaz Özellikleri", parent=None, icon_name="preferences-system-symbolic", default_width=480, default_height=560):
+        super().__init__(title=title, parent=parent, icon_name=icon_name, default_width=default_width, default_height=default_height)
+        self.add_bento_action_button("Kapat", Gtk.ResponseType.OK, is_primary=True)
+        self.content = self.get_bento_content()
+
+    def set_header_info(self, icon_name, title, subtitle, status_active=False, status_text=None):
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
+        head.get_style_context().add_class("settings-card")
+        head.set_margin_bottom(6)
+        
+        ic = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DIALOG)
+        ic.set_pixel_size(44)
+        head.pack_start(ic, False, False, 4)
+        
+        htxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        htxt.set_valign(Gtk.Align.CENTER)
+        
+        t_lbl = Gtk.Label(label=title)
+        t_lbl.get_style_context().add_class("device-name")
+        t_lbl.set_halign(Gtk.Align.START)
+        htxt.pack_start(t_lbl, False, False, 0)
+        
+        if subtitle:
+            sub_lbl = Gtk.Label(label=subtitle)
+            sub_lbl.get_style_context().add_class("device-mac")
+            sub_lbl.set_halign(Gtk.Align.START)
+            htxt.pack_start(sub_lbl, False, False, 0)
+            
+        color = "#10b981" if status_active else "#94a3b8"
+        st = status_text if status_text else ("Bağlı (Aktif)" if status_active else "Bağlı Değil")
+        st_lbl = Gtk.Label()
+        st_lbl.set_markup(f"<span foreground='{color}' font_size='small'>● {st}</span>")
+        st_lbl.set_halign(Gtk.Align.START)
+        htxt.pack_start(st_lbl, False, False, 2)
+        
+        head.pack_start(htxt, True, True, 0)
+        self.content.pack_start(head, False, False, 0)
+
+    def set_items_list(self, items):
+        """
+        items: list of (label, value) or (label, value, icon_name)
+        """
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_vexpand(True)
+        self.content.pack_start(scroll, True, True, 0)
+
+        box_cards = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box_cards.set_margin_top(4)
+        box_cards.set_margin_bottom(4)
+        scroll.add(box_cards)
+
+        for item in items:
+            lbl = item[0]
+            val = str(item[1])
+            ic_name = item[2] if len(item) > 2 else None
+
+            card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            card.get_style_context().add_class("settings-card")
+            card.set_margin_top(2)
+            card.set_margin_bottom(2)
+            
+            if ic_name:
+                icon = Gtk.Image.new_from_icon_name(ic_name, Gtk.IconSize.BUTTON)
+                card.pack_start(icon, False, False, 0)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+            vbox.set_valign(Gtk.Align.CENTER)
+            
+            l_lbl = Gtk.Label(label=lbl)
+            l_lbl.get_style_context().add_class("setting-title")
+            l_lbl.set_halign(Gtk.Align.START)
+            vbox.pack_start(l_lbl, False, False, 0)
+            card.pack_start(vbox, True, True, 0)
+
+            v_lbl = Gtk.Label(label=val)
+            v_lbl.get_style_context().add_class("device-name")
+            v_lbl.set_halign(Gtk.Align.END)
+            v_lbl.set_selectable(True)
+            card.pack_end(v_lbl, False, False, 4)
+
+            box_cards.pack_start(card, False, False, 0)

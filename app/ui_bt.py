@@ -5,116 +5,52 @@ import subprocess
 
 from i18n import _
 from api_bt import bt_api
-from ui_shared import storage
+from ui_shared import storage, DeviceDetailsDialog
 
 class BluetoothView(Gtk.Box):
     def _show_bt_details_window(self, dev_data):
         name = dev_data.get("name", "Bilinmeyen Cihaz")
-        win = Gtk.Window(title=f"Bluetooth Cihaz Özellikleri - {name}")
-        win.set_default_size(480, 520)
-        win.set_position(Gtk.WindowPosition.CENTER)
-        win.set_modal(False)
+        dialog = DeviceDetailsDialog(title=f"Bluetooth - {name}", parent=self.get_toplevel(), icon_name=dev_data.get("icon_name", "bluetooth-symbolic"), default_width=470, default_height=560)
         
-        main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
-        main_vbox.set_margin_top(20)
-        main_vbox.set_margin_bottom(20)
-        main_vbox.set_margin_start(20)
-        main_vbox.set_margin_end(20)
-        win.add(main_vbox)
-
-        # Header
-        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
-        head.get_style_context().add_class("card")
-        head.set_margin_bottom(4)
-        
-        ic = Gtk.Image.new_from_icon_name(dev_data.get("icon_name", "bluetooth-symbolic"), Gtk.IconSize.DIALOG)
-        ic.set_pixel_size(48)
-        head.pack_start(ic, False, False, 10)
-        
-        htxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        htxt.set_valign(Gtk.Align.CENTER)
-        title_lbl = Gtk.Label(label=name)
-        title_lbl.get_style_context().add_class("title-label")
-        title_lbl.set_halign(Gtk.Align.START)
-        htxt.pack_start(title_lbl, False, False, 0)
-        
-        status_txt = "Bağlı (Aktif)" if dev_data.get("connected") else "Bağlı Değil"
-        color = "#10b981" if dev_data.get("connected") else "#94a3b8"
-        status_lbl = Gtk.Label()
-        status_lbl.set_markup(f"<span foreground='{color}'>● {status_txt}</span>")
-        status_lbl.set_halign(Gtk.Align.START)
-        htxt.pack_start(status_lbl, False, False, 0)
-        head.pack_start(htxt, True, True, 0)
-        main_vbox.pack_start(head, False, False, 0)
-
-        # Bento Details List
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_vexpand(True)
-        main_vbox.pack_start(scroll, True, True, 0)
-        
-        details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        details_box.get_style_context().add_class("card")
-        details_box.set_margin_top(6)
-        details_box.set_margin_start(6)
-        details_box.set_margin_end(6)
-        details_box.set_margin_bottom(6)
-        scroll.add(details_box)
-
         addr = dev_data.get("address", "Bilinmiyor")
         rssi = str(dev_data.get("rssi", "--")) + " dBm"
-        bat = f"%{dev_data.get('battery')}" if dev_data.get("battery", -1) != -1 else "Bilinmiyor / Desteklenmiyor"
+        bat = f"%{dev_data.get('battery')}" if dev_data.get("battery", -1) != -1 else "Desteklenmiyor"
         paired = "Evet (Eşleşti)" if dev_data.get("paired") else "Hayır"
         trusted = "Evet (Güvenilir)" if dev_data.get("trusted") else "Hayır"
         blocked = "Evet (Engellendi)" if dev_data.get("blocked") else "Hayır"
         dev_type = dev_data.get("type_name", "Bilinmeyen Tip")
 
-        details = [
-            ("Aygıt Adı", name),
-            ("MAC / Donanım Adresi", addr),
-            ("Aygıt Türü", dev_type),
-            ("Sinyal Seviyesi (RSSI)", rssi),
-            ("Batarya Seviyesi", bat),
-            ("Eşleşme Durumu", paired),
-            ("Güvenilen Cihaz", trusted),
-            ("Engellenme Durumu", blocked),
-            ("D-Bus Nesne Yolu", str(dev_data.get("path", "-"))),
+        dialog.set_header_info(
+            icon_name=dev_data.get("icon_name", "bluetooth-symbolic"),
+            title=name,
+            subtitle=f"{addr} • {dev_type}",
+            status_active=dev_data.get("connected", False)
+        )
+
+        items = [
+            ("Aygıt Tanımı", name, "bluetooth-symbolic"),
+            ("MAC Donanım Adresi", addr, "network-wired-symbolic"),
+            ("Aygıt Sınıfı / Profil", dev_type, "preferences-system-symbolic"),
+            ("Sinyal Gücü (RSSI)", rssi, "network-wireless-signal-excellent-symbolic"),
+            ("Pil / Batarya Düzeyi", bat, "battery-good-symbolic"),
+            ("Eşleşme Kaydı", paired, "changes-prevent-symbolic"),
+            ("Otomatik Güvenilirlik", trusted, "security-high-symbolic"),
+            ("Erişim Engeli", blocked, "dialog-warning-symbolic"),
+            ("D-Bus Bağlantı Yolu", str(dev_data.get("path", "-")), "computer-symbolic"),
         ]
         
-        # Check active profiles / audio sink if connected
         if dev_data.get("connected"):
             try:
                 mac_str = addr.replace(":", "_")
                 audio_sink = subprocess.getoutput(f"pactl list sinks short | grep {mac_str}").strip()
                 if audio_sink:
-                    details.append(("Ses Çıkışı (Pulse/PipeWire)", "Aktif Ses Aygıtı"))
+                    items.append(("Ses Çıkışı", "Aktif Pulse/PipeWire", "audio-speakers-symbolic"))
             except: pass
-
-        for k, v in details:
-            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-            row.set_margin_top(8)
-            row.set_margin_bottom(8)
-            row.set_margin_start(12)
-            row.set_margin_end(12)
             
-            klbl = Gtk.Label(label=k)
-            klbl.get_style_context().add_class("dim-label")
-            klbl.set_halign(Gtk.Align.START)
-            row.pack_start(klbl, False, False, 0)
-            
-            vlbl = Gtk.Label(label=v)
-            vlbl.set_halign(Gtk.Align.END)
-            vlbl.set_selectable(True)
-            row.pack_end(vlbl, False, False, 0)
-            details_box.pack_start(row, False, False, 0)
-
-        # Bottom Close Button
-        btn_close = Gtk.Button(label="Pencereyi Kapat")
-        btn_close.get_style_context().add_class("btn-secondary")
-        btn_close.connect("clicked", lambda b: win.destroy())
-        main_vbox.pack_end(btn_close, False, False, 0)
-
-        win.show_all()
+        dialog.set_items_list(items)
+        dialog.show_all()
+        dialog.run()
+        dialog.destroy()
 
     def __init__(self, toast_service):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)

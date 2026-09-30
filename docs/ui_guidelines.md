@@ -26,3 +26,13 @@ self.toast_service.show("Yetki reddedildi!", type="error")
 
 ## 4. Renk ve Çizgiler (Tema Uyumu)
 ULAK içerisinde widgetlara `.override_background_color` veya benzeri statik GTK3 renk atamaları yapmaktan kaçının. Renkler her zaman `theme.py` içindeki sistem teması veya CSS sınıfları (ör: `title-label`, `action-btn`, `card`) ile belirlenmelidir. Özel renk zorunluluğunda her zaman dinamik bir `Gtk.CssProvider` oluşturup bağlayın.
+
+## 5. Küresel Bento Dialog ve Açılır Pencere Standardı (DeviceDetailsDialog)
+Uygulama içerisinde herhangi bir yeni cihaz, modül veya ayar için açılacak pencereler **asla ham Gtk.Window veya OS varsayılan penceresi olmamalıdır**.
+Bunun yerine `ui_shared.py` içindeki `DeviceDetailsDialog` (veya `BentoDialog`) sınıfı kullanılmalıdır.
+
+### Tasarım Kriterleri:
+- **Çerçevesiz ve Yuvarlak (18px) Başlık Çubuğu:** Sürüklenebilir özel başlık ve sağ üst köşede kapatma butonu (`✕`).
+- **Üst Özet Kartı (`set_header_info`):** Sol tarafta 44px ikon, ortada cihaz/özellik başlığı ve altında yeşil/gri renkli durum noktası (`● Bağlı` veya `● Pasif`).
+- **Bento Satırları (`set_items_list`):** Her özellik `settings-card` stiliyle yatay Bento kartı olarak listelenmeli; solunda ikon ve özellik adı, sağında kopyalanabilir/seçilebilir açık renkli değer yer almalıdır.
+- **Standart Kapatma Butonu:** Alt kısımda `add_bento_action_button` ile oluşturulmuş birincil (Primary) buton yer almalıdır.
