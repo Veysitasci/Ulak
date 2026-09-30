@@ -1,46 +1,32 @@
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, GLib
+gi.require_version("Notify", "0.7")
+from gi.repository import Gtk, Gdk, GLib, Notify
+import time
 import json
-from pathlib import Path
+import os
 
 class Storage:
     def __init__(self):
-        self.config_dir = Path.home() / ".config" / "wireless-manager"
-        self.config_dir.mkdir(parents=True, exist_ok=True)
-        self.file_path = self.config_dir / "data.json"
-        
-        if not self.file_path.exists():
-            with open(self.file_path, "w") as f:
-                json.dump({"bt": {}, "wifi": {}, "global": {}}, f)
-
+        self.data_file = os.path.expanduser("~/.local/share/ulak/data.json")
+        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+        if not os.path.exists(self.data_file):
+            self.save({"wifi": {}, "bt": {}, "firewall": {}, "hw": {}, "settings": {}})
+            
     def load(self):
         try:
-            with open(self.file_path, "r") as f:
-                data = json.load(f)
-                if "global" not in data: data["global"] = {}
-                if "bt" not in data: data["bt"] = {}
-                if "wifi" not in data: data["wifi"] = {}
-                return data
+            with open(self.data_file, "r") as f:
+                return json.load(f)
         except:
-            return {"bt": {}, "wifi": {}, "global": {}}
-
+            return {"wifi": {}, "bt": {}, "firewall": {}, "hw": {}, "settings": {}}
+            
     def save(self, data):
-        with open(self.file_path, "w") as f:
+        with open(self.data_file, "w") as f:
             json.dump(data, f, indent=4)
 
-    # Global Settings
-    def get_global(self, key, default=None):
-        return self.load()["global"].get(key, default)
-        
-    def set_global(self, key, value):
-        data = self.load()
-        data["global"][key] = value
-        self.save(data)
-
-    # Domain specific settings (WIFI / BT)
     def get_device_setting(self, domain, addr, key, default=None):
         data = self.load()
+        if domain not in data: return default
         if addr not in data[domain]: return default
         return data[domain][addr].get(key, default)
 
@@ -50,88 +36,96 @@ class Storage:
         data[domain][addr][key] = value
         self.save(data)
 
-    def add_log(self, domain, addr, event):
-        import time
-        timestamp = time.strftime("[%H:%M:%S]")
-        data = self.load()
-        if addr not in data[domain]: data[domain][addr] = {}
-        if "logs" not in data[domain][addr]: data[domain][addr]["logs"] = []
-        data[domain][addr]["logs"].insert(0, f"{timestamp} {event}")
-        data[domain][addr]["logs"] = data[domain][addr]["logs"][:50]
-        self.save(data)
-
-    def add_history(self, domain, addr, val, key="signal_history"):
-        data = self.load()
-        if addr not in data[domain]: data[domain][addr] = {}
-        if key not in data[domain][addr]: data[domain][addr][key] = []
-        data[domain][addr][key].insert(0, val)
-        data[domain][addr][key] = data[domain][addr][key][:30]
-        self.save(data)
-
-
 class ToastService:
     def __init__(self, overlay):
         self.overlay = overlay
         self.history = []
-        # Create a persistent VBox for stacking toasts on top right
+        self.main_window = None # Will be set later to allow bringing window to front
+        
+        # Container for in-app toasts (Bottom Right)
         self.toast_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.toast_container.set_halign(Gtk.Align.END)
-        self.toast_container.set_valign(Gtk.Align.START)
-        self.toast_container.set_margin_top(20)
+        self.toast_container.set_valign(Gtk.Align.END)
+        self.toast_container.set_margin_bottom(20)
         self.toast_container.set_margin_end(20)
         self.overlay.add_overlay(self.toast_container)
         self.toast_container.show()
+        
+        # Init libnotify for OS notifications
+        if not Notify.is_initted():
+            Notify.init("ULAK")
 
-    def show(self, message, type="info", timeout_ms=5000):
-        import time
+    def show(self, message, type="info", timeout_ms=4000, target_tab=None):
         ts = time.strftime("[%H:%M:%S]")
         self.history.insert(0, f"{ts} [{type.upper()}] {message}")
         self.history = self.history[:50]
 
-        # Colors based on type
-        if type == "warning": 
-            bg_color = "#f59e0b" # Yellow
-            fg_color = "#ffffff"
-        elif type in ["error", "critical"]: 
-            bg_color = "#ef4444" # Red
-            fg_color = "#ffffff"
-        elif type == "success":
-            bg_color = "#10b981" # Green
-            fg_color = "#ffffff"
-        else: # info / normal
-            bg_color = "#34d399" # Light Green
-            fg_color = "#0f172a"
+        # 1. OS Notification (Always triggered, visible if app is in background)
+        try:
+            icon_name = "dialog-information"
+            if type == "warning": icon_name = "dialog-warning"
+            elif type in ["error", "critical"]: icon_name = "dialog-error"
+            elif type == "success": icon_name = "emblem-ok-symbolic"
+            
+            n = Notify.Notification.new("ULAK", message, icon_name)
+            if target_tab is not None and self.main_window:
+                def _on_notify_action(notification, action, user_data):
+                    if self.main_window:
+                        self.main_window.present() # Bring to front
+                        # Assuming main_window has notebook
+                        if hasattr(self.main_window, 'notebook'):
+                            self.main_window.notebook.set_current_page(target_tab)
+                n.add_action("default", "Aç", _on_notify_action, None)
+            n.show()
+        except Exception as e:
+            print("OS Notification failed:", e)
 
-        # Toast UI
+        # 2. In-App Elegant Toast (Bottom Right)
+        bg_color = "#334155" # Default dark slate
+        if type == "warning": bg_color = "#d97706"
+        elif type in ["error", "critical"]: bg_color = "#dc2626"
+        elif type == "success": bg_color = "#059669"
+        elif type == "info": bg_color = "#2563eb"
+
         toast_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        toast_box.set_size_request(280, -1)
         
-        # Message Label
+        # Clickable event box to navigate
+        eb = Gtk.EventBox()
+        if target_tab is not None and self.main_window:
+            def _on_toast_click(w, e):
+                if hasattr(self.main_window, 'notebook'):
+                    self.main_window.notebook.set_current_page(target_tab)
+                return True
+            eb.connect("button-press-event", _on_toast_click)
+        
         lbl = Gtk.Label(label=message)
-        lbl.set_margin_start(16)
-        lbl.set_margin_end(16)
-        lbl.set_margin_top(12)
-        lbl.set_margin_bottom(12)
+        lbl.set_line_wrap(True)
+        lbl.set_xalign(0.0) # Left align text
+        lbl.set_margin_all(12)
         
-        # Applying color directly via CSS
         css = f"""
         * {{
             background-color: {bg_color};
-            color: {fg_color};
+            color: #ffffff;
             border-radius: 8px 8px 0 0;
-            font-weight: bold;
+            font-size: 13px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }}
         """
         provider = Gtk.CssProvider()
         provider.load_from_data(css.encode('utf-8'))
         lbl.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        toast_box.pack_start(lbl, True, True, 0)
         
-        # Progress Bar
+        eb.add(lbl)
+        toast_box.pack_start(eb, True, True, 0)
+        
+        # Thin Progress Bar
         prog = Gtk.ProgressBar()
-        prog.set_size_request(-1, 4)
+        prog.set_size_request(-1, 3)
         prog_css = f"""
-        progressbar trough {{ min-height: 4px; background-color: rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; }}
-        progressbar progress {{ background-color: rgba(255,255,255,0.7); border-radius: 0 0 8px 8px; }}
+        progressbar trough {{ min-height: 3px; background-color: {bg_color}; border-radius: 0 0 8px 8px; }}
+        progressbar progress {{ background-color: rgba(255,255,255,0.8); border-radius: 0 0 8px 8px; }}
         """
         p_provider = Gtk.CssProvider()
         p_provider.load_from_data(prog_css.encode('utf-8'))
@@ -139,8 +133,8 @@ class ToastService:
         toast_box.pack_start(prog, False, False, 0)
         
         revealer = Gtk.Revealer()
-        revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
-        revealer.set_transition_duration(300)
+        revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
+        revealer.set_transition_duration(400)
         revealer.add(toast_box)
         revealer.show_all()
         
@@ -156,7 +150,7 @@ class ToastService:
             elapsed = time.time() - start_time
             if elapsed >= duration:
                 revealer.set_reveal_child(False)
-                GLib.timeout_add(300, lambda: self.toast_container.remove(revealer))
+                GLib.timeout_add(400, lambda: self.toast_container.remove(revealer))
                 return False
             prog.set_fraction(1.0 - (elapsed / duration))
             return True
@@ -165,18 +159,7 @@ class ToastService:
 
 storage = Storage()
 
-
 class BentoDialog(Gtk.Dialog):
-    """
-    Termius / Bento Frameless Modal Dialog.
-    Features:
-    - RGBA true transparency with rounded corners (18px).
-    - Frameless (set_decorated(False)) removing OS window manager titlebars.
-    - Custom draggable headerbar (.app-header .dialog-header).
-    - Termius close button (✕) (.win-btn .win-btn-close) on top right.
-    - Bento content area with clean margins.
-    - Bento action button management.
-    """
     def __init__(self, title="ULAK", parent=None, icon_name="preferences-system-symbolic", default_width=460, default_height=520):
         super().__init__(transient_for=parent, modal=True)
         self.set_default_size(default_width, default_height)
@@ -190,12 +173,10 @@ class BentoDialog(Gtk.Dialog):
         self.set_app_paintable(True)
         self.get_style_context().add_class("main-window")
 
-        # Frame container
         self.dialog_frame = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.dialog_frame.get_style_context().add_class("main-frame")
         self.dialog_frame.get_style_context().add_class("bento-dialog-frame")
 
-        # Draggable Headerbar
         event_box = Gtk.EventBox()
         event_box.connect("button-press-event", self._on_header_drag)
 
@@ -204,7 +185,6 @@ class BentoDialog(Gtk.Dialog):
         self.custom_header.get_style_context().add_class("dialog-header")
         event_box.add(self.custom_header)
 
-        # Header Icon & Title
         h_left = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         h_left.set_valign(Gtk.Align.CENTER)
         
@@ -218,11 +198,9 @@ class BentoDialog(Gtk.Dialog):
         h_left.pack_start(self.header_title, False, False, 0)
         self.custom_header.pack_start(h_left, False, False, 0)
 
-        # Header Spacer (drag area)
         h_spacer = Gtk.Box()
         self.custom_header.pack_start(h_spacer, True, True, 0)
 
-        # Header Close Button (✕)
         self.btn_close = Gtk.Button(label="✕")
         self.btn_close.get_style_context().add_class("win-btn")
         self.btn_close.get_style_context().add_class("win-btn-close")
@@ -232,7 +210,6 @@ class BentoDialog(Gtk.Dialog):
 
         self.dialog_frame.pack_start(event_box, False, False, 0)
 
-        # Body Box
         self.body_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.body_box.set_margin_top(16)
         self.body_box.set_margin_bottom(16)
@@ -240,7 +217,6 @@ class BentoDialog(Gtk.Dialog):
         self.body_box.set_margin_end(20)
         self.dialog_frame.pack_start(self.body_box, True, True, 0)
 
-        # Hide GTK's default action area and dialog chrome completely
         try:
             action_area = self.get_action_area()
             if action_area:
@@ -254,12 +230,10 @@ class BentoDialog(Gtk.Dialog):
         content_area.set_border_width(0)
         content_area.pack_start(self.dialog_frame, True, True, 0)
 
-        # Action Buttons Area at bottom of body
         self.action_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         self.action_box.set_halign(Gtk.Align.END)
         self.action_box.set_margin_top(8)
 
-        # Connect Escape key to dismiss dialog
         self.connect("key-press-event", self._on_key_press)
 
     def _on_key_press(self, widget, event):

@@ -75,6 +75,7 @@ class WirelessManagerWindow(Gtk.Window):
         self.overlay = Gtk.Overlay()
         self.add(self.overlay)
         self.toast_service = ToastService(self.overlay)
+        self.toast_service.main_window = self
 
         self.root_frame = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.root_frame.get_style_context().add_class("main-frame")
