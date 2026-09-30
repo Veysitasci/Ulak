@@ -52,15 +52,10 @@ class StoreView(Gtk.ScrolledWindow):
         
         main_box.pack_start(header_row, False, False, 0)
         
-        # FlowBox for Apps
-        self.flowbox = Gtk.FlowBox()
-        self.flowbox.set_valign(Gtk.Align.START)
-        self.flowbox.set_max_children_per_line(2)
-        self.flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.flowbox.set_row_spacing(15)
-        self.flowbox.set_column_spacing(15)
-        
-        main_box.pack_start(self.flowbox, False, False, 0)
+        # Bento Grid Container for Modules
+        self.bento_grid = Gtk.Grid(column_spacing=18, row_spacing=18)
+        self.bento_grid.set_column_homogeneous(True)
+        main_box.pack_start(self.bento_grid, False, False, 0)
         
         self._load_modules()
         
@@ -121,12 +116,14 @@ class StoreView(Gtk.ScrolledWindow):
 
     def _render_modules(self, modules):
         # Clear existing
-        for child in self.flowbox.get_children():
-            self.flowbox.remove(child)
+        for child in self.bento_grid.get_children():
+            self.bento_grid.remove(child)
             
-        for mod in modules:
+        for idx, mod in enumerate(modules):
+            col = idx % 2
+            row = idx // 2
             card = self._create_module_card(mod)
-            self.flowbox.add(card)
+            self.bento_grid.attach(card, col, row, 1, 1)
             
         self.show_all()
 
@@ -147,13 +144,13 @@ class StoreView(Gtk.ScrolledWindow):
                 # Grayish background
                 bg_css = "box.card { background-color: rgba(100, 116, 139, 0.05); border: 1px solid rgba(100, 116, 139, 0.2); }"
 
-        # Card Container (Horizontal)
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=15)
-        box.get_style_context().add_class("card")
-        box.set_margin_top(8)
-        box.set_margin_bottom(8)
-        box.set_margin_start(8)
-        box.set_margin_end(8)
+        # Card Container (Horizontal Bento)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        box.get_style_context().add_class("settings-card")
+        box.set_margin_top(4)
+        box.set_margin_bottom(4)
+        box.set_margin_start(4)
+        box.set_margin_end(4)
         
         if bg_css:
             provider = Gtk.CssProvider()

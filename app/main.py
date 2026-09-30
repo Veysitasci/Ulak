@@ -46,9 +46,15 @@ def get_ulak_logo_path(is_light_mode=False):
 class WirelessManagerWindow(Gtk.Window):
     def __init__(self):
         super().__init__(title="ULAK - Ağ & Güvenlik Kiti")
-        self.set_default_size(1060, 700)
+        self.set_default_size(1080, 720)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_decorated(False)  # Termius Frameless CSD Window
+        self.set_resizable(True)
+        # Allow resizing from borders and corners even when frameless
+        geometry = Gdk.Geometry()
+        geometry.min_width = 800
+        geometry.min_height = 550
+        self.set_geometry_hints(None, geometry, Gdk.WindowHints.MIN_SIZE)
         
         # Enable RGBA visual for rounded window corners
         screen = self.get_screen()
@@ -83,6 +89,12 @@ class WirelessManagerWindow(Gtk.Window):
 
         self.root_frame = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.root_frame.get_style_context().add_class("main-frame")
+        
+        # Connect window border drag events for corner/edge resizing
+        self.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+        self.connect("motion-notify-event", self._on_root_motion)
+        self.connect("button-press-event", self._on_root_button_press)
+
         self.overlay.add(self.root_frame)
 
         # 1. TOP HEADER BAR
@@ -136,6 +148,58 @@ class WirelessManagerWindow(Gtk.Window):
             self._on_nav_toggled(self.first_nav_btn, "firewall")
         self.show_all()
         self._update_telemetry()
+
+    def _check_resize_edge(self, x, y, width, height, margin=8):
+        edge = None
+        if x < margin and y < margin:
+            edge = Gdk.WindowEdge.NORTH_WEST
+        elif x > width - margin and y < margin:
+            edge = Gdk.WindowEdge.NORTH_EAST
+        elif x < margin and y > height - margin:
+            edge = Gdk.WindowEdge.SOUTH_WEST
+        elif x > width - margin and y > height - margin:
+            edge = Gdk.WindowEdge.SOUTH_EAST
+        elif x < margin:
+            edge = Gdk.WindowEdge.WEST
+        elif x > width - margin:
+            edge = Gdk.WindowEdge.EAST
+        elif y < margin:
+            edge = Gdk.WindowEdge.NORTH
+        elif y > height - margin:
+            edge = Gdk.WindowEdge.SOUTH
+        return edge
+
+    def _on_root_motion(self, widget, event):
+        if self.is_maximized():
+            return False
+        alloc = self.get_allocation()
+        edge = self._check_resize_edge(event.x, event.y, alloc.width, alloc.height)
+        gdk_win = self.get_window()
+        if not gdk_win:
+            return False
+        
+        cursor_type = Gdk.CursorType.ARROW
+        if edge in [Gdk.WindowEdge.NORTH, Gdk.WindowEdge.SOUTH]:
+            cursor_type = Gdk.CursorType.SB_V_DOUBLE_ARROW
+        elif edge in [Gdk.WindowEdge.EAST, Gdk.WindowEdge.WEST]:
+            cursor_type = Gdk.CursorType.SB_H_DOUBLE_ARROW
+        elif edge in [Gdk.WindowEdge.NORTH_WEST, Gdk.WindowEdge.SOUTH_EAST]:
+            cursor_type = Gdk.CursorType.TOP_LEFT_CORNER
+        elif edge in [Gdk.WindowEdge.NORTH_EAST, Gdk.WindowEdge.SOUTH_WEST]:
+            cursor_type = Gdk.CursorType.TOP_RIGHT_CORNER
+        
+        cursor = Gdk.Cursor.new_for_display(Gdk.Display.get_default(), cursor_type)
+        gdk_win.set_cursor(cursor)
+        return False
+
+    def _on_root_button_press(self, widget, event):
+        if event.button == 1 and not self.is_maximized():
+            alloc = self.get_allocation()
+            edge = self._check_resize_edge(event.x, event.y, alloc.width, alloc.height)
+            if edge is not None:
+                self.begin_resize_drag(edge, event.button, int(event.x_root), int(event.y_root), event.time)
+                return True
+        return False
 
     def _build_header(self, parent):
         # EventBox for window drag (Termius frameless titlebar)
