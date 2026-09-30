@@ -52,8 +52,8 @@ class WirelessManagerWindow(Gtk.Window):
         self.set_resizable(True)
         # Allow resizing from borders and corners even when frameless
         geometry = Gdk.Geometry()
-        geometry.min_width = 800
-        geometry.min_height = 550
+        geometry.min_width = 520
+        geometry.min_height = 400
         self.set_geometry_hints(None, geometry, Gdk.WindowHints.MIN_SIZE)
         
         # Enable RGBA visual for rounded window corners
@@ -94,6 +94,7 @@ class WirelessManagerWindow(Gtk.Window):
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
         self.connect("motion-notify-event", self._on_root_motion)
         self.connect("button-press-event", self._on_root_button_press)
+        self.connect("size-allocate", self._on_size_allocate)
 
         self.overlay.add(self.root_frame)
 
@@ -169,6 +170,19 @@ class WirelessManagerWindow(Gtk.Window):
             edge = Gdk.WindowEdge.SOUTH
         return edge
 
+    def _on_size_allocate(self, widget, allocation):
+        # Responsive adaptation for 4-way split / narrow screens
+        if allocation.width < 760:
+            if hasattr(self, 'search_entry'):
+                self.search_entry.set_visible(False)
+            if hasattr(self, 'tab_box'):
+                self.tab_box.set_visible(False)
+        else:
+            if hasattr(self, 'search_entry'):
+                self.search_entry.set_visible(True)
+            if hasattr(self, 'tab_box'):
+                self.tab_box.set_visible(True)
+
     def _on_root_motion(self, widget, event):
         if self.is_maximized():
             return False
@@ -223,7 +237,8 @@ class WirelessManagerWindow(Gtk.Window):
         brand_box.pack_start(title_lbl, False, False, 0)
 
         # Termius-style Tabs (Vaults / SFTP style)
-        tab_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.tab_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        tab_box = self.tab_box
         tab_box.set_margin_start(14)
 
         tab_fw = Gtk.Button(label="Kalkan")
@@ -307,6 +322,9 @@ class WirelessManagerWindow(Gtk.Window):
 
     def _on_window_drag(self, widget, event):
         if event.button == 1 and event.type == Gdk.EventType.BUTTON_PRESS:
+            # If window was maximized, unmaximize gently at drag position
+            if self.is_maximized():
+                self._toggle_maximize()
             self.begin_move_drag(event.button, int(event.x_root), int(event.y_root), event.time)
         elif event.button == 1 and event.type == Gdk.EventType._2BUTTON_PRESS:
             self._toggle_maximize()
@@ -348,7 +366,7 @@ class WirelessManagerWindow(Gtk.Window):
     def _build_sidebar(self, parent):
         self.sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         self.sidebar.get_style_context().add_class("sidebar-box")
-        self.sidebar.set_size_request(220, -1)
+        self.sidebar.set_size_request(180, -1)
         self.nav_group = None
         self._populate_sidebar()
         parent.pack_start(self.sidebar, False, False, 0)

@@ -56,6 +56,7 @@ class StoreView(Gtk.ScrolledWindow):
         self.bento_grid = Gtk.Grid(column_spacing=18, row_spacing=18)
         self.bento_grid.set_column_homogeneous(True)
         main_box.pack_start(self.bento_grid, False, False, 0)
+        main_box.connect('size-allocate', self._on_store_size_allocate)
         
         self._load_modules()
         
@@ -114,18 +115,31 @@ class StoreView(Gtk.ScrolledWindow):
                 
         self._render_modules(all_modules)
 
+    def _on_store_size_allocate(self, widget, allocation):
+        cols = 1 if allocation.width < 620 else 2
+        if hasattr(self, 'current_cols') and self.current_cols == cols:
+            return
+        self.current_cols = cols
+        if hasattr(self, 'last_rendered_modules'):
+            self._do_layout_modules(self.last_rendered_modules, cols)
+
     def _render_modules(self, modules):
-        # Clear existing
+        self.last_rendered_modules = modules
+        cols = getattr(self, 'current_cols', 2)
+        self._do_layout_modules(modules, cols)
+
+    def _do_layout_modules(self, modules, cols):
         for child in self.bento_grid.get_children():
             self.bento_grid.remove(child)
             
         for idx, mod in enumerate(modules):
-            col = idx % 2
-            row = idx // 2
+            c = idx % cols
+            r = idx // cols
             card = self._create_module_card(mod)
-            self.bento_grid.attach(card, col, row, 1, 1)
+            self.bento_grid.attach(card, c, r, 1, 1)
             
         self.show_all()
+
 
     def _create_module_card(self, mod):
         # We'll use an EventBox as the base for clicking and background color styling
