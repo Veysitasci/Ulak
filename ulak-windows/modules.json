@@ -1,5 +1,20 @@
 [
   {
+    "id": "crypto_vault",
+    "name_key": "Kripto Kasa & Steganografi",
+    "desc_key": "AES-256-GCM dosya şifreleme, görsel içi steganografi, parola korumalı not defteri ve dijital mühür laboratuvarı.",
+    "icon": "lock",
+    "category": "Güvenlik",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "AES-256-GCM Askeri Standartta Parolalı Dosya Şifreleme ve Çözme (.ulak)",
+      "Görsel İçi LSB Steganografi (Resim Arkasına Gizli Mesaj & Dosya Gömme)",
+      "PBKDF2 ve GCM Bütünlük Korumalı Şifreli Gizli Not Defteri",
+      "Yüksek Entropili Kriptografik Parola & Token Üreticisi",
+      "HMAC-SHA512 Dijital Bütünlük Mührü & Manipülasyon Doğrulayıcı"
+    ]
+  },
+  {
     "id": "antivirus",
     "name_key": "Antivirüs & Tehdit Avcısı",
     "desc_key": "Heuristik dosya analizi, Shannon entropisi, Windows Defender entegrasyonu, karantina kasası ve güvenli dosya parçalayıcı.",

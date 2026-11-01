@@ -1,5 +1,34 @@
 # ULAK Windows — Sürüm & Modül Değişiklik Günlüğü (Changelog)
 
+## [v2.4.0] - 2026-11-01
+
+### 🚀 Özet
+ULAK platformuna tam entegre yeni bir güvenlik ve gizlilik modülü eklendi: **Kripto Kasa & Steganografi (`crypto_vault`)**. Modül askeri düzeyde AES-256-GCM dosya şifreleme, görsel içine veri gizleme (steganografi), şifreli gizli not defteri, yüksek entropili parola üreticisi ve HMAC-SHA512 bütünlük mührü içerir.
+
+---
+
+### 📦 Yeni Eklenen Modül: Kripto Kasa & Steganografi (`crypto_vault`)
+
+1. **AES-256-GCM Askeri Standartta Dosya Şifreleme & Çözme:**
+   - 100.000 iterasyonlu PBKDF2 anahtar türetme, rastgele tuz (salt) ve başlatma vektörü (IV) ile dosya şifreleme.
+   - Doğrulama etiketi (Auth Tag) ile kurcalamaya karşı %100 dayanıklı, şifresi çözülürken bütünlük garantisi veren `.ulak` kasa formatı.
+
+2. **Görsel İçi Steganografi Laboratuvarı (Image Steganography):**
+   - Gizli mesajları veya parolaları PNG, JPG ve BMP görsellerinin piksel arkasına görünmez biçimde gömme.
+   - İsteğe bağlı ek parola katmanı (AES-CBC) ile çift katmanlı gizleme ve görselden gizli veriyi anında çıkarma.
+
+3. **Şifreli Kasa Gizli Not Defteri:**
+   - Kasa Ana Parolası (Master Password) ile korunan, AES-256-GCM ile disk üzerinde şifreli saklanan (`%USERPROFILE%\.ulak\vault\notes.enc`) gizli notlar ve kimlik bilgileri kasası.
+
+4. **Kriptografik Güçlü Parola & Token Üreticisi:**
+   - 8-64 karakter arası dinamik uzunluk, büyük/küçük harf, rakam ve sembol filtreleri.
+   - Shannon bit entropisi hesabı (`tabular-nums`) ve panoya tek tıkla kopyalama desteği.
+
+5. **HMAC-SHA512 Dijital Bütünlük Mührü:**
+   - Önemli dosyaların gelecekte en ufak bir bit dahi değiştirilip değiştirilmediğini kanıtlayan HMAC-SHA512 dijital mühürleme ve SHA-256 sağlama motoru.
+
+---
+
 ## [v2.3.0] - 2026-11-01
 
 ### 🚀 Özet

@@ -177,6 +177,24 @@ const DEFAULT_MODULE_CATALOG = [
 
   // --- MAĞAZA VE GITHUB EKLENTİLERİ (İsteğe Bağlı) ---
   {
+    id: 'crypto_vault',
+    name: 'Kripto Kasa & Steganografi',
+    category: 'Güvenlik',
+    icon: 'lock',
+    isCore: false,
+    githubUrl: 'https://github.com/Veysitasci/Ulak',
+    desc: 'AES-256-GCM dosya şifreleme, görsel içi steganografi, parola korumalı not defteri ve dijital mühür laboratuvarı.',
+    currentVersion: '1.0.0',
+    availableVersions: [
+      {
+        version: '1.0.0',
+        date: '1 Kasım 2026',
+        isLatest: true,
+        changelog: 'İlk sürüm: AES-256-GCM şifreleme, LSB steganografi enjektörü, şifreli not defteri ve HMAC-SHA512 mühürleme.'
+      }
+    ]
+  },
+  {
     id: 'antivirus',
     name: 'Antivirüs & Tehdit Avcısı',
     category: 'Güvenlik',

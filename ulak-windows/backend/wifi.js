@@ -273,29 +273,205 @@ class WiFiManager {
   }
 
   async getProxySettings() {
-    const cfgPath = path.join(os.homedir(), '.config', 'wireless-manager', 'proxy.json');
     try {
-      if (fs.existsSync(cfgPath)) {
-        return JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+      const { stdout } = await execAsync('reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"');
+      const enableMatch = stdout.match(/ProxyEnable\s+REG_DWORD\s+0x([0-9a-fA-F]+)/i);
+      const serverMatch = stdout.match(/ProxyServer\s+REG_SZ\s+(.*)/i);
+      const overrideMatch = stdout.match(/ProxyOverride\s+REG_SZ\s+(.*)/i);
+      const pacMatch = stdout.match(/AutoConfigURL\s+REG_SZ\s+(.*)/i);
+
+      const enabled = enableMatch ? parseInt(enableMatch[1], 16) === 1 : false;
+      const server = serverMatch ? serverMatch[1].trim() : '';
+      const bypass = overrideMatch ? overrideMatch[1].trim() : '<local>;127.0.0.1;localhost';
+      const pacUrl = pacMatch ? pacMatch[1].trim() : '';
+
+      let host = '';
+      let port = '';
+      let protocol = 'http';
+
+      if (server) {
+        if (server.includes('=')) {
+          const firstPart = server.split(';')[0];
+          const [proto, addr] = firstPart.split('=');
+          protocol = proto.trim();
+          if (addr) {
+            const parts = addr.split(':');
+            host = parts[0] || '';
+            port = parts[1] || '';
+          }
+        } else {
+          const parts = server.split(':');
+          host = parts[0] || '';
+          port = parts[1] || '';
+        }
       }
-    } catch (e) {}
-    return { enabled: false, strict: false, ip: '', port: '', excluded: [] };
+
+      return {
+        enabled,
+        server,
+        host,
+        port,
+        protocol,
+        bypass,
+        pacUrl
+      };
+    } catch (e) {
+      return {
+        enabled: false,
+        server: '',
+        host: '',
+        port: '',
+        protocol: 'http',
+        bypass: '<local>;127.0.0.1;localhost',
+        pacUrl: ''
+      };
+    }
   }
 
   async setProxySettings(settings) {
-    const dir = path.join(os.homedir(), '.config', 'wireless-manager');
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'proxy.json'), JSON.stringify(settings, null, 2), 'utf8');
-
     try {
-      if (settings.enabled && settings.ip && settings.port) {
-        await execAsync(`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyEnable /t REG_DWORD /d 1 /f`);
-        await execAsync(`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyServer /t REG_SZ /d "${settings.ip}:${settings.port}" /f`);
+      const regKey = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings';
+      if (settings.enabled && settings.host && settings.port) {
+        const host = settings.host.trim();
+        const port = settings.port.toString().trim();
+        const protocol = settings.protocol || 'http';
+        let proxyServer = `${host}:${port}`;
+        if (protocol === 'socks5' || protocol === 'socks') {
+          proxyServer = `socks=${host}:${port}`;
+        } else if (protocol === 'both') {
+          proxyServer = `http=${host}:${port};https=${host}:${port}`;
+        }
+
+        const bypass = settings.bypass || '<local>;127.0.0.1;localhost';
+
+        await execAsync(`reg add "${regKey}" /v ProxyEnable /t REG_DWORD /d 1 /f`);
+        await execAsync(`reg add "${regKey}" /v ProxyServer /t REG_SZ /d "${proxyServer}" /f`);
+        await execAsync(`reg add "${regKey}" /v ProxyOverride /t REG_SZ /d "${bypass}" /f`);
+
+        if (settings.pacUrl) {
+          await execAsync(`reg add "${regKey}" /v AutoConfigURL /t REG_SZ /d "${settings.pacUrl.trim()}" /f`);
+        }
       } else {
-        await execAsync(`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f`);
+        await execAsync(`reg add "${regKey}" /v ProxyEnable /t REG_DWORD /d 0 /f`);
+        if (settings.removePac) {
+          try { await execAsync(`reg delete "${regKey}" /v AutoConfigURL /f`); } catch (e) {}
+        }
       }
-    } catch (e) {}
-    return { success: true };
+      return { success: true, message: settings.enabled ? 'Sistem Proxy etkinleştirildi.' : 'Sistem Proxy devre dışı bırakıldı.' };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  async testProxyConnection(host, port) {
+    const net = require('net');
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const socket = new net.Socket();
+      socket.setTimeout(2500);
+
+      socket.connect(parseInt(port, 10), host, () => {
+        const latency = Date.now() - startTime;
+        socket.destroy();
+        resolve({ success: true, latency, message: `Proxy sunucusuna erişildi (${latency}ms)` });
+      });
+
+      socket.on('error', (err) => {
+        socket.destroy();
+        resolve({ success: false, message: `Bağlantı hatası: ${err.message}` });
+      });
+
+      socket.on('timeout', () => {
+        socket.destroy();
+        resolve({ success: false, message: 'Bağlantı zaman aşımına uğradı (2.5s)' });
+      });
+    });
+  }
+
+  async getDnsSettings() {
+    try {
+      const { stdout } = await execAsync('netsh interface ipv4 show dnsservers "Wi-Fi"');
+      const isDhcp = /dhcp/i.test(stdout);
+      const ips = stdout.match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g) || [];
+
+      let provider = 'Özel / Diğer';
+      if (isDhcp) {
+        provider = 'Otomatik (DHCP / Modem)';
+      } else if (ips.includes('1.1.1.1')) {
+        provider = 'Cloudflare DNS (1.1.1.1)';
+      } else if (ips.includes('8.8.8.8')) {
+        provider = 'Google Public DNS (8.8.8.8)';
+      } else if (ips.includes('94.140.14.14')) {
+        provider = 'AdGuard DNS (Reklam Engelleyici)';
+      } else if (ips.includes('9.9.9.9')) {
+        provider = 'Quad9 (Güvenlik Kalkanı)';
+      }
+
+      return {
+        isDhcp,
+        servers: ips,
+        primary: ips[0] || '',
+        secondary: ips[1] || '',
+        provider
+      };
+    } catch (e) {
+      return { isDhcp: true, servers: [], primary: '', secondary: '', provider: 'Otomatik (DHCP)' };
+    }
+  }
+
+  async setDnsSettings(preset, customPrimary = '', customSecondary = '') {
+    try {
+      if (preset === 'dhcp') {
+        await execAsync('netsh interface ipv4 set dnsservers name="Wi-Fi" dhcp');
+      } else {
+        let p = customPrimary;
+        let s = customSecondary;
+        if (preset === 'cloudflare') { p = '1.1.1.1'; s = '1.0.0.1'; }
+        else if (preset === 'google') { p = '8.8.8.8'; s = '8.8.4.4'; }
+        else if (preset === 'adguard') { p = '94.140.14.14'; s = '94.140.15.15'; }
+        else if (preset === 'quad9') { p = '9.9.9.9'; s = '149.112.112.112'; }
+
+        if (!p) throw new Error('Birincil DNS adresi belirtilmedi.');
+        await execAsync(`netsh interface ipv4 set dnsservers name="Wi-Fi" static ${p} primary`);
+        if (s) {
+          try {
+            await execAsync(`netsh interface ipv4 add dnsservers name="Wi-Fi" ${s} index=2`);
+          } catch(e) {}
+        }
+      }
+      try { await execAsync('ipconfig /flushdns'); } catch(e) {}
+      return { success: true, message: 'DNS yapılandırması başarıyla güncellendi ve DNS önbelleği temizlendi.' };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  async flushDns() {
+    try {
+      await execAsync('ipconfig /flushdns');
+      return { success: true, message: 'Windows DNS Çözümleyici Önbelleği başarıyla temizlendi.' };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  async getPublicIp() {
+    return new Promise((resolve) => {
+      const req = https.get('https://api.ipify.org?format=json', { timeout: 3500 }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            resolve({ success: true, ip: parsed.ip || 'Bilinmiyor' });
+          } catch(e) {
+            resolve({ success: false, ip: 'Alınamadı' });
+          }
+        });
+      });
+      req.on('error', () => resolve({ success: false, ip: 'Bağlantı Yok' }));
+      req.on('timeout', () => { req.destroy(); resolve({ success: false, ip: 'Zaman Aşımı' }); });
+    });
   }
 
   async getInstalledAppsForBypass() {

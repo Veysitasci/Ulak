@@ -21,6 +21,7 @@ const NetMonitor = require('./backend/netMonitor');
 const BackupManager = require('./backend/backup');
 const UniversalPackageInstaller = require('./backend/packageInstaller');
 const VersionManager = require('./backend/versionManager');
+const CryptoVaultManager = require('./backend/cryptoVault');
 
 const store = new Store();
 
@@ -39,6 +40,7 @@ const netMonitor = new NetMonitor();
 const backupManager = new BackupManager();
 const universalPackageInstaller = new UniversalPackageInstaller();
 const versionManager = new VersionManager();
+const cryptoVaultManager = new CryptoVaultManager();
 
 const os = require('os');
 const fs = require('fs');
@@ -307,6 +309,13 @@ ipcMain.handle('wifi:get-saved-passwords', async () => wifiManager.getStructured
 ipcMain.handle('wifi:bssid-roaming', async () => wifiManager.getBssidRoamingTelemetry());
 ipcMain.handle('wifi:get-roaming-telemetry', async () => wifiManager.getBssidRoamingTelemetry());
 ipcMain.handle('wifi:export-profiles', async () => wifiManager.exportWifiProfiles());
+ipcMain.handle('wifi:get-proxy-settings', async () => wifiManager.getProxySettings());
+ipcMain.handle('wifi:set-proxy-settings', async (event, settings) => wifiManager.setProxySettings(settings));
+ipcMain.handle('wifi:test-proxy', async (event, host, port) => wifiManager.testProxyConnection(host, port));
+ipcMain.handle('wifi:get-dns-settings', async () => wifiManager.getDnsSettings());
+ipcMain.handle('wifi:set-dns-settings', async (event, preset, primary, secondary) => wifiManager.setDnsSettings(preset, primary, secondary));
+ipcMain.handle('wifi:flush-dns', async () => wifiManager.flushDns());
+ipcMain.handle('wifi:get-public-ip', async () => wifiManager.getPublicIp());
 
 // System Monitor additions
 ipcMain.handle('system:gpu-telemetry', async () => systemMonitor.getGpuTelemetry());
@@ -416,6 +425,55 @@ ipcMain.handle('antivirus:get-quarantine', async () => antivirusEngine.getQuaran
 ipcMain.handle('antivirus:restore-quarantine', async (event, id) => antivirusEngine.restoreQuarantineFile(id));
 ipcMain.handle('antivirus:delete-quarantine', async (event, id) => antivirusEngine.deleteQuarantineFile(id));
 ipcMain.handle('antivirus:scan-usb', async () => antivirusEngine.scanUsbDrives());
+
+// Crypto Vault & Steganography IPC
+ipcMain.handle('vault:encrypt-file', async (event, filePath, password) => cryptoVaultManager.encryptFile(filePath, password));
+ipcMain.handle('vault:decrypt-file', async (event, filePath, password) => cryptoVaultManager.decryptFile(filePath, password));
+ipcMain.handle('vault:select-and-encrypt', async (event, password) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Şifrelenecek Dosyayı Seçin',
+    properties: ['openFile']
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return cryptoVaultManager.encryptFile(result.filePaths[0], password);
+});
+ipcMain.handle('vault:select-and-decrypt', async (event, password) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Çözülecek ULAK Kasası (.ulak) Seçin',
+    properties: ['openFile'],
+    filters: [
+      { name: 'ULAK Kasa Dosyaları', extensions: ['ulak'] },
+      { name: 'Tüm Dosyalar', extensions: ['*'] }
+    ]
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return cryptoVaultManager.decryptFile(result.filePaths[0], password);
+});
+ipcMain.handle('vault:embed-stego', async (event, imagePath, secretText, password) => cryptoVaultManager.embedSteganography(imagePath, secretText, password));
+ipcMain.handle('vault:extract-stego', async (event, imagePath, password) => cryptoVaultManager.extractSteganography(imagePath, password));
+ipcMain.handle('vault:select-image-for-stego', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Steganografi İçin Görsel Seçin (PNG, JPG, BMP)',
+    properties: ['openFile'],
+    filters: [
+      { name: 'Görseller', extensions: ['png', 'jpg', 'jpeg', 'bmp', 'webp'] }
+    ]
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
+ipcMain.handle('vault:get-notes', async (event, masterPassword) => cryptoVaultManager.getSecureNotes(masterPassword));
+ipcMain.handle('vault:save-notes', async (event, notes, masterPassword) => cryptoVaultManager.saveSecureNotes(notes, masterPassword));
+ipcMain.handle('vault:generate-password', async (event, options) => cryptoVaultManager.generatePassword(options));
+ipcMain.handle('vault:calculate-seal', async (event, filePath, secretKey) => cryptoVaultManager.calculateDigitalSeal(filePath, secretKey));
+ipcMain.handle('vault:select-for-seal', async (event, secretKey) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Dijital Mühür Oluşturulacak Dosyayı Seçin',
+    properties: ['openFile']
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return cryptoVaultManager.calculateDigitalSeal(result.filePaths[0], secretKey);
+});
 
 // Network & Port Monitor
 ipcMain.handle('netmon:get-sockets', async () => netMonitor.getSockets());

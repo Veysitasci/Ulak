@@ -36,6 +36,7 @@ const ICONS = {
   key: '<path d="m21 2-2 2m-1.5 1.5L16 7l-1.5-1.5-4.5 4.5 1.5 1.5L10 13l-1.5-1.5L4 16l3 3 4.5-4.5L10 13l1.5-1.5 1.5 1.5 4.5-4.5-1.5-1.5 1.5-1.5 2-2z"/>',
   routes: '<circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><line x1="12" x2="12" y1="12" y2="15"/>',
   network: '<rect width="8" height="8" x="2" y="2" rx="2"/><path d="M14 2c1.1 0 2 .9 2 2v4a2 2 0 0 1-2 2H6"/><rect width="8" height="8" x="14" y="14" rx="2"/><path d="M6 18H4a2 2 0 0 1-2-2v-4"/>',
+  server: '<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>',
   table: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/>',
   headphones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
   mouse: '<rect x="6" y="3" width="12" height="18" rx="6"/><line x1="12" y1="7" x2="12" y2="11"/>',

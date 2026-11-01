@@ -7,9 +7,10 @@
 
     render() {
       const C = window.UlakComponents;
+      const I = window.UlakIcons;
       return `
         <div class="wifi-view">
-          ${C.headerCard('Wi-Fi & Kablosuz Ağlar', 'Kanal Spektrum Analizi, Kayıtlı Parola Kasası, Dolaşım Telemetrisi ve Mobil Hotspot', 'wifi')}
+          ${C.headerCard('Wi-Fi, Proxy & Ağ Kalkanı', 'Kablosuz Ağlar, Sistem Proxy Yönetimi, Güvenli DNS Değiştirici ve Spektrum Analizi', 'wifi')}
 
           <!-- Bento Golden Split: Active Conn (1.618fr) & Hotspot (1fr) -->
           <div class="grid-golden" style="margin-bottom: var(--space-13);">
@@ -17,18 +18,18 @@
             <div class="view-section glass-card liquid-glow" style="display: flex; flex-direction: column; justify-content: space-between;">
               <div class="view-section-header">
                 <div class="view-section-title">
-                  ${window.UlakIcons.getIcon('wifi')} Aktif Kablosuz Bağlantı & Dolaşım
+                  ${I.getIcon('wifi')} Aktif Kablosuz Bağlantı & Dolaşım
                 </div>
                 <div style="display:flex; gap:6px;">
                   <button class="btn btn-secondary btn-sm" id="wifi-roaming-btn" title="Detaylı BSSID ve Dolaşım Telemetrisini Göster">
-                    ${window.UlakIcons.getIcon('activity', 'icon-mono-xs')} Telemetri
+                    ${I.getIcon('activity', 'icon-mono-xs')} Telemetri
                   </button>
                   <button class="btn btn-danger-soft btn-sm" id="wifi-disconnect-btn">Bağlantıyı Kes</button>
                 </div>
               </div>
               <div class="setting-row glass-soft" style="margin-bottom: 0;">
                 <div class="setting-row-left">
-                  <div class="setting-row-icon">${window.UlakIcons.getIcon('wifi')}</div>
+                  <div class="setting-row-icon">${I.getIcon('wifi')}</div>
                   <div>
                     <div class="setting-title" id="wifi-active-ssid">Bağlantı Taranıyor...</div>
                     <div class="setting-subtitle" id="wifi-active-details" style="font-variant-numeric: tabular-nums;">
@@ -44,7 +45,7 @@
             <div class="view-section glass-card liquid-glow">
               <div class="view-section-header">
                 <div class="view-section-title">
-                  ${window.UlakIcons.getIcon('zap')} Mobil Erişim Noktası
+                  ${I.getIcon('zap')} Mobil Erişim Noktası
                 </div>
               </div>
               <div class="field-group" style="margin-bottom: var(--space-8);">
@@ -59,7 +60,7 @@
               </div>
               <div style="display: flex; justify-content: flex-end;">
                 <button class="btn btn-primary" id="wifi-hotspot-toggle-btn">
-                  ${window.UlakIcons.getIcon('zap', 'icon-mono-xs')} Hotspot Başlat
+                  ${I.getIcon('zap', 'icon-mono-xs')} Hotspot Başlat
                 </button>
               </div>
             </div>
@@ -71,7 +72,7 @@
             <div class="glass-card liquid-glow" style="padding: 14px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-1); display:flex; align-items:center; gap:6px;">
-                  ${window.UlakIcons.getIcon('activity', 'icon-mono-xs')} Spektrum Analizi
+                  ${I.getIcon('activity', 'icon-mono-xs')} Spektrum Analizi
                 </div>
                 <button class="btn btn-secondary btn-sm" id="wifi-spectrum-btn">Analiz Et</button>
               </div>
@@ -87,7 +88,7 @@
             <div class="glass-card liquid-glow" style="padding: 14px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-1); display:flex; align-items:center; gap:6px;">
-                  ${window.UlakIcons.getIcon('lock', 'icon-mono-xs')} Parola Kasası
+                  ${I.getIcon('lock', 'icon-mono-xs')} Parola Kasası
                 </div>
                 <button class="btn btn-primary btn-sm" id="wifi-vault-btn">Kasayı Aç</button>
               </div>
@@ -100,7 +101,7 @@
             <div class="glass-card liquid-glow" style="padding: 14px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-1); display:flex; align-items:center; gap:6px;">
-                  ${window.UlakIcons.getIcon('download', 'icon-mono-xs')} Profil Yedekleme
+                  ${I.getIcon('download', 'icon-mono-xs')} Profil Yedekleme
                 </div>
                 <button class="btn btn-secondary btn-sm" id="wifi-export-btn">XML Dışa Aktar</button>
               </div>
@@ -110,14 +111,130 @@
             </div>
           </div>
 
+          <!-- PROXY & SECURE DNS GRID (Golden Split) -->
+          <div class="grid-golden" style="margin-bottom: var(--space-13); gap: 14px;">
+            <!-- 1. System Proxy Manager Card -->
+            <div class="view-section glass-card liquid-glow" style="display: flex; flex-direction: column; justify-content: space-between; padding: 18px;">
+              <div>
+                <div class="view-section-header" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                  <div class="view-section-title" style="display: flex; align-items: center; gap: 8px;">
+                    ${I.getIcon('server')} Sistem Proxy Kalkanı
+                  </div>
+                  <span id="wifi-proxy-status-chip" class="chip">Kapalı</span>
+                </div>
+                
+                <div style="font-size: 12px; color: var(--text-2); margin-bottom: 12px;">
+                  Windows genel ağ trafiğini HTTP, HTTPS veya SOCKS5 proxy tüneline yönlendirin.
+                </div>
+
+                <div style="display: grid; grid-template-columns: 110px 1fr 90px; gap: 8px; margin-bottom: 10px;">
+                  <div class="field" style="margin: 0;">
+                    <label class="field-label" style="font-size: 11px;">Protokol</label>
+                    <select id="wifi-proxy-proto" class="field-input" style="padding: 6px 8px; font-size: 12px;">
+                      <option value="http">HTTP</option>
+                      <option value="both">HTTP + HTTPS</option>
+                      <option value="socks5">SOCKS5</option>
+                    </select>
+                  </div>
+                  <div class="field" style="margin: 0;">
+                    <label class="field-label" style="font-size: 11px;">Sunucu Adresi / IP</label>
+                    <input type="text" id="wifi-proxy-host" class="field-input" placeholder="127.0.0.1" style="padding: 6px 10px; font-size: 12px; font-family: monospace;">
+                  </div>
+                  <div class="field" style="margin: 0;">
+                    <label class="field-label" style="font-size: 11px;">Port</label>
+                    <input type="number" id="wifi-proxy-port" class="field-input" placeholder="8080" style="padding: 6px 10px; font-size: 12px; font-family: monospace;">
+                  </div>
+                </div>
+
+                <div class="field" style="margin-bottom: 12px;">
+                  <label class="field-label" style="font-size: 11px;">Bypass (Yerel Adresleri Atla)</label>
+                  <input type="text" id="wifi-proxy-bypass" class="field-input" value="<local>;127.0.0.1;localhost" style="padding: 6px 10px; font-size: 12px; font-family: monospace;">
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--glass-border); padding-top: 10px;">
+                <button class="btn btn-secondary btn-sm" id="wifi-proxy-test-btn" title="Proxy sunucusuna TCP bağlantısını test et">
+                  ${I.getIcon('activity', 'icon-mono-xs')} Bağlantıyı Sına
+                </button>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-danger-soft btn-sm" id="wifi-proxy-disable-btn">Devre Dışı Bırak</button>
+                  <button class="btn btn-primary btn-sm" id="wifi-proxy-save-btn">Kaydet & Uygula</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Secure DNS Switcher & IP Telemetry Card -->
+            <div class="view-section glass-card liquid-glow" style="display: flex; flex-direction: column; justify-content: space-between; padding: 18px;">
+              <div>
+                <div class="view-section-header" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                  <div class="view-section-title" style="display: flex; align-items: center; gap: 8px;">
+                    ${I.getIcon('shield')} Güvenli DNS & Ağ Kalkanı
+                  </div>
+                  <span id="wifi-dns-provider-chip" class="chip chip-accent" style="font-size: 11px;">Otomatik (DHCP)</span>
+                </div>
+
+                <div style="font-size: 12px; color: var(--text-2); margin-bottom: 10px;">
+                  DNS sızıntılarını önleyin, reklam ve zararlı yazılımları ağ düzeyinde engelleyin.
+                </div>
+
+                <!-- Quick DNS Preset Buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px;">
+                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="cloudflare" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
+                    <div>
+                      <div style="font-weight: 600; font-size: 12px;">⚡ Cloudflare</div>
+                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">1.1.1.1 / 1.0.0.1</div>
+                    </div>
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="google" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
+                    <div>
+                      <div style="font-weight: 600; font-size: 12px;">🌐 Google DNS</div>
+                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">8.8.8.8 / 8.8.4.4</div>
+                    </div>
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="adguard" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
+                    <div>
+                      <div style="font-weight: 600; font-size: 12px;">🛡️ AdGuard DNS</div>
+                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">Reklam & Takip Blok</div>
+                    </div>
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="quad9" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
+                    <div>
+                      <div style="font-weight: 600; font-size: 12px;">🔒 Quad9</div>
+                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">Zararlı Yazılım Blok</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bottom Actions: Flush DNS & DHCP Reset -->
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--glass-border); padding-top: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 11px; color: var(--text-2);">Dış IP:</span>
+                  <code id="wifi-public-ip-badge" style="font-family: monospace; font-size: 11px; color: var(--text-1); font-variant-numeric: tabular-nums;">Sorgulanıyor...</code>
+                  <button class="btn btn-sm" id="wifi-public-ip-refresh-btn" style="padding: 2px 6px;" title="Dış IP adresini yenile">
+                    ${I.getIcon('refresh', 'icon-mono-xs')}
+                  </button>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-secondary btn-sm" id="wifi-flush-dns-btn" title="Windows DNS önbelleğini temizler">
+                    Önbelleği Temizle
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="dhcp" title="Modem varsayılan DNS adresine dön">
+                    Sıfırla (DHCP)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Discovered Networks Section -->
           <div class="view-section glass-card">
             <div class="view-section-header">
               <div class="view-section-title">
-                ${window.UlakIcons.getIcon('globe')} Kapsama Alanındaki Ağlar
+                ${I.getIcon('globe')} Kapsama Alanındaki Ağlar
               </div>
               <button class="btn btn-secondary btn-sm" id="wifi-rescan-btn">
-                ${window.UlakIcons.getIcon('refresh', 'icon-mono-xs')} Ağları Yenile
+                ${I.getIcon('refresh', 'icon-mono-xs')} Ağları Yenile
               </button>
             </div>
             <div id="wifi-networks-list" style="display: flex; flex-direction: column; gap: var(--space-5);">
@@ -169,10 +286,10 @@
           const summary = el.querySelector('#wifi-spectrum-summary');
           const badge = el.querySelector('#wifi-spectrum-badge');
           
-          summary.textContent = `2.4 GHz En Temiz Kanal: ${spec.recommended24GHz} | 5 GHz En Temiz: ${spec.recommended5GHz}`;
+          summary.textContent = `2.4 GHz En Temiz: Kanal ${spec.recommended24GHz} | 5 GHz En Temiz: Kanal ${spec.recommended5GHz}`;
           badge.style.display = 'inline-block';
-          badge.textContent = `Önerilen Kanal: ${spec.recommended24GHz}`;
-          window.UlakUI.toast(`En az parazitli kanal önerisi: Kanal ${spec.recommended24GHz}`, 'success');
+          badge.textContent = `Öneri: Kanal ${spec.recommended24GHz}`;
+          window.UlakUI.toast(`En temiz kanal önerisi: Kanal ${spec.recommended24GHz}`, 'success');
         } catch (e) {
           window.UlakUI.toast(`Spektrum analizi hatası: ${e.message}`, 'error');
         } finally {
@@ -253,10 +370,180 @@
         }
       });
 
-      await loadCurrent(el);
-      await loadNetworks(el);
+      // 5. Proxy Management Listeners
+      const proxyTestBtn = el.querySelector('#wifi-proxy-test-btn');
+      const proxySaveBtn = el.querySelector('#wifi-proxy-save-btn');
+      const proxyDisableBtn = el.querySelector('#wifi-proxy-disable-btn');
+
+      proxyTestBtn?.addEventListener('click', async () => {
+        const host = el.querySelector('#wifi-proxy-host')?.value.trim();
+        const port = el.querySelector('#wifi-proxy-port')?.value.trim();
+        if (!host || !port) {
+          return window.UlakUI.toast('Lütfen test edilecek Proxy Host ve Port girin.', 'warning');
+        }
+        try {
+          proxyTestBtn.disabled = true;
+          window.UlakUI.toast(`Proxy sunucusu (${host}:${port}) test ediliyor...`, 'info');
+          const res = await window.ulak.invoke('wifi:test-proxy', host, port);
+          if (res.success) {
+            window.UlakUI.toast(`Proxy Erişilebilir: ${res.message}`, 'success');
+          } else {
+            window.UlakUI.toast(`Proxy Erişilemedi: ${res.message}`, 'error');
+          }
+        } catch (err) {
+          window.UlakUI.toast(`Test hatası: ${err.message}`, 'error');
+        } finally {
+          proxyTestBtn.disabled = false;
+        }
+      });
+
+      proxySaveBtn?.addEventListener('click', async () => {
+        const host = el.querySelector('#wifi-proxy-host')?.value.trim();
+        const port = el.querySelector('#wifi-proxy-port')?.value.trim();
+        const protocol = el.querySelector('#wifi-proxy-proto')?.value || 'http';
+        const bypass = el.querySelector('#wifi-proxy-bypass')?.value.trim() || '<local>;127.0.0.1;localhost';
+
+        if (!host || !port) {
+          return window.UlakUI.toast('Lütfen geçerli bir Proxy Host ve Port girin.', 'warning');
+        }
+        try {
+          proxySaveBtn.disabled = true;
+          const res = await window.ulak.invoke('wifi:set-proxy-settings', {
+            enabled: true,
+            host,
+            port,
+            protocol,
+            bypass
+          });
+          if (res.success) {
+            window.UlakUI.toast('Windows Sistem Proxy ayarları uygulandı.', 'success');
+            await loadProxy(el);
+          } else {
+            window.UlakUI.toast(`Ayar uygulanamadı: ${res.message}`, 'error');
+          }
+        } catch (err) {
+          window.UlakUI.toast(`Hata: ${err.message}`, 'error');
+        } finally {
+          proxySaveBtn.disabled = false;
+        }
+      });
+
+      proxyDisableBtn?.addEventListener('click', async () => {
+        try {
+          proxyDisableBtn.disabled = true;
+          const res = await window.ulak.invoke('wifi:set-proxy-settings', { enabled: false });
+          if (res.success) {
+            window.UlakUI.toast('Sistem Proxy devre dışı bırakıldı.', 'info');
+            await loadProxy(el);
+          }
+        } catch (err) {
+          window.UlakUI.toast(`Hata: ${err.message}`, 'error');
+        } finally {
+          proxyDisableBtn.disabled = false;
+        }
+      });
+
+      // 6. DNS Preset Buttons Listeners
+      el.querySelectorAll('.btn-dns-preset').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const preset = btn.getAttribute('data-preset');
+          try {
+            btn.disabled = true;
+            window.UlakUI.toast(`DNS '${preset}' profiline ayarlanıyor...`, 'info');
+            const res = await window.ulak.invoke('wifi:set-dns-settings', preset);
+            if (res.success) {
+              window.UlakUI.toast(res.message, 'success');
+              await loadDns(el);
+            } else {
+              window.UlakUI.toast(`DNS değiştirilemedi: ${res.message}`, 'error');
+            }
+          } catch (err) {
+            window.UlakUI.toast(`Hata: ${err.message}`, 'error');
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+
+      // Flush DNS
+      el.querySelector('#wifi-flush-dns-btn')?.addEventListener('click', async () => {
+        try {
+          const res = await window.ulak.invoke('wifi:flush-dns');
+          window.UlakUI.toast(res.message, 'success');
+        } catch (err) {
+          window.UlakUI.toast(`Önbellek temizleme hatası: ${err.message}`, 'error');
+        }
+      });
+
+      // Public IP Refresh
+      el.querySelector('#wifi-public-ip-refresh-btn')?.addEventListener('click', () => loadPublicIp(el));
+
+      // Initial Loads
+      await Promise.all([
+        loadCurrent(el),
+        loadNetworks(el),
+        loadProxy(el),
+        loadDns(el),
+        loadPublicIp(el)
+      ]);
     }
   };
+
+  async function loadProxy(el) {
+    try {
+      const p = await window.ulak.invoke('wifi:get-proxy-settings');
+      const chip = el.querySelector('#wifi-proxy-status-chip');
+      const hostInput = el.querySelector('#wifi-proxy-host');
+      const portInput = el.querySelector('#wifi-proxy-port');
+      const protoSelect = el.querySelector('#wifi-proxy-proto');
+      const bypassInput = el.querySelector('#wifi-proxy-bypass');
+
+      if (chip) {
+        if (p.enabled) {
+          chip.className = 'chip chip-success';
+          chip.innerHTML = '<span class="chip-dot"></span> Aktif';
+        } else {
+          chip.className = 'chip';
+          chip.innerHTML = '<span class="chip-dot"></span> Kapalı';
+        }
+      }
+
+      if (hostInput && p.host) hostInput.value = p.host;
+      if (portInput && p.port) portInput.value = p.port;
+      if (protoSelect && p.protocol) protoSelect.value = p.protocol;
+      if (bypassInput && p.bypass) bypassInput.value = p.bypass;
+    } catch (e) {
+      console.error('[WiFi] Proxy load error:', e);
+    }
+  }
+
+  async function loadDns(el) {
+    try {
+      const dns = await window.ulak.invoke('wifi:get-dns-settings');
+      const chip = el.querySelector('#wifi-dns-provider-chip');
+      if (chip) {
+        chip.textContent = dns.provider || 'Otomatik (DHCP)';
+        if (dns.isDhcp) {
+          chip.className = 'chip';
+        } else {
+          chip.className = 'chip chip-accent';
+        }
+      }
+    } catch (e) {
+      console.error('[WiFi] DNS load error:', e);
+    }
+  }
+
+  async function loadPublicIp(el) {
+    const badge = el.querySelector('#wifi-public-ip-badge');
+    if (badge) badge.textContent = '...';
+    try {
+      const res = await window.ulak.invoke('wifi:get-public-ip');
+      if (badge) badge.textContent = res.ip || 'Bilinmiyor';
+    } catch (e) {
+      if (badge) badge.textContent = 'Bağlantı Yok';
+    }
+  }
 
   async function loadCurrent(el) {
     try {
