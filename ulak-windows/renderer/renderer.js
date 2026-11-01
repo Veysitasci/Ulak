@@ -22,7 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Global Telemetry ticker for footer
   updateFooterTelemetry();
-  setInterval(updateFooterTelemetry, 3000);
+  const footerPollRate = parseInt(localStorage.getItem('ulak-telemetry-rate') || '3000', 10);
+  setInterval(updateFooterTelemetry, footerPollRate);
 });
 
 function setupWindowControls() {

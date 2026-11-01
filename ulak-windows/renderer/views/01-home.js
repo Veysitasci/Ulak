@@ -153,9 +153,10 @@
       }
 
       await updateStats(el);
+      const pollRate = parseInt(localStorage.getItem('ulak-telemetry-rate') || '3000', 10);
       interval = setInterval(() => {
         updateStats(el);
-      }, 3000);
+      }, pollRate);
     },
 
     unmount() {

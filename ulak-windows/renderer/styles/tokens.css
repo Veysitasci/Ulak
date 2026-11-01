@@ -117,6 +117,16 @@
   --input-border: rgba(255, 255, 255, 0.10);
   --input-border-focus: var(--accent);
 
+  /* Açılır Menü & Select Kontrolleri (MCP UI) */
+  --select-bg: rgba(14, 19, 31, 0.92);
+  --select-border: rgba(255, 255, 255, 0.12);
+  --select-border-hover: rgba(16, 185, 129, 0.35);
+  --select-border-focus: var(--accent);
+  --select-popover-bg: #0d121e;
+  --select-option-hover: rgba(16, 185, 129, 0.15);
+  --select-option-selected: rgba(16, 185, 129, 0.25);
+  --select-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--glass-border);
+
   /* Terminal & Konsol */
   --term-bg: rgba(6, 9, 15, 0.95);
   --term-border: rgba(255, 255, 255, 0.08);
@@ -164,6 +174,16 @@
   --input-bg: #ffffff;
   --input-border: rgba(15, 23, 42, 0.12);
   --input-border-focus: var(--accent);
+
+  /* Açılır Menü & Select Kontrolleri (MCP UI) */
+  --select-bg: #ffffff;
+  --select-border: rgba(15, 23, 42, 0.14);
+  --select-border-hover: rgba(16, 185, 129, 0.45);
+  --select-border-focus: var(--accent);
+  --select-popover-bg: #ffffff;
+  --select-option-hover: rgba(16, 185, 129, 0.08);
+  --select-option-selected: rgba(16, 185, 129, 0.16);
+  --select-shadow: 0 14px 34px -6px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.08);
 
   /* Terminal & Konsol */
   --term-bg: #f8fafc;

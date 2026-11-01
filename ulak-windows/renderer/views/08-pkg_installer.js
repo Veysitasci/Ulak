@@ -83,10 +83,13 @@
               </div>
               <div class="field-group" style="margin-bottom: 12px;">
                 <input type="text" id="pkg-online-search-input" class="field-input" placeholder="Yazılım adı yazın (ör: git, vlc, vscode, 7zip, chrome, nodejs)..." style="flex: 1; font-size: 13px;">
-                <select id="pkg-online-source-select" class="field-input" style="width: 140px; font-size: 13px;">
-                  <option value="winget" selected>Winget Deposu</option>
-                  <option value="choco">Chocolatey</option>
-                </select>
+                <div class="select-encased has-icon" style="width: 170px;">
+                  <div class="select-icon">${window.UlakIcons.getIcon('package', 'icon-mono-xs')}</div>
+                  <select id="pkg-online-source-select" class="field-input select-custom">
+                    <option value="winget" selected>Winget Deposu</option>
+                    <option value="choco">Chocolatey</option>
+                  </select>
+                </div>
                 <button class="btn btn-primary" id="pkg-online-search-btn">
                   ${window.UlakIcons.getIcon('search', 'icon-mono-sm')} Ara
                 </button>

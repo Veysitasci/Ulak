@@ -230,7 +230,7 @@ ipcMain.handle('set-store-value', (event, key, value) => {
   return true;
 });
 
-// System Monitor
+// System Monitor (Yerel Önbellekli ve Optimize)
 ipcMain.handle('system:get-info', async () => {
   const os = require('os');
   return {
@@ -244,13 +244,15 @@ ipcMain.handle('system:get-info', async () => {
   };
 });
 
-ipcMain.handle('system:get-cpu-info', async () => systemMonitor.getCPUInfo());
-ipcMain.handle('system:get-memory-info', async () => systemMonitor.getMemoryInfo());
-ipcMain.handle('system:get-disk-info', async () => systemMonitor.getDiskInfo());
-ipcMain.handle('system:get-processes', async (event, limit) => systemMonitor.getProcesses(limit));
+ipcMain.handle('system:get-cpu-info', async (event, forceRefresh) => systemMonitor.getCPUInfo(forceRefresh));
+ipcMain.handle('system:get-memory-info', async (event, forceRefresh) => systemMonitor.getMemoryInfo(forceRefresh));
+ipcMain.handle('system:get-disk-info', async (event, forceRefresh) => systemMonitor.getDiskInfo(forceRefresh));
+ipcMain.handle('system:get-processes', async (event, limit, forceRefresh) => systemMonitor.getProcesses(limit, forceRefresh));
 ipcMain.handle('system:kill-process', async (event, pid) => systemMonitor.killProcess(pid));
-ipcMain.handle('system:get-network-info', async () => systemMonitor.getNetworkInfo());
-ipcMain.handle('system:get-battery-info', async () => systemMonitor.getBatteryInfo());
+ipcMain.handle('system:get-network-info', async (event, forceRefresh) => systemMonitor.getNetworkInfo(forceRefresh));
+ipcMain.handle('system:get-battery-info', async (event, forceRefresh) => systemMonitor.getBatteryInfo(forceRefresh));
+ipcMain.handle('system:refresh-all-hardware', async () => systemMonitor.refreshAllHardware());
+ipcMain.handle('system:get-cache-status', async () => systemMonitor.getCacheStatus());
 
 // WiFi Manager
 ipcMain.handle('wifi:get-networks', async () => wifiManager.getAvailableNetworks());
@@ -271,6 +273,11 @@ ipcMain.handle('firewall:remove-rule', async (event, name) => firewallManager.re
 ipcMain.handle('firewall:block-port', async (event, port, protocol) => firewallManager.blockPort(port, protocol));
 ipcMain.handle('firewall:allow-port', async (event, port, protocol) => firewallManager.allowPort(port, protocol));
 ipcMain.handle('firewall:get-connections', async () => firewallManager.getActiveConnections());
+ipcMain.handle('firewall:stealth-ping', async (event, enable) => firewallManager.setStealthPing(enable));
+ipcMain.handle('firewall:get-system-rules', async (event, filter) => firewallManager.getSystemFirewallRules(filter));
+ipcMain.handle('firewall:set-profile-state', async (event, profile, state) => firewallManager.setProfileState(profile, state));
+ipcMain.handle('firewall:paranoid-outbound', async (event, enable) => firewallManager.setParanoidOutbound(enable));
+ipcMain.handle('firewall:export-policy', async () => firewallManager.exportFirewallPolicy());
 
 // Bluetooth Manager
 ipcMain.handle('bluetooth:get-status', async () => bluetoothManager.getStatus());
@@ -280,6 +287,46 @@ ipcMain.handle('bluetooth:scan', async () => bluetoothManager.scanDevices());
 ipcMain.handle('bluetooth:get-paired', async () => bluetoothManager.getPairedDevices());
 ipcMain.handle('bluetooth:remove-device', async (event, deviceId) => bluetoothManager.removeDevice(deviceId));
 ipcMain.handle('bluetooth:toggle', async () => bluetoothManager.toggleBluetooth());
+ipcMain.handle('bluetooth:ble-radar', async () => bluetoothManager.getLiveBleRadar());
+ipcMain.handle('bluetooth:connect-device', async (event, deviceId) => bluetoothManager.connectDevice(deviceId));
+ipcMain.handle('bluetooth:battery-telemetry', async () => bluetoothManager.getBatteryTelemetry());
+ipcMain.handle('bluetooth:stealth-mode', async (event, enable) => bluetoothManager.setStealthMode(enable));
+ipcMain.handle('bluetooth:restart-radio', async () => bluetoothManager.restartBluetoothRadio());
+
+// WiFi Manager additions
+ipcMain.handle('wifi:channel-spectrum', async () => wifiManager.getChannelSpectrumAnalysis());
+ipcMain.handle('wifi:saved-passwords', async () => wifiManager.getStructuredSavedPasswords());
+ipcMain.handle('wifi:bssid-roaming', async () => wifiManager.getBssidRoamingTelemetry());
+ipcMain.handle('wifi:export-profiles', async () => wifiManager.exportWifiProfiles());
+
+// System Monitor additions
+ipcMain.handle('system:gpu-telemetry', async () => systemMonitor.getGpuTelemetry());
+ipcMain.handle('system:disk-smart', async () => systemMonitor.getDiskHealthSmart());
+ipcMain.handle('system:battery-health', async () => systemMonitor.getBatteryHealthReport());
+ipcMain.handle('system:motherboard-bios', async () => systemMonitor.getMotherboardBiosInfo());
+ipcMain.handle('system:top-processes', async () => systemMonitor.getTopResourceProcesses());
+
+// Hacker Tools
+ipcMain.handle('hacker:run-tool', async (event, toolId) => hackerTools.runTool(toolId));
+ipcMain.handle('hacker:scan-ports', async (event, target, start, end) => hackerTools.scanTargetPorts(target, start, end));
+ipcMain.handle('hacker:discover-subnet', async () => hackerTools.discoverLocalSubnetDevices());
+ipcMain.handle('hacker:test-dns-leak', async () => hackerTools.testDnsLeak());
+ipcMain.handle('hacker:inspect-tls', async (event, host) => hackerTools.inspectTlsSecurity(host));
+ipcMain.handle('hacker:hunt-events', async () => hackerTools.huntSecurityEvents());
+
+// Admin Tools
+ipcMain.handle('admin:exec-cmd', async (event, cmd) => adminManager.executeCommand(cmd));
+ipcMain.handle('admin:fw-status', async () => adminManager.getFirewallStatus());
+ipcMain.handle('admin:fw-toggle', async (event, state) => adminManager.setFirewall(state));
+ipcMain.handle('admin:pkg-check', async () => adminManager.checkUpdates());
+ipcMain.handle('admin:pkg-update-all', async () => adminManager.updateAll());
+ipcMain.handle('admin:autostart', async () => adminManager.getAutostartItems());
+ipcMain.handle('admin:users', async () => adminManager.getUsers());
+ipcMain.handle('admin:services-list', async () => adminManager.getWindowsServicesList());
+ipcMain.handle('admin:service-control', async (event, name, act) => adminManager.controlWindowsService(name, act));
+ipcMain.handle('admin:file-check', async (event, tool) => adminManager.runSystemFileCheck(tool));
+ipcMain.handle('admin:power-plan', async () => adminManager.setHighPerformancePowerPlan());
+ipcMain.handle('admin:local-users', async () => adminManager.getUserAccountsDetailed());
 
 // Package Manager
 ipcMain.handle('package:search', async (event, query, source) => packageManager.searchPackage(query, source));

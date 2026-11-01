@@ -48,43 +48,52 @@
 
             <!-- 5 KRİTİK ÖZELLİK AYAR PANELİ (BENTO GRID) -->
             <div class="grid-3" style="gap: 12px; margin-bottom: 16px;">
-              <!-- 1. Kalite & Format -->
+              <!-- 1. Kalite & Format (MCP UI Encased) -->
               <div class="glass-card" style="padding: 14px; background: rgba(255,255,255,0.02);">
-                <label style="font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; display: block; margin-bottom: 6px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; display: block; margin-bottom: 8px;">
                   1. Format & Kalite
                 </label>
-                <select id="yt-opt-quality" class="field-input" style="width: 100%; padding: 8px 10px; font-size: 13px;">
-                  <option value="best">En Yüksek Kalite (Otomatik)</option>
-                  <option value="4k">4K Ultra HD (2160p)</option>
-                  <option value="2k">2K Quad HD (1440p)</option>
-                  <option value="1080p" selected>Full HD (1080p 60fps)</option>
-                  <option value="720p">HD (720p)</option>
-                  <option value="480p">Düşük Boyut (480p)</option>
-                  <option value="audio-mp3">MP3 320 kbps (Stüdyo Sesi)</option>
-                  <option value="audio-flac">FLAC Kayıpsız (Lossless)</option>
-                  <option value="audio-wav">WAV Ham Ses</option>
-                  <option value="audio-aac">AAC Optimize Ses</option>
-                </select>
+                <div class="select-encased has-icon">
+                  <div class="select-icon">${window.UlakIcons.getIcon('film', 'icon-mono-xs')}</div>
+                  <select id="yt-opt-quality" class="field-input select-custom" style="width: 100%;">
+                    <option value="best">En Yüksek Kalite (Otomatik)</option>
+                    <option value="4k">4K Ultra HD (2160p)</option>
+                    <option value="2k">2K Quad HD (1440p)</option>
+                    <option value="1080p" selected>Full HD (1080p 60fps)</option>
+                    <option value="720p">HD (720p)</option>
+                    <option value="480p">Düşük Boyut (480p)</option>
+                    <option value="audio-mp3">MP3 320 kbps (Stüdyo Sesi)</option>
+                    <option value="audio-flac">FLAC Kayıpsız (Lossless)</option>
+                    <option value="audio-wav">WAV Ham Ses</option>
+                    <option value="audio-aac">AAC Optimize Ses</option>
+                  </select>
+                </div>
               </div>
 
-              <!-- 2. Hız Sınırı & Paralel Parça -->
+              <!-- 2. Hız Sınırı & Paralel Parça (MCP UI Encased) -->
               <div class="glass-card" style="padding: 14px; background: rgba(255,255,255,0.02);">
-                <label style="font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; display: block; margin-bottom: 6px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; display: block; margin-bottom: 8px;">
                   2. Bant Genişliği & Parça
                 </label>
                 <div style="display: flex; gap: 8px;">
-                  <select id="yt-opt-rate" class="field-input" style="flex: 1; padding: 8px; font-size: 12px;">
-                    <option value="unlimited" selected>Limitsiz Hız</option>
-                    <option value="10M">Maks 10 MB/s</option>
-                    <option value="5M">Maks 5 MB/s</option>
-                    <option value="2M">Maks 2 MB/s</option>
-                    <option value="1M">Maks 1 MB/s</option>
-                  </select>
-                  <select id="yt-opt-threads" class="field-input" style="width: 80px; padding: 8px; font-size: 12px;" title="Eşzamanlı Parça">
-                    <option value="1">1 Parça</option>
-                    <option value="4" selected>4 Parça</option>
-                    <option value="8">8 Parça</option>
-                  </select>
+                  <div class="select-encased has-icon" style="flex: 1;">
+                    <div class="select-icon">${window.UlakIcons.getIcon('activity', 'icon-mono-xs')}</div>
+                    <select id="yt-opt-rate" class="field-input select-custom">
+                      <option value="unlimited" selected>Limitsiz Hız</option>
+                      <option value="10M">Maks 10 MB/s</option>
+                      <option value="5M">Maks 5 MB/s</option>
+                      <option value="2M">Maks 2 MB/s</option>
+                      <option value="1M">Maks 1 MB/s</option>
+                    </select>
+                  </div>
+                  <div class="select-encased has-icon" style="width: 105px;">
+                    <div class="select-icon">${window.UlakIcons.getIcon('cpu', 'icon-mono-xs')}</div>
+                    <select id="yt-opt-threads" class="field-input select-custom" title="Eşzamanlı Parça">
+                      <option value="1">1 Parça</option>
+                      <option value="4" selected>4 Parça</option>
+                      <option value="8">8 Parça</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -304,20 +313,119 @@
         }
       });
 
-      // Fetch Video Metadata
+      function extractYouTubeId(url) {
+        if (!url) return null;
+        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        return match ? match[1] : null;
+      }
+
+      function toggleLiveEmbed(url) {
+        const embedWrap = el.querySelector('#yt-embed-player-wrap');
+        const iframe = el.querySelector('#yt-embed-iframe');
+        const ytid = extractYouTubeId(url);
+        if (!embedWrap || !iframe) return;
+
+        if (embedWrap.style.display === 'block') {
+          embedWrap.style.display = 'none';
+          iframe.src = '';
+        } else {
+          if (ytid) {
+            embedWrap.style.display = 'block';
+            iframe.src = `https://www.youtube-nocookie.com/embed/${ytid}?autoplay=1`;
+            embedWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            window.UlakUI.toast('Bu bağlantı için gömülü web oynatıcısı desteklenmiyor.', 'info');
+          }
+        }
+      }
+
+      let currentPlayingFile = '';
+      function playDownloadedMedia(filePath) {
+        if (!filePath) return;
+        const card = el.querySelector('#yt-downloaded-player-card');
+        const titleHeader = el.querySelector('#yt-player-header-title');
+        const videoBox = el.querySelector('#yt-player-video-box');
+        const videoEl = el.querySelector('#yt-player-video');
+        const audioBox = el.querySelector('#yt-player-audio-box');
+        const audioEl = el.querySelector('#yt-player-audio');
+        const audioTitle = el.querySelector('#yt-player-audio-title');
+
+        if (!card) return;
+        currentPlayingFile = filePath;
+
+        const normalized = filePath.replace(/\\/g, '/');
+        const mediaUrl = `media-file://${normalized}`;
+        const fileName = filePath.split(/[/\\]/).pop() || 'Medya Dosyası';
+        const ext = fileName.split('.').pop().toLowerCase();
+        const isAudio = ['mp3', 'm4a', 'wav', 'flac', 'aac', 'ogg', 'opus'].includes(ext);
+
+        card.style.display = 'block';
+        if (titleHeader) {
+          titleHeader.textContent = isAudio ? `Oynatılıyor (Ses): ${fileName}` : `Oynatılıyor (Video): ${fileName}`;
+        }
+
+        // Önceki medyayı durdur
+        if (videoEl) { videoEl.pause(); videoEl.src = ''; }
+        if (audioEl) { audioEl.pause(); audioEl.src = ''; }
+
+        if (isAudio) {
+          if (videoBox) videoBox.style.display = 'none';
+          if (audioBox) audioBox.style.display = 'block';
+          if (audioTitle) audioTitle.textContent = fileName;
+          if (audioEl) {
+            audioEl.src = mediaUrl;
+            audioEl.play().catch(() => {});
+          }
+        } else {
+          if (audioBox) audioBox.style.display = 'none';
+          if (videoBox) videoBox.style.display = 'block';
+          if (videoEl) {
+            videoEl.src = mediaUrl;
+            videoEl.play().catch(() => {});
+          }
+        }
+
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      // Oynatıcı Kontrolleri (Sistemde Aç / Kapat)
+      el.querySelector('#yt-player-close-btn')?.addEventListener('click', () => {
+        const card = el.querySelector('#yt-downloaded-player-card');
+        const videoEl = el.querySelector('#yt-player-video');
+        const audioEl = el.querySelector('#yt-player-audio');
+        if (videoEl) { videoEl.pause(); videoEl.src = ''; }
+        if (audioEl) { audioEl.pause(); audioEl.src = ''; }
+        if (card) card.style.display = 'none';
+      });
+
+      el.querySelector('#yt-player-open-system-btn')?.addEventListener('click', async () => {
+        if (currentPlayingFile) {
+          await window.ulak.invoke('youtube:open-file', currentPlayingFile);
+        }
+      });
+
+      // Thumbnail veya Butona Tıklanınca Canlı Önizle
+      el.querySelector('#yt-thumb-container')?.addEventListener('click', () => {
+        toggleLiveEmbed(urlInput.value.trim());
+      });
+      el.querySelector('#yt-btn-toggle-embed')?.addEventListener('click', () => {
+        toggleLiveEmbed(urlInput.value.trim());
+      });
+
+      // Önizle (Eski Adı: Bilgi Getir)
       fetchBtn?.addEventListener('click', async () => {
         const url = urlInput.value.trim();
-        if (!url) return window.UlakUI.toast('Lütfen bir video bağlantısı girin!', 'warning');
+        if (!url) return window.UlakUI.toast('Lütfen bir video veya müzik bağlantısı girin!', 'warning');
 
         fetchBtn.disabled = true;
-        fetchBtn.textContent = 'Getiriliyor...';
-        window.UlakUI.toast('Video bilgileri alınıyor...', 'info');
+        fetchBtn.innerHTML = `<span class="spinner-inline"></span> Önizleniyor...`;
+        window.UlakUI.toast('Medya önizleme bilgileri alınıyor...', 'info');
 
         try {
           const info = await window.ulak.invoke('youtube:get-info', url);
           if (!info || !info.success) {
             logBody.textContent += `\n[-] Bilgi alınamadı: ${info?.message || 'Video bulunamadı.'}\n`;
-            window.UlakUI.toast(`Video bilgisi alınamadı: ${info?.message || 'Hata'}`, 'error');
+            window.UlakUI.toast(`Önizleme alınamadı: ${info?.message || 'Hata'}`, 'error');
             previewCard.style.display = 'none';
             return;
           }
@@ -330,15 +438,21 @@
           el.querySelector('#yt-duration-text').textContent = `Toplam Süre: ${formatDuration(info.duration)}`;
           el.querySelector('#yt-duration-badge').textContent = formatDurationShort(info.duration);
 
-          logBody.textContent += `\n[✔] Video tespit edildi:\n    Başlık: ${info.title}\n    Kanal: ${info.uploader}\n    Süre: ${formatDuration(info.duration)}\n`;
+          // İframe'i sıfırla
+          const embedWrap = el.querySelector('#yt-embed-player-wrap');
+          const iframe = el.querySelector('#yt-embed-iframe');
+          if (embedWrap) embedWrap.style.display = 'none';
+          if (iframe) iframe.src = '';
+
+          logBody.textContent += `\n[✔] Medya tespit edildi:\n    Başlık: ${info.title}\n    Kanal: ${info.uploader}\n    Süre: ${formatDuration(info.duration)}\n`;
           logBody.scrollTop = logBody.scrollHeight;
-          window.UlakUI.toast('Video bilgileri başarıyla getirildi!', 'success');
+          window.UlakUI.toast('Önizleme hazır!', 'success');
         } catch (err) {
           logBody.textContent += `\n[-] İstek hatası: ${err.message}\n`;
           window.UlakUI.toast(`Hata: ${err.message}`, 'error');
         } finally {
           fetchBtn.disabled = false;
-          fetchBtn.innerHTML = `${window.UlakIcons.getIcon('search', 'icon-mono-sm')} Bilgi Getir`;
+          fetchBtn.innerHTML = `${window.UlakIcons.getIcon('play', 'icon-mono-sm')} Önizle`;
         }
       });
 
@@ -385,9 +499,11 @@
             logBody.textContent += `[-] İndirme başarısız: ${res?.message || 'Bilinmeyen hata'}\n`;
             window.UlakUI.toast(`Hata: ${res?.message || 'İndirme tamamlanamadı.'}`, 'error');
           } else {
-            logBody.textContent += `[✔] İndirme başarıyla tamamlandı!\n    Dosya: ${res.filePath || res.path}\n`;
-            window.UlakUI.toast('İndirme başarıyla tamamlandı!', 'success');
+            const targetPath = res.filePath || res.path;
+            logBody.textContent += `[✔] İndirme başarıyla tamamlandı!\n    Dosya: ${targetPath}\n`;
+            window.UlakUI.toast('İndirme başarıyla tamamlandı! Oynatıcı başlatılıyor...', 'success');
             loadLibrary(el);
+            playDownloadedMedia(targetPath);
           }
         } catch (err) {
           logBody.textContent += `[-] Sistem hatası: ${err.message}\n`;
@@ -411,9 +527,11 @@
         try {
           const res = await window.ulak.invoke('youtube:download', url, { quality: 'audio-mp3', audioOnly: true });
           if (res && res.success) {
-            logBody.textContent += `\n[✔] MP3 Ses başarıyla indirildi!\n    Konum: ${res.filePath}\n`;
-            window.UlakUI.toast('MP3 ses dosyası kaydedildi!', 'success');
+            const targetPath = res.filePath || res.path;
+            logBody.textContent += `\n[✔] MP3 Ses başarıyla indirildi!\n    Konum: ${targetPath}\n`;
+            window.UlakUI.toast('MP3 sesi indirildi ve çalınıyor!', 'success');
             loadLibrary(el);
+            playDownloadedMedia(targetPath);
           } else {
             window.UlakUI.toast(res?.message || 'Ses indirilemedi.', 'error');
           }
@@ -454,9 +572,11 @@
               logBody.textContent += `[-] İndirme başarısız: ${res?.message || 'Bilinmeyen hata'}\n`;
               window.UlakUI.toast(`Hata: ${res?.message || 'İndirme tamamlanamadı.'}`, 'error');
             } else {
-              logBody.textContent += `[✔] İndirme başarıyla tamamlandı!\n    Dosya: ${res.filePath || res.path}\n`;
-              window.UlakUI.toast(`${label} başarıyla indirildi!`, 'success');
+              const targetPath = res.filePath || res.path;
+              logBody.textContent += `[✔] İndirme başarıyla tamamlandı!\n    Dosya: ${targetPath}\n`;
+              window.UlakUI.toast(`${label} başarıyla indirildi! Oynatılıyor...`, 'success');
               loadLibrary(el);
+              playDownloadedMedia(targetPath);
             }
           } catch (err) {
             logBody.textContent += `[-] Sistem hatası: ${err.message}\n`;
@@ -537,7 +657,13 @@
                       </div>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                      <button class="btn btn-secondary btn-sm yt-btn-delete" data-path="${d.path}" title="Dosyayı Sil">
+                      <button class="btn btn-primary btn-sm yt-btn-play-lib" data-path="${d.path}" title="Uygulama İçinde Oynat / Dinle">
+                        ${window.UlakIcons.getIcon('play', 'icon-mono-xs')} Oynat
+                      </button>
+                      <button class="btn btn-secondary btn-sm yt-btn-open-system" data-path="${d.path}" title="Varsayılan Windows Oynatıcısında Aç">
+                        ${window.UlakIcons.getIcon('external-link', 'icon-mono-xs')}
+                      </button>
+                      <button class="btn btn-danger-soft btn-sm yt-btn-delete" data-path="${d.path}" title="Dosyayı Sil">
                         ${window.UlakIcons.getIcon('trash', 'icon-mono-xs')}
                       </button>
                     </div>
@@ -547,6 +673,23 @@
             </div>
           `;
 
+          // Oynat Butonları
+          listDiv.querySelectorAll('.yt-btn-play-lib').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const filePath = btn.getAttribute('data-path');
+              if (filePath) playDownloadedMedia(filePath);
+            });
+          });
+
+          // Sistemde Aç Butonları
+          listDiv.querySelectorAll('.yt-btn-open-system').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const filePath = btn.getAttribute('data-path');
+              if (filePath) await window.ulak.invoke('youtube:open-file', filePath);
+            });
+          });
+
+          // Silme Butonları
           listDiv.querySelectorAll('.yt-btn-delete').forEach(btn => {
             btn.addEventListener('click', async () => {
               const filePath = btn.getAttribute('data-path');

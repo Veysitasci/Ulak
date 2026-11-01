@@ -1,5 +1,58 @@
 # ULAK Windows — Sürüm & Modül Değişiklik Günlüğü (Changelog)
 
+## [v2.2.0] - 2026-11-01
+
+### 🚀 Özet
+ULAK Windows platformundaki diğer 6 çekirdek modülün tamamına (`firewall`, `hacker`, `bluetooth`, `wifi`, `hardware`, `admin`) 5'er adet yeni kritik önemli özellik eklendi. Tüm arayüz bileşenleri **UI Skills MCP Design Engineering** standartlarına uygun olarak mikro etkileşimler, dokunsal basma tepkileri (`:active { transform: scale(0.96); }`), `tabular-nums` sayısal tipografi, konsantrik border-radius ve anlık Sonner toast bildirimleriyle donatıldı.
+
+---
+
+### 📦 Yeni Eklenen Kritik Özellikler ve Modül Günlükleri
+
+#### 1. 🛡️ Güvenlik Duvarı Modülü (`firewall`)
+- **[Yeni] ICMP Ping Gizleme & Sessiz Düşürme (Stealth Ping):** Dış ağlardan gelen ICMP Echo (ping) isteklerini yanıtsız bırakıp yok sayarak bilgisayarı harici port tarayıcılardan tamamen görünmez kılar.
+- **[Yeni] Gelişmiş Kural Denetleyicisi & Arama Motoru:** Windows Güvenlik Duvarı'ndaki kuralları PowerShell seviyesinde sorgulayarak yön, protokol, eylem ve etkin durumuna göre arar ve yönetir.
+- **[Yeni] Ağ Profili Durum Yöneticisi:** Etki Alanı (Domain), Özel (Private) ve Ortak (Public) ağ profillerini bağımsız olarak açıp kapatabilen modern anahtarlar.
+- **[Yeni] Paranoid Dışa Gidiş Kalkanı (Outbound Lockdown):** Yalnızca açıkça izin verilmiş kurallara izin verip diğer tüm şüpheli dış gidiş bağlantılarını engelleyen yüksek güvenlik modu.
+- **[Yeni] Güvenlik Duvarı İlkesi Dışa Aktarma (.wfw):** Geçerli tüm güvenlik duvarı yapılandırmasını tek tıkla `.wfw` formatında yedekler.
+
+#### 2. ⚡ Hacker & Ağ Teşhis Araçları Modülü (`hacker`)
+- **[Yeni] Hedef Port Tarayıcı (Target SYN/Connect Scanner):** İstenen IP veya alan adı için hedef portları (örn: 21, 22, 80, 443, 3389, 8080) eşzamanlı soketlerle tarar ve açık portların servis adlarını tespit eder.
+- **[Yeni] Yerel Alt Ağ & ARP Radarı (Subnet Sweep):** Yerel ağ segmentindeki tüm aktif cihazları IP, MAC adresi ve arayüz türüyle birlikte anlık olarak haritalandırır.
+- **[Yeni] DNS Sızıntı & Hijack Testi:** Birden fazla bağımsız global DNS omurgasını (Cloudflare, Google, Quad9) sorgulayarak yerel DNS sızıntılarını ve zehirlenmelerini denetler.
+- **[Yeni] SSL/TLS Şifreleme & Sertifika Denetimi:** Herhangi bir hedefin SSL/TLS sertifika zincirini, geçerlilik tarihlerini, kalan gün sayısını ve şifreleme paketini (cipher suite) analiz eder.
+- **[Yeni] Tehdit Avcısı (EventLog 4625 & 4672 Hunter):** Windows Güvenlik Olay Günlüğü'nü derinlemesine tarayarak başarısız oturum açma denemelerini (kaba kuvvet saldırıları) ve yetki yükseltmelerini raporlar.
+
+#### 3. 📶 Bluetooth İstasyonu & Radarı (`bluetooth`)
+- **[Yeni] Canlı BLE Radarı (Bluetooth Low Energy Discovery):** Çevrede yayın yapan aktif BLE cihazlarını sinyal gücü (RSSI) ve MAC adresleriyle gerçek zamanlı tespit eder.
+- **[Yeni] Doğrudan Aygıt Bağlantı Yönetimi:** Eşleşmiş Bluetooth cihazlarına arayüzden tek tıkla doğrudan bağlantı kurma özelliği.
+- **[Yeni] Pil & Ses (A2DP) Telemetrisi:** Bağlı cihazların pil yüzdesini ve A2DP yüksek kaliteli ses profili aktiflik durumunu sorgulayan telemetri penceresi.
+- **[Yeni] Bluetooth Gizli Mod (Stealth Mode):** Bilgisayarın diğer cihazlar tarafından görünürlüğünü kapatarak yetkisiz eşleşme ve izleme girişimlerini engeller.
+- **[Yeni] Bluetooth Radyo & Sürücü Sıfırlama:** Takılan veya donan Bluetooth yığınını (`bthserv`) ve radyo arabirimini tek tıkla yeniden başlatan acil kurtarma aracı.
+
+#### 4. 🌐 Wi-Fi & Kablosuz Ağlar Modülü (`wifi`)
+- **[Yeni] Kanal Spektrum Analizi & Akıllı Öneri:** 2.4 GHz ve 5 GHz frekanslarındaki kanal yoğunluğunu hesaplayarak en az parazitli, en temiz kanalı önerir.
+- **[Yeni] Kayıtlı Wi-Fi Parolaları Kasası:** Sistemde daha önce bağlanılmış tüm Wi-Fi profillerinin şifrelerini yetkilendirmeyle çözer ve panoya tek tıkla kopyalama imkanı sunar.
+- **[Yeni] Detaylı BSSID & Dolaşım (Roaming) Telemetrisi:** Aktif erişim noktasının BSSID'si, dBm cinsinden gerçek sinyal gücü, TX/RX aktarım hızları ve 802.11 radyo standardı (PHY) dökümü.
+- **[Yeni] Wi-Fi Profilleri XML Dışa Aktarma:** Sistemdeki tüm kablosuz bağlantı ayarlarını ve profillerini XML dosyaları halinde tek tıkla dışa aktarır.
+- **[Yeni] Gelişmiş Hotspot & Ağ Yönetimi:** Mobil erişim noktası başlatma, anlık bağlantı kesme ve sinyal kalitesine göre ağ listeleme.
+
+#### 5. 💻 Donanım & Sistem Kaynakları Modülü (`hardware`)
+- **[Yeni] GPU & VRAM Telemetrisi:** Grafik işlemci modeli, ayrılmış VRAM boyutu, sürücü sürümü ve anlık ekran çözünürlüğünü gösteren canlı telemetri kartı.
+- **[Yeni] Disk S.M.A.R.T. Sağlık Denetimi:** Fiziksel depolama birimlerinin (NVMe/SSD/HDD) sağlık durumunu, medya türünü ve S.M.A.R.T. öngörülerini denetleme.
+- **[Yeni] Batarya Aşınma (Wear Level) Raporu:** Fabrika tasarım kapasitesi ile mevcut tam şarj kapasitesini kıyaslayarak pilin aşınma yüzdesini ve sağlık derecesini hesaplama.
+- **[Yeni] Anakart & BIOS Kimliği:** Anakart üreticisi, model adı, BIOS sürümü ve yayınlanma tarihini gösteren donanım kimlik paneli.
+- **[Yeni] Kaynak Tüketen Süreçler (Top Processes):** CPU ve RAM kullanımına göre sıralanabilen ve istenen görevi doğrudan sonlandıran görev yöneticisi tablosu.
+
+#### 6. ⚙️ Sistem Yönetimi & Servisler Modülü (`admin`)
+- **[Yeni] Windows Hizmetleri (Services Manager):** Sistem servislerini arama, anlık durumunu izleme ve tek tıkla Başlat / Durdur / Yeniden Başlat yapabilme yeteneği.
+- **[Yeni] Sistem Dosyası Onarımı (SFC & DISM Engine):** Bozuk veya hasarlı Windows çekirdek dosyalarını tespit edip onaran `sfc /scannow` aracını tek tıkla yürütme.
+- **[Yeni] Yüksek Performans Güç Planı:** Donanım gecikmelerini sıfırlamak için Windows Nihai/Yüksek Performans güç planını anında aktif etme.
+- **[Yeni] Detaylı Kullanıcı & Yönetici Rol Denetimi:** Yerel kullanıcı hesaplarını, SID'leri, etkin durumlarını ve yerel yönetici (Administrators) yetkilerini denetleme.
+- **[Yeni] Winget Bulut Güncelleme & PowerShell Konsolu:** Tüm yüklü yazılımları tek hamlede güncelleme (`winget upgrade --all`) ve etkileşimli PS yönetim terminali.
+
+---
+
 ## [v2.1.0] - 2026-11-01
 
 ### 🚀 Özet
@@ -48,8 +101,7 @@ ULAK Windows platformundaki 5 aktif modülün tümüne 5'er adet yeni kritik ön
 ---
 
 ### 🎨 UI / UX & Tasarım Mühendisliği Geliştirmeleri
-- Sayısal değerler için layout shift'i engelleyen `font-variant-numeric: tabular-nums` entegrasyonu.
-- Altın Oranlı butonlarda dokunsal basma hissi sağlayan `:active { transform: scale(0.96); }` davranışı.
-- Bento grid kartlarında konsantrik border-radius uyumu (`R_dış = R_iç + padding`).
-- Sonner esintili akıllı toast bildirimleri ve yüklenme/hata durum kartları.
-- Tüm 5 modülün varsayılan olarak aktif gelmesini sağlayan oturum yönetimi.
+- **Mikro Etkileşimler:** Tüm interaktif butonlar ve kartlar dokunsal geri bildirim için `:active { transform: scale(0.96); }` fiziksel tepki motoruyla donatıldı.
+- **Konsantrik Border Radius:** İç bileşenlerin köşe yuvarlaklıkları dış kartın yarıçapına orantılı olarak (`radius_inner = radius_outer - padding`) dengelendi.
+- **Tabular Numerics:** Hızlar, megabaytlar, portlar, PID'ler, RSSI sinyalleri ve IP adresleri için `font-variant-numeric: tabular-nums` sabit genişlikli hizalama etkinleştirildi.
+- **Sonner Bildirimleri:** Her kritik işlem (engelleme, tarama, yedekleme, onarım) için durum bildiren modern renkli bildirimler (success, warning, error, info) entegre edildi.

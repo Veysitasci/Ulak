@@ -366,6 +366,111 @@ class WiFiManager {
   </MSM>
 </WLANProfile>`;
   }
+  // 1. Kanal Çakışma & Spektrum Analizi (En Temiz Kanalı Öner)
+  async getChannelSpectrumAnalysis() {
+    try {
+      const networks = await this.getAvailableNetworks();
+      const channelCounts = {};
+      for (let i = 1; i <= 13; i++) channelCounts[i] = 0;
+      let total5G = 0;
+
+      for (const n of networks) {
+        const ch = parseInt(n.channel) || 1;
+        if (ch <= 14) {
+          channelCounts[ch] = (channelCounts[ch] || 0) + 1;
+        } else {
+          total5G++;
+        }
+      }
+
+      // En az kullanılan 2.4 GHz kanalını bul (1, 6, 11 önerilir)
+      const primaryChannels = [1, 6, 11];
+      let bestChannel = 1;
+      let minLoad = 999;
+      for (const pc of primaryChannels) {
+        const load = channelCounts[pc] || 0;
+        if (load < minLoad) {
+          minLoad = load;
+          bestChannel = pc;
+        }
+      }
+
+      return {
+        success: true,
+        channelCounts,
+        total5G,
+        bestChannel,
+        recommendation: `En az çakışan 2.4GHz kanalı: Kanal ${bestChannel}. 5GHz bandında ${total5G} ağ tespit edildi.`
+      };
+    } catch (e) {
+      return { success: false, channelCounts: {}, bestChannel: 1, recommendation: 'Spektrum analizi yapılamadı.' };
+    }
+  }
+
+  // 2. Yapılandırılmış Kayıtlı Şifreler Listesi
+  async getStructuredSavedPasswords() {
+    try {
+      const { stdout } = await execAsync('netsh wlan show profiles');
+      const profiles = [];
+      for (const line of stdout.split('\n')) {
+        const m = line.match(/(?:All User Profile|Tüm Kullanıcı Profilleri)\s*:\s*(.+)/i);
+        if (m) profiles.push(m[1].trim());
+      }
+
+      const list = [];
+      for (const prof of profiles.slice(0, 25)) {
+        try {
+          const { stdout: pOut } = await execAsync(`netsh wlan show profile name="${prof}" key=clear`);
+          const km = pOut.match(/(?:Key Content|Anahtar İçeriği)\s*:\s*(.+)/i);
+          const authm = pOut.match(/(?:Authentication|Kimlik Doğrulaması)\s*:\s*(.+)/i);
+          list.push({
+            ssid: prof,
+            password: km ? km[1].trim() : '(Şifresiz / Açık)',
+            auth: authm ? authm[1].trim() : 'WPA2-Personal'
+          });
+        } catch (e) {
+          list.push({ ssid: prof, password: '(Erişilemedi)', auth: 'Bilinmiyor' });
+        }
+      }
+      return list;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // 3. Canlı BSSID ve Dolaşım (Roaming) Telemetrisi
+  async getBssidRoamingTelemetry() {
+    try {
+      const { stdout } = await execAsync('netsh wlan show interfaces');
+      let bssid = '--';
+      let radio = '802.11ac';
+      let speed = '0 Mbps';
+      let signal = '0%';
+
+      for (const line of stdout.split('\n')) {
+        if (line.includes('BSSID')) bssid = line.split(':')[1]?.trim() || bssid;
+        if (line.includes('Radio type') || line.includes('Radyo türü')) radio = line.split(':')[1]?.trim() || radio;
+        if (line.includes('Receive rate') || line.includes('Alma hızı')) speed = (line.split(':')[1]?.trim() || '0') + ' Mbps';
+        if (line.includes('Signal') || line.includes('Sinyal')) signal = line.split(':')[1]?.trim() || signal;
+      }
+
+      return { success: true, bssid, radio, speed, signal };
+    } catch (e) {
+      return { success: false, bssid: '--', radio: '--', speed: '--', signal: '--' };
+    }
+  }
+
+  // 4. Wi-Fi Profillerini XML Olarak Dışa Aktar
+  async exportWifiProfiles() {
+    try {
+      const exportDir = path.join(os.homedir(), 'Desktop', `ULAK_WiFi_Profiles_${Date.now()}`);
+      if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir, { recursive: true });
+      await execAsync(`netsh wlan export profile folder="${exportDir}" key=clear`);
+      return { success: true, path: exportDir, message: 'Wi-Fi profilleri XML olarak dışa aktarıldı.' };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
 }
 
 module.exports = WiFiManager;

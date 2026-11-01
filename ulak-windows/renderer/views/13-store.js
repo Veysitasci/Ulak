@@ -282,12 +282,15 @@
                 </div>
               </div>
 
-              <!-- Sürüm Seçici Dropdown -->
+              <!-- Sürüm Seçici Dropdown (MCP UI Encased) -->
               <div style="margin-bottom: 12px;">
-                <label style="font-size: 11px; color: var(--text-2); display: block; margin-bottom: 5px;">Hedef Sürüm Seçin:</label>
-                <select class="input-glass select-version-dropdown" data-id="${m.id}" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--glass-surface-dense); color: var(--text-1); border: 1px solid var(--glass-border);">
-                  ${versionsOptions}
-                </select>
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-2); display: block; margin-bottom: 6px;">Hedef Sürüm Seçin:</label>
+                <div class="select-encased has-icon">
+                  <div class="select-icon">${window.UlakIcons.getIcon('sliders', 'icon-mono-xs')}</div>
+                  <select class="select-version-dropdown" data-id="${m.id}" style="width: 100%;">
+                    ${versionsOptions}
+                  </select>
+                </div>
               </div>
 
               <!-- Changelog Kutusu -->

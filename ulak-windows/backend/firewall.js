@@ -238,6 +238,89 @@ class FirewallManager {
     return { success: true };
   }
 
+  // 1. ICMP Ping Kalkanı (Gizli Mod / Stealth Mode)
+  async setStealthPing(enable = true) {
+    try {
+      const state = enable ? 'no' : 'yes';
+      await execAsync(`netsh advfirewall firewall set rule name="File and Printer Sharing (Echo Request - ICMPv4-In)" new enable=${state}`);
+      const cfg = this._loadConfig();
+      cfg.stealth_ping = enable;
+      this._addEvent(cfg, 'ICMP', '0.0.0.0', '-', `Ping Kalkanı (Gizli Mod) ${enable ? 'Aktifleştirildi' : 'Kapatıldı'}`);
+      this._saveConfig(cfg);
+      return { success: true, stealth: enable, message: `Ping Kalkanı ${enable ? 'devreye alındı. PC ağda gizlendi.' : 'kapatıldı.'}` };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  // 2. Canlı Windows Güvenlik Duvarı Kurallarını Arama & Listeleme
+  async getSystemFirewallRules(filter = '') {
+    try {
+      const { stdout } = await execAsync('powershell -NoProfile -Command "Get-NetFirewallRule | Select-Object -First 50 Name, DisplayName, Direction, Action, Enabled | ConvertTo-Json"');
+      let data = JSON.parse(stdout || '[]');
+      if (!Array.isArray(data)) data = [data];
+
+      let rules = data.map(r => ({
+        name: r.DisplayName || r.Name,
+        id: r.Name,
+        direction: r.Direction === 1 ? 'Gelen (In)' : 'Giden (Out)',
+        action: r.Action === 2 ? 'İzin Ver' : 'Engelle',
+        enabled: r.Enabled === 1
+      }));
+
+      if (filter) {
+        const q = filter.toLowerCase();
+        rules = rules.filter(r => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
+      }
+      return rules;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // 3. Özel Profil Bazlı Güvenlik Kalkanı (Domain / Private / Public)
+  async setProfileState(profileName, state = true) {
+    try {
+      const p = (profileName || 'all').toLowerCase();
+      const onOff = state ? 'on' : 'off';
+      await execAsync(`netsh advfirewall set ${p}profile state ${onOff}`);
+      const cfg = this._loadConfig();
+      cfg.profiles = cfg.profiles || {};
+      cfg.profiles[p] = state;
+      this._addEvent(cfg, 'PROF', '-', '-', `${p.toUpperCase()} profili ${onOff.toUpperCase()} yapıldı.`);
+      this._saveConfig(cfg);
+      return { success: true, profile: p, state };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  // 4. Giden Veri Kaçağı Kalkanı (Paranoid Outbound Guard)
+  async setParanoidOutbound(enable = true) {
+    try {
+      const act = enable ? 'blockinbound,blockoutbound' : 'blockinbound,allowoutbound';
+      await execAsync(`netsh advfirewall set allprofiles firewallpolicy ${act}`);
+      const cfg = this._loadConfig();
+      cfg.paranoid_outbound = enable;
+      this._addEvent(cfg, 'PARANOID', '0.0.0.0', 'Tümü', `Paranoid Giden Trafik Kalkanı ${enable ? 'Kilitlendi' : 'Serbest Bırakıldı'}`);
+      this._saveConfig(cfg);
+      return { success: true, paranoid: enable };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  // 5. Güvenlik Duvarı Politikası Dışa Aktarma & Yedekleme
+  async exportFirewallPolicy() {
+    try {
+      const backupPath = path.join(os.homedir(), 'Desktop', `ULAK_Firewall_Policy_${Date.now()}.wfw`);
+      await execAsync(`netsh advfirewall export "${backupPath}"`);
+      return { success: true, path: backupPath, message: 'Firewall kural yedek dosyası oluşturuldu.' };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  }
+
   async getListeningApps() {
     try {
       const [{ stdout: netOut }, { stdout: taskOut }] = await Promise.all([

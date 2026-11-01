@@ -114,6 +114,33 @@ const Components = {
         <div class="console-card-body" id="${idPrefix}body">${window.UlakUI.escapeHtml(content || 'Hazır.')}</div>
       </div>
     `;
+  },
+
+  selectField(id, label, options, selectedValue = '', iconName = null, extraClass = '') {
+    const optsHtml = options.map(opt => {
+      const val = typeof opt === 'object' ? opt.value : opt;
+      const text = typeof opt === 'object' ? opt.label : opt;
+      const isSel = String(val) === String(selectedValue) ? 'selected' : '';
+      return `<option value="${window.UlakUI.escapeHtml(val)}" ${isSel}>${window.UlakUI.escapeHtml(text)}</option>`;
+    }).join('');
+
+    const iconHtml = iconName 
+      ? `<div class="select-icon">${window.UlakIcons.getIcon(iconName, 'icon-mono-xs')}</div>` 
+      : '';
+
+    const hasIconClass = iconName ? 'has-icon' : '';
+
+    return `
+      <div class="field ${extraClass}">
+        ${label ? `<label class="field-label" for="${id}">${window.UlakUI.escapeHtml(label)}</label>` : ''}
+        <div class="select-encased ${hasIconClass}">
+          ${iconHtml}
+          <select id="${id}" class="field-input select-custom">
+            ${optsHtml}
+          </select>
+        </div>
+      </div>
+    `;
   }
 };
 

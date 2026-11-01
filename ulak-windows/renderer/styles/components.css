@@ -145,6 +145,181 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+/* ==========================================================================
+   MCP UI — MODERN ENCASED DROPDOWNS & AÇILIR MENÜ ALANLARI
+   "Hiçbir açılır menü çıplak kalmasın" — Fluent Liquid Glass & Altın Oran
+   ========================================================================== */
+
+select,
+select.field-input,
+select.input-glass,
+.select-custom {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  height: var(--input-height) !important;
+  background-color: var(--select-bg) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: calc(100% - 12px) center !important;
+  background-size: 14px 14px !important;
+  padding: 0 38px 0 var(--space-13) !important;
+  border: 1px solid var(--select-border) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--text-1) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  cursor: pointer !important;
+  box-shadow: var(--glass-highlight), var(--glass-shadow-sm) !important;
+  backdrop-filter: blur(12px) !important;
+  transition: border-color var(--transition-fast), 
+              box-shadow var(--transition-fast), 
+              background-color var(--transition-fast), 
+              transform 0.12s var(--ease) !important;
+}
+
+select:hover,
+select.field-input:hover,
+select.input-glass:hover {
+  border-color: var(--select-border-hover) !important;
+  background-color: var(--glass-surface-hover) !important;
+  box-shadow: 0 0 0 1px var(--select-border-hover), var(--glass-shadow-sm) !important;
+}
+
+select:focus,
+select.field-input:focus,
+select.input-glass:focus {
+  border-color: var(--select-border-focus) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 2px 10px -2px var(--accent-glow) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+select:active {
+  transform: scale(0.985) !important;
+}
+
+/* Seçenekler (Options & Optgroups) Sıvı Cam Stili */
+select option,
+select optgroup {
+  background-color: #0f1422 !important;
+  color: #f8fafc !important;
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+  font-family: var(--font-family) !important;
+  border: none !important;
+}
+
+:root[data-theme="light"] select option,
+:root[data-theme="light"] select optgroup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+select option:checked {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(5, 150, 105, 0.45) 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+select option:hover {
+  background-color: rgba(16, 185, 129, 0.20) !important;
+}
+
+/* Modern Encased Select Container (Etiketli & İkonlu Sarmalayıcı) */
+.select-encased {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.select-encased .select-icon {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.select-encased.has-icon select {
+  padding-left: 36px !important;
+}
+
+.select-encased-badge {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.select-encased.has-badge select {
+  padding-left: 54px !important;
+}
+
+/* Popover & Context Dropdown Menüleri */
+.dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--select-popover-bg);
+  border: 1px solid var(--glass-border-light);
+  border-radius: var(--r-sm);
+  box-shadow: var(--select-shadow);
+  backdrop-filter: blur(20px);
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+}
+
+.dropdown-menu.show,
+.dropdown-menu.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-xs);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background-color: var(--select-option-hover);
+  color: var(--accent);
+}
+
+.dropdown-item.active {
+  background-color: var(--select-option-selected);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--glass-border);
+}
+
 .field-group {
   display: flex;
   align-items: center;

@@ -42,10 +42,17 @@
                     <div class="setting-row-icon">${window.UlakIcons.getIcon('activity', 'icon-mono-xs')}</div>
                     <div>
                       <div class="setting-title">Telemetri Güncelleme Sıklığı</div>
-                      <div class="setting-subtitle">Canlı CPU, Bellek ve Ağ grafiklerinin yenilenme periyodu</div>
+                      <div class="setting-subtitle">Canlı CPU, Bellek ve Donanım telemetrisinin yenilenme periyodu</div>
                     </div>
                   </div>
-                  <span class="chip chip-accent">3000 ms</span>
+                  <div class="select-encased has-icon" style="width: 175px;">
+                    <div class="select-icon">${window.UlakIcons.getIcon('clock', 'icon-mono-xs')}</div>
+                    <select id="settings-telemetry-rate" class="field-input select-custom">
+                      <option value="1500">1.5 sn (Hassas)</option>
+                      <option value="3000">3.0 sn (Dengeli)</option>
+                      <option value="5000">5.0 sn (Eko / Pil Dostu)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -103,6 +110,16 @@
       const themeBtn = el.querySelector('#settings-btn-theme-toggle');
       const autostartToggle = el.querySelector('#settings-autostart-toggle');
       const themeDesc = el.querySelector('#settings-theme-desc');
+      const telemetrySelect = el.querySelector('#settings-telemetry-rate');
+
+      if (telemetrySelect) {
+        const savedRate = localStorage.getItem('ulak-telemetry-rate') || '3000';
+        telemetrySelect.value = savedRate;
+        telemetrySelect.addEventListener('change', (e) => {
+          localStorage.setItem('ulak-telemetry-rate', e.target.value);
+          window.UlakUI.toast(`Telemetri periyodu ${e.target.value} ms olarak güncellendi.`, 'success');
+        });
+      }
 
       if (themeBtn) {
         themeBtn.addEventListener('click', () => {
