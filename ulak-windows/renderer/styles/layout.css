@@ -1,0 +1,434 @@
+/* ==========================================================================
+   ULAK LAYOUT — GOLDEN RATIO Φ GRID & LIQUID GLASS ARCHITECTURE
+   ========================================================================== */
+
+/* 1. APP CANVAS & FRAME */
+.app-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  background: var(--app-bg-gradient);
+}
+
+/* 2. TOP HEADERBAR (Fibonacci 55px) */
+.app-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-21);
+  background: var(--header-bg);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-bottom: 1px solid var(--glass-border);
+  z-index: 100;
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-13);
+  -webkit-app-region: drag;
+}
+
+.brand-toggle-btn {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  -webkit-app-region: no-drag;
+}
+
+.brand-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.brand-toggle-btn:hover {
+  background: var(--glass-surface-hover);
+  color: var(--text-1);
+}
+
+.brand-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.brand-title {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--text-1);
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.header-search-wrap {
+  width: 340px;
+  position: relative;
+}
+
+.header-search-input {
+  width: 100%;
+  height: 32px;
+  background: var(--input-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  padding: 0 34px 0 34px;
+  color: var(--text-1);
+  font-size: var(--text-xs);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.header-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.header-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.header-search-kbd {
+  position: absolute;
+  right: 8px;
+  top: 7px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: var(--glass-surface-subtle);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xs);
+  padding: 2px 6px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  -webkit-app-region: no-drag;
+}
+
+/* WINDOW CONTROLS (Frameless Windows 11 Fluent) */
+.win-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--r-xs);
+  width: 36px;
+  height: 30px;
+  color: var(--text-2);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.win-btn:active {
+  transform: scale(0.92);
+}
+
+.win-btn:hover {
+  background: var(--glass-surface-hover);
+  color: var(--text-1);
+}
+
+.win-btn.close:hover {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+/* 3. APP BODY */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 4. SIDEBAR (Fibonacci 233px) */
+.sidebar-box {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(34px);
+  -webkit-backdrop-filter: blur(34px);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: width 0.24s var(--ease);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.sidebar-box.collapsed {
+  width: 64px;
+}
+
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-8) 0;
+}
+
+.sidebar-section-title {
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--text-3);
+  padding: var(--space-13) var(--space-21) var(--space-5) var(--space-21);
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar-box.collapsed .sidebar-section-title {
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: calc(100% - 16px);
+  margin: 1px 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  white-space: nowrap;
+}
+
+.sidebar-btn:active {
+  transform: scale(0.97);
+}
+
+.sidebar-btn:hover {
+  background: var(--glass-surface-hover);
+  color: var(--text-1);
+}
+
+.sidebar-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.sidebar-btn.active .icon-mono {
+  stroke: var(--accent);
+}
+
+.sidebar-btn-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-box.collapsed .sidebar-btn-text {
+  display: none;
+}
+
+.sidebar-bottom {
+  border-top: 1px solid var(--glass-border);
+  padding: var(--space-5) 0;
+}
+
+/* 5. MAIN CONTENT STACK */
+.content-stack {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  background: var(--content-bg);
+}
+
+.page-view {
+  padding: var(--space-21) var(--space-34);
+  max-width: 1360px;
+  margin: 0 auto;
+  animation: fadeInView 0.22s var(--ease);
+}
+
+@keyframes fadeInView {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 6. GOLDEN BENTO GRIDS (Altın Oran Gridleri) */
+.grid-golden {
+  display: grid;
+  grid-template-columns: 1.618fr 1fr;
+  gap: var(--space-13);
+}
+
+.grid-golden-rev {
+  display: grid;
+  grid-template-columns: 1fr 1.618fr;
+  gap: var(--space-13);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-13);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-13);
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-13);
+}
+
+@media (max-width: 900px) {
+  .grid-golden,
+  .grid-golden-rev,
+  .grid-4,
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 7. VIEW HEADER (Standardized Proportional Module Card) */
+.view-header-card {
+  padding: var(--space-13) var(--space-21);
+  border-radius: var(--r-md);
+  margin-bottom: var(--space-21);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-surface);
+  box-shadow: var(--glass-highlight), var(--glass-shadow-sm);
+}
+
+.view-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-13);
+}
+
+.view-header-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  flex-shrink: 0;
+}
+
+.view-header-icon-box .icon-mono {
+  stroke: var(--accent);
+  width: 18px;
+  height: 18px;
+}
+
+.view-title {
+  font-size: var(--text-md);
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-1);
+}
+
+.view-desc {
+  font-size: var(--text-xs);
+  color: var(--text-2);
+  margin-top: 1px;
+}
+
+/* 8. SECTIONS */
+.view-section {
+  padding: var(--space-21);
+  border-radius: var(--r-md);
+  margin-bottom: var(--space-13);
+  position: relative;
+}
+
+.view-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-13);
+}
+
+.view-section-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* 9. APP FOOTER (Fibonacci 34px) */
+.app-footer {
+  height: var(--footer-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-21);
+  background: var(--footer-bg);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-top: 1px solid var(--glass-border);
+  z-index: 100;
+  flex-shrink: 0;
+  font-size: var(--text-2xs);
+  color: var(--text-2);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-family: var(--font-mono);
+}

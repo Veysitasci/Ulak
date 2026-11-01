@@ -1,0 +1,77 @@
+[
+  {
+    "id": "youtube",
+    "name_key": "Video & Medya İndirici",
+    "desc_key": "YouTube ve 1000+ siteden 4K Ultra HD video, oynatma listesi ve MP3 yüksek kalite ses indirme motoru.",
+    "icon": "video",
+    "category": "Medya",
+    "github_url": "https://github.com/yt-dlp/yt-dlp",
+    "features": [
+      "4K / 2K / 1080p / 720p / 480p Çoklu Video Çözünürlüğü Seçimi",
+      "Stüdyo Kalitesinde 320kbps MP3, FLAC, WAV, AAC Ses Ayrıştırma",
+      "Toplu Oynatma Listesi (Playlist) ve Aralık Belirleme (Örn: 1-10)",
+      "Otomatik Çok Dilli SRT/VTT Altyazı Algılama ve İndirme",
+      "Bant Genişliği Hız Sınırlandırıcı (Rate-Limit) & İndirme Kütüphanesi"
+    ]
+  },
+  {
+    "id": "sys_cleaner",
+    "name_key": "Sistem Temizleyici",
+    "desc_key": "Disk sağlığı, sistem önbelleği, geçici dosyalar, çöp ve tarayıcı kalıntılarını tek tıkla temizler.",
+    "icon": "trash",
+    "category": "Araçlar",
+    "github_url": "https://github.com/veysi/ulak",
+    "features": [
+      "Kullanıcı & Sistem Temp Klasörleri Derin Temizliği",
+      "Çoklu Tarayıcı Önbellek & Çerez Temizleyici (Chrome, Edge, Brave, Firefox)",
+      "Windows Update & SoftwareDistribution İndirme Kalıntıları Temizliği",
+      "DNS Önbellek Temizleme (FlushDNS) & Winsock Ağ Sıfırlama",
+      "Bozuk Windows İkon & Küçük Resim (Thumbnail) Önbelleği Sıfırlayıcı"
+    ]
+  },
+  {
+    "id": "net_monitor",
+    "name_key": "Ağ & Port Takipçisi",
+    "desc_key": "Canlı bant genişliği, soket-süreç eşlemeli port taraması, gecikme ölçümü ve internet hız testi.",
+    "icon": "activity",
+    "category": "Ağ",
+    "github_url": "https://github.com/veysi/ulak",
+    "features": [
+      "Soket-Süreç Eşlemeli Dışa Açıklık & Dinleyen Port Taraması",
+      "Canlı Adaptör Bant Genişliği ve Süreç Ağ Trafiği Monitörü",
+      "Hedefe Özel Görsel Traceroute (ICMP Hop & Jitter) Analizi",
+      "Şüpheli Dış IP / Coğrafi Konum & Whois İstihbarat Sorgusu",
+      "Tek Tıkla Şüpheli Süreç Sonlandırma & Port Güvenlik Duvarı Engelleme"
+    ]
+  },
+  {
+    "id": "backup_tool",
+    "name_key": "Otomatik Yedekleme Aracı",
+    "desc_key": "Zamanlanmış artımlı yedek motoru, AES-256 şifreleme, bütünlük doğrulaması ve harici diske otomatik kopyalama.",
+    "icon": "archive",
+    "category": "Sistem",
+    "github_url": "https://github.com/veysi/ulak",
+    "features": [
+      "Hızlı ve Tam Sistem Arşivleme (Belgeler, Masaüstü, Projeler)",
+      "Özel Klasör & Dosya Seçimli Dinamik Yedek Oluşturma",
+      "Tek Tıkla Arşivden Geri Yükleme Motoru (One-Click Restore)",
+      "Kriptografik SHA-256 Checksum ile Arşiv Bütünlük Doğrulaması",
+      "Zamanlanmış Yedekleme Hatırlatıcısı & Depolama Kapasite Analizi"
+    ]
+  },
+  {
+    "id": "pkg_installer",
+    "name_key": "Evrensel Paket Yükleyici",
+    "desc_key": "Windows Winget ve Chocolatey paket yöneticisi entegrasyonu ile toplu yazılım arama ve kurulumu.",
+    "icon": "package",
+    "category": "Araçlar",
+    "github_url": "https://github.com/veysi/ulak",
+    "features": [
+      "Yerel Dosya Shannon Entropisi & Polimorfik Zararlı Yazılım Analizi",
+      "Canlı Winget & Chocolatey Bulut Depo Araması ve Tek Tıkla Kurulum",
+      "Microsoft Authenticode Dijital İmza & Sertifika Geçerlilik Denetimi",
+      "Sessiz / Katılımsız (Silent / Unattended) Arka Plan Kurulum Parametreleri",
+      "Yüklü Windows Programları Listesi ve Toplu Uygulama Kaldırıcı"
+    ]
+  }
+]

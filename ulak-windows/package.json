@@ -1,0 +1,74 @@
+{
+  "name": "ulak-windows",
+  "version": "1.0.0",
+  "description": "ULAK - Network & Security Station for Windows",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "postbuild-win": "powershell -ExecutionPolicy Bypass -Command \"if (Test-Path 'dist/ULAK-Setup-1.0.0.exe') { Copy-Item -Path 'dist/ULAK-Setup-1.0.0.exe' -Destination 'dist/setup.exe' -Force; Copy-Item -Path 'dist/ULAK-Setup-1.0.0.exe' -Destination 'dist/ULAK-Setup.exe' -Force; Write-Host 'Setup executables created: dist/setup.exe, dist/ULAK-Setup.exe, dist/ULAK-Setup-1.0.0.exe' }\""
+  },
+  "keywords": [
+    "network",
+    "security",
+    "windows"
+  ],
+  "author": "ULAK Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.ulak.app",
+    "productName": "ULAK",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "backend/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "modules.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "ULAK",
+      "runAfterFinish": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeader": "build/installerHeader.bmp",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "license": "build/license.txt",
+      "installerLanguages": [
+        "tr_TR",
+        "en_US"
+      ],
+      "artifactName": "ULAK-Setup-${version}.${ext}"
+    }
+  }
+}

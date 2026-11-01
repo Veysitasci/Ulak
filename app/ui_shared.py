@@ -1,7 +1,8 @@
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Pango
 import json
+import math
 from pathlib import Path
 
 class Storage:
@@ -137,6 +138,8 @@ class ToastService:
         lbl = Gtk.Label(label=message)
         lbl.set_name("toast-lbl")
         lbl.set_line_wrap(True)
+        lbl.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        lbl.set_max_width_chars(36)
         lbl.set_xalign(0.0)
         lbl.set_margin_top(16)
         lbl.set_margin_bottom(12)
@@ -223,6 +226,53 @@ class ToastService:
 storage = Storage()
 
 
+class UsageGraph(Gtk.DrawingArea):
+    """
+    Dynamic Circular Usage Graph drawn via Cairo as mandated by ULAK Bento UI guidelines.
+    Displays dynamic circle with percentage centered inside.
+    """
+    def __init__(self, color_rgba=(0.06, 0.72, 0.5, 1.0), size=80):
+        super().__init__()
+        self.set_size_request(size, size)
+        self.fraction = 0.0
+        self.color_rgba = color_rgba
+        self.connect("draw", self.on_draw)
+
+    def set_fraction(self, fraction):
+        self.fraction = max(0.0, min(1.0, fraction))
+        self.queue_draw()
+
+    def set_color(self, color_rgba):
+        self.color_rgba = color_rgba
+        self.queue_draw()
+
+    def on_draw(self, widget, cr):
+        width = widget.get_allocated_width()
+        height = widget.get_allocated_height()
+        radius = min(width, height) / 2.0 - 8
+        
+        # Background circle
+        cr.set_source_rgba(0.2, 0.2, 0.2, 0.12)
+        cr.set_line_width(6)
+        cr.arc(width/2, height/2, radius, 0, 2*math.pi)
+        cr.stroke()
+        
+        # Foreground arc
+        cr.set_source_rgba(*self.color_rgba)
+        cr.set_line_width(6)
+        cr.arc(width/2, height/2, radius, -math.pi/2, -math.pi/2 + (2*math.pi * self.fraction))
+        cr.stroke()
+
+        # Text in center
+        pct_text = f"{int(self.fraction * 100)}%"
+        cr.set_source_rgba(*self.color_rgba)
+        cr.select_font_face("Sans", 0, 1) # Bold
+        cr.set_font_size(12)
+        extents = cr.text_extents(pct_text)
+        cr.move_to(width/2 - extents.width/2 - extents.x_bearing, height/2 + extents.height/2)
+        cr.show_text(pct_text)
+
+
 class BentoDialog(Gtk.Dialog):
     """
     Termius / Bento Frameless Modal Dialog.
@@ -246,6 +296,7 @@ class BentoDialog(Gtk.Dialog):
             self.set_visual(visual)
         self.set_app_paintable(True)
         self.get_style_context().add_class("main-window")
+        self.connect("draw", self._on_draw_bento_background)
 
         # Frame container
         self.dialog_frame = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -328,6 +379,15 @@ class BentoDialog(Gtk.Dialog):
     def _on_header_drag(self, widget, event):
         if event.button == 1 and event.type == Gdk.EventType.BUTTON_PRESS:
             self.begin_move_drag(event.button, int(event.x_root), int(event.y_root), event.time)
+
+    def _on_draw_bento_background(self, widget, cr):
+        import cairo
+        cr.save()
+        cr.set_operator(cairo.OPERATOR_SOURCE)
+        cr.set_source_rgba(0, 0, 0, 0)
+        cr.paint()
+        cr.restore()
+        return False
 
     def get_bento_content(self):
         return self.body_box

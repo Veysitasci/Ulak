@@ -223,6 +223,79 @@ class ThemeManager:
             color: #ffffff;
         }
 
+        /* Intro Splash Screen Styles (Dark Mode) */
+        .intro-container {
+            background-color: transparent;
+        }
+        .intro-background {
+            background-color: #161822;
+        }
+        .intro-card {
+            background-color: #1a1d2b;
+            border: 1px solid #2a2f45;
+            border-radius: 24px;
+            padding: 24px 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        .intro-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            margin-top: 8px;
+        }
+        .intro-subtitle {
+            color: #8e95a5;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .intro-version {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .intro-separator {
+            background-color: #2a2f45;
+        }
+        .step-indicator {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .step-indicator.step-active {
+            color: #059669;
+        }
+        .step-indicator.step-complete {
+            color: #10b981;
+        }
+        .step-text {
+            color: #8e95a5;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .step-text.step-active-text {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .step-text.step-complete-text {
+            color: #64748b;
+        }
+        .intro-progress {
+            background-color: #2a2f45;
+            border-radius: 8px;
+            min-height: 6px;
+        }
+        .intro-progress trough {
+            background-color: #2a2f45;
+            border-radius: 8px;
+        }
+        .intro-progress progress {
+            background-color: #059669;
+            border-radius: 8px;
+        }
+
         /* All Sub-View Headers (Generous Spacing & Padding) */
         .header {
             padding: 24px 32px 14px 32px;
@@ -240,6 +313,36 @@ class ThemeManager:
             color: #8e95a5; 
             font-size: 13px; 
             font-weight: 500; 
+        }
+
+        /* Home (Ana Sayfa) */
+        .home-hero-title {
+            color: #ffffff;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: 6px;
+        }
+        .home-greet {
+            color: #059669;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .home-chip {
+            padding: 8px 14px;
+        }
+        .home-chip-value {
+            color: #e2e8f0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .home-card {
+            background-color: #151927;
+            border: 1px solid #232a3d;
+            border-radius: 14px;
+        }
+        .home-card:hover {
+            background-color: #1a2032;
+            border-color: #059669;
         }
 
         /* Termius Custom Headerbar (Titlebar) */
@@ -324,6 +427,137 @@ class ThemeManager:
         .settings-card:hover {
             background-color: #23283a;
             border-color: #383f58;
+        }
+
+        /* 3-Color Bento Card Standard: Yüklü=Beyaz, Hazır=Yeşil, Kaldırılan=Kırmızı */
+        box.settings-card.card-status-installed,
+        .settings-card.card-status-installed,
+        .card-status-installed {
+            background-color: #ffffff;
+            border: 1.5px solid #cbd5e1;
+        }
+        box.settings-card.card-status-installed:hover,
+        .settings-card.card-status-installed:hover,
+        .card-status-installed:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+        box.settings-card.card-status-installed label,
+        .settings-card.card-status-installed label,
+        .card-status-installed label {
+            color: #0f172a;
+        }
+        box.settings-card.card-status-installed .setting-subtitle,
+        .settings-card.card-status-installed .setting-subtitle,
+        .card-status-installed .setting-subtitle {
+            color: #475569;
+        }
+
+        box.settings-card.card-status-ready,
+        .settings-card.card-status-ready,
+        .card-status-ready {
+            background-color: #059669;
+            border: 2px solid #10b981;
+        }
+        box.settings-card.card-status-ready:hover,
+        .settings-card.card-status-ready:hover,
+        .card-status-ready:hover {
+            background-color: #047857;
+            border-color: #34d399;
+        }
+        box.settings-card.card-status-ready label,
+        .settings-card.card-status-ready label,
+        .card-status-ready label {
+            color: #ffffff;
+        }
+        box.settings-card.card-status-ready .setting-subtitle,
+        .settings-card.card-status-ready .setting-subtitle,
+        .card-status-ready .setting-subtitle {
+            color: #ecfdf5;
+        }
+
+        box.settings-card.card-status-removed,
+        .settings-card.card-status-removed,
+        .card-status-removed {
+            background-color: #dc2626;
+            border: 2px solid #ef4444;
+        }
+        box.settings-card.card-status-removed:hover,
+        .settings-card.card-status-removed:hover,
+        .card-status-removed:hover {
+            background-color: #b91c1c;
+            border-color: #f87171;
+        }
+        box.settings-card.card-status-removed label,
+        .settings-card.card-status-removed label,
+        .card-status-removed label {
+            color: #ffffff;
+        }
+        box.settings-card.card-status-removed .setting-subtitle,
+        .settings-card.card-status-removed .setting-subtitle,
+        .card-status-removed .setting-subtitle {
+            color: #fef2f2;
+        }
+
+        .btn-card-action {
+            background-color: #ffffff;
+            color: #047857;
+            border: none;
+            font-weight: bold;
+            border-radius: 8px;
+            padding: 4px 12px;
+        }
+        .btn-card-action:hover {
+            background-color: #f0fdf4;
+            color: #065f46;
+        }
+        .card-status-removed .btn-card-action {
+            color: #b91c1c;
+        }
+        .card-status-removed .btn-card-action:hover {
+            color: #991b1b;
+        }
+        .btn-card-danger {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-weight: 500;
+        }
+        .btn-card-danger:hover {
+            background-color: #dc2626;
+            color: #ffffff;
+        }
+
+        /* Button labels must keep their own colors inside status cards */
+        .settings-card.card-status-ready .btn-primary label,
+        .settings-card.card-status-installed .btn-primary label,
+        .card-status-ready button.btn-primary label,
+        .card-status-installed button.btn-primary label {
+            color: #0f172a;
+        }
+        .settings-card.card-status-ready .btn-card-action label,
+        .settings-card.card-status-installed .btn-card-action label,
+        .card-status-ready button.btn-card-action label,
+        .card-status-installed button.btn-card-action label {
+            color: #047857;
+        }
+        .settings-card.card-status-ready .btn-danger label,
+        .settings-card.card-status-installed .btn-danger label,
+        .settings-card.card-status-removed .btn-danger label,
+        .card-status-ready button.btn-danger label,
+        .card-status-installed button.btn-danger label,
+        .card-status-removed button.btn-danger label {
+            color: #ffffff;
+        }
+        .settings-card.card-status-removed .btn-primary label,
+        .card-status-removed button.btn-primary label {
+            color: #0f172a;
+        }
+        .settings-card.card-status-removed .btn-card-action label,
+        .card-status-removed button.btn-card-action label {
+            color: #b91c1c;
         }
 
         /* Termius Search Entry */
@@ -443,6 +677,44 @@ class ThemeManager:
         .btn-secondary:hover { 
             background: #2b3147; 
             border-color: #424b69; 
+        }
+
+        /* Danger Button (Dark Mode) */
+        .btn-danger {
+            background: #dc2626;
+            color: #ffffff;
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .btn-danger label {
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+            border-color: #dc2626;
+        }
+
+        /* Terminal Output Area (Dark Mode) */
+        .terminal-output {
+            background-color: #0f1219;
+            color: #d1d5db;
+            border: 1px solid #282d40;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: Monospace;
+            font-size: 11px;
+        }
+        .terminal-output text,
+        .terminal-output text view,
+        .terminal-output viewport {
+            background-color: #0f1219;
+        }
+        .terminal-output label {
+            color: #d1d5db;
+            font-family: Monospace;
         }
 
         /* Pixel-Perfect Sleek Toggle Switches (Dark Mode) */
@@ -801,23 +1073,23 @@ class ThemeManager:
             border: 1px solid #2a2f45;
             border-radius: 18px;
         }
-        dialog headerbar {
-            background-color: #11131c;
-            border-bottom: 1px solid #1f2334;
+        dialog, dialog.background {
+            background-color: transparent;
+            background: transparent;
         }
         .bento-dialog-frame {
-            background-color: #161822;
-            border: 1px solid #2a2f45;
+            background-color: rgba(18, 22, 34, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 18px;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
         }
         .bento-dialog-frame .dialog-header {
             border-top-left-radius: 18px;
             border-top-right-radius: 18px;
-            border-bottom: 1px solid #1f2334;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding: 8px 16px;
             min-height: 44px;
-            background-color: #11131c;
+            background-color: rgba(13, 16, 26, 0.92);
         }
 
         /* Frame */
@@ -844,45 +1116,6 @@ class ThemeManager:
         }
         scrollbar slider:hover { background: #353c54; }
 
-        /* Splash Screen */
-        window.splash-window {
-            background-color: transparent;
-            border: none;
-            box-shadow: none;
-        }
-        .splash-box {
-            background-color: #161822;
-            border: 1px solid #2a2f45;
-            border-radius: 20px;
-            padding: 24px 32px;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-        }
-        .splash-title {
-            color: #ffffff;
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: 3px;
-        }
-        .splash-sub {
-            color: #8e95a5;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .splash-status {
-            color: #8e95a5;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .splash-progress trough {
-            background-color: #1a1d2b;
-            border: 1px solid #282d40;
-            border-radius: 6px;
-            min-height: 4px;
-        }
-        .splash-progress progress {
-            background-color: #ffffff;
-            border-radius: 6px;
-        }
         """
         self.provider.load_from_data(css.encode("utf-8"))
 
@@ -992,7 +1225,80 @@ class ThemeManager:
             color: #0f172a;
         }
 
-        /* All Sub-View Headers */
+        /* Intro Splash Screen Styles (Light Mode) */
+        .intro-container {
+            background-color: transparent;
+        }
+        .intro-background {
+            background-color: #f8fafc;
+        }
+        .intro-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 24px 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+        .intro-title {
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            margin-top: 8px;
+        }
+        .intro-subtitle {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .intro-version {
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .intro-separator {
+            background-color: #e2e8f0;
+        }
+        .step-indicator {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .step-indicator.step-active {
+            color: #059669;
+        }
+        .step-indicator.step-complete {
+            color: #10b981;
+        }
+        .step-text {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .step-text.step-active-text {
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .step-text.step-complete-text {
+            color: #94a3b8;
+        }
+        .intro-progress {
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            min-height: 6px;
+        }
+        .intro-progress trough {
+            background-color: #e2e8f0;
+            border-radius: 8px;
+        }
+        .intro-progress progress {
+            background-color: #059669;
+            border-radius: 8px;
+        }
+
+        /* All Sub-View Headers (Generous Spacing & Padding) */
         .header {
             padding: 24px 32px 14px 32px;
             border-bottom: 1px solid #e2e8f0;
@@ -1009,6 +1315,36 @@ class ThemeManager:
             color: #64748b; 
             font-size: 13px; 
             font-weight: 500; 
+        }
+
+        /* Home (Ana Sayfa) */
+        .home-hero-title {
+            color: #0f172a;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: 6px;
+        }
+        .home-greet {
+            color: #047857;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .home-chip {
+            padding: 8px 14px;
+        }
+        .home-chip-value {
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .home-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+        }
+        .home-card:hover {
+            background-color: #f0fdf4;
+            border-color: #059669;
         }
 
         /* App Headerbar (Titlebar) */
@@ -1087,6 +1423,137 @@ class ThemeManager:
         .settings-card:hover {
             background-color: #f8fafc;
             border-color: #cbd5e1;
+        }
+
+        /* 3-Color Bento Card Standard: Yüklü=Beyaz, Hazır=Yeşil, Kaldırılan=Kırmızı */
+        box.settings-card.card-status-installed,
+        .settings-card.card-status-installed,
+        .card-status-installed {
+            background-color: #ffffff;
+            border: 1.5px solid #cbd5e1;
+        }
+        box.settings-card.card-status-installed:hover,
+        .settings-card.card-status-installed:hover,
+        .card-status-installed:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+        box.settings-card.card-status-installed label,
+        .settings-card.card-status-installed label,
+        .card-status-installed label {
+            color: #0f172a;
+        }
+        box.settings-card.card-status-installed .setting-subtitle,
+        .settings-card.card-status-installed .setting-subtitle,
+        .card-status-installed .setting-subtitle {
+            color: #475569;
+        }
+
+        box.settings-card.card-status-ready,
+        .settings-card.card-status-ready,
+        .card-status-ready {
+            background-color: #059669;
+            border: 2px solid #10b981;
+        }
+        box.settings-card.card-status-ready:hover,
+        .settings-card.card-status-ready:hover,
+        .card-status-ready:hover {
+            background-color: #047857;
+            border-color: #34d399;
+        }
+        box.settings-card.card-status-ready label,
+        .settings-card.card-status-ready label,
+        .card-status-ready label {
+            color: #ffffff;
+        }
+        box.settings-card.card-status-ready .setting-subtitle,
+        .settings-card.card-status-ready .setting-subtitle,
+        .card-status-ready .setting-subtitle {
+            color: #ecfdf5;
+        }
+
+        box.settings-card.card-status-removed,
+        .settings-card.card-status-removed,
+        .card-status-removed {
+            background-color: #dc2626;
+            border: 2px solid #ef4444;
+        }
+        box.settings-card.card-status-removed:hover,
+        .settings-card.card-status-removed:hover,
+        .card-status-removed:hover {
+            background-color: #b91c1c;
+            border-color: #f87171;
+        }
+        box.settings-card.card-status-removed label,
+        .settings-card.card-status-removed label,
+        .card-status-removed label {
+            color: #ffffff;
+        }
+        box.settings-card.card-status-removed .setting-subtitle,
+        .settings-card.card-status-removed .setting-subtitle,
+        .card-status-removed .setting-subtitle {
+            color: #fef2f2;
+        }
+
+        .btn-card-action {
+            background-color: #ffffff;
+            color: #047857;
+            border: none;
+            font-weight: bold;
+            border-radius: 8px;
+            padding: 4px 12px;
+        }
+        .btn-card-action:hover {
+            background-color: #f0fdf4;
+            color: #065f46;
+        }
+        .card-status-removed .btn-card-action {
+            color: #b91c1c;
+        }
+        .card-status-removed .btn-card-action:hover {
+            color: #991b1b;
+        }
+        .btn-card-danger {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-weight: 500;
+        }
+        .btn-card-danger:hover {
+            background-color: #dc2626;
+            color: #ffffff;
+        }
+
+        /* Button labels must keep their own colors inside status cards */
+        .settings-card.card-status-ready .btn-primary label,
+        .settings-card.card-status-installed .btn-primary label,
+        .card-status-ready button.btn-primary label,
+        .card-status-installed button.btn-primary label {
+            color: #0f172a;
+        }
+        .settings-card.card-status-ready .btn-card-action label,
+        .settings-card.card-status-installed .btn-card-action label,
+        .card-status-ready button.btn-card-action label,
+        .card-status-installed button.btn-card-action label {
+            color: #047857;
+        }
+        .settings-card.card-status-ready .btn-danger label,
+        .settings-card.card-status-installed .btn-danger label,
+        .settings-card.card-status-removed .btn-danger label,
+        .card-status-ready button.btn-danger label,
+        .card-status-installed button.btn-danger label,
+        .card-status-removed button.btn-danger label {
+            color: #ffffff;
+        }
+        .settings-card.card-status-removed .btn-primary label,
+        .card-status-removed button.btn-primary label {
+            color: #0f172a;
+        }
+        .settings-card.card-status-removed .btn-card-action label,
+        .card-status-removed button.btn-card-action label {
+            color: #b91c1c;
         }
 
         /* Search Entry */
@@ -1230,6 +1697,48 @@ class ThemeManager:
             background-color: #f1f5f9; 
             border-color: #94a3b8; 
             background-image: none;
+        }
+
+        /* Danger Button (Light Mode) */
+        .btn-danger {
+            background-color: #dc2626;
+            color: #ffffff;
+            border: 1px solid #b91c1c;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-weight: 600;
+            font-size: 13px;
+            background-image: none;
+            box-shadow: none;
+            transition: all 120ms ease;
+        }
+        .btn-danger label {
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+            border-color: #991b1b;
+            background-image: none;
+        }
+
+        /* Terminal Output Area (Light Mode) */
+        .terminal-output {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: Monospace;
+            font-size: 11px;
+        }
+        .terminal-output text,
+        .terminal-output text view,
+        .terminal-output viewport {
+            background-color: #0f172a;
+        }
+        .terminal-output label {
+            color: #e2e8f0;
+            font-family: Monospace;
         }
 
         /* Global Bento Sleek Toggle Switches (Light Mode) */
@@ -1610,15 +2119,15 @@ class ThemeManager:
             border: 1px solid #cbd5e1;
             border-radius: 18px;
         }
-        dialog headerbar {
-            background-color: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+        dialog, dialog.background {
+            background-color: transparent;
+            background: transparent;
         }
         .bento-dialog-frame {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
+            background-color: rgba(255, 255, 255, 0.90);
+            border: 1px solid rgba(0, 0, 0, 0.12);
             border-radius: 18px;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
         }
         .bento-dialog-frame .dialog-header {
             border-top-left-radius: 18px;
@@ -1626,7 +2135,7 @@ class ThemeManager:
             border-bottom: 1px solid #e2e8f0;
             padding: 8px 16px;
             min-height: 44px;
-            background-color: #ffffff;
+            background-color: rgba(248, 250, 252, 0.95);
         }
 
         /* Frame (Light Mode) */
@@ -1653,45 +2162,6 @@ class ThemeManager:
         }
         scrollbar slider:hover { background: #94a3b8; }
 
-        /* Splash Screen (Light Mode) */
-        window.splash-window {
-            background-color: transparent;
-            border: none;
-            box-shadow: none;
-        }
-        .splash-box {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 20px;
-            padding: 24px 32px;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
-        }
-        .splash-title {
-            color: #0f172a;
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: 3px;
-        }
-        .splash-sub {
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .splash-status {
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .splash-progress trough {
-            background-color: #e2e8f0;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            min-height: 4px;
-        }
-        .splash-progress progress {
-            background-color: #334155;
-            border-radius: 6px;
-        }
         """
         self.provider.load_from_data(css.encode("utf-8"))
 

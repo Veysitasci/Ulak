@@ -1,0 +1,172 @@
+/* ==========================================================================
+   ULAK DESIGN TOKENS — GOLDEN RATIO (ALTIN ORAN Φ = 1.618) & LIQUID GLASS
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------------
+     1. ALTIN ORAN & FIBONACCI MATEMATİKSEL ÖLÇEK
+     Φ = 1.6180339887...
+     Dizi: 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987
+     ------------------------------------------------------------------------ */
+  --phi: 1.618;
+
+  /* Fibonacci Boşluk (Spacing) Cetveli */
+  --space-3: 3px;
+  --space-5: 5px;
+  --space-8: 8px;
+  --space-13: 13px;
+  --space-21: 21px;
+  --space-34: 34px;
+  --space-55: 55px;
+  --space-89: 89px;
+
+  /* Altın Oran Köşe Yuvarlatma (Radii) */
+  --r-xs: 5px;
+  --r-sm: 8px;
+  --r-md: 13px;
+  --r-lg: 21px;
+  --r-full: 9999px;
+
+  /* Tipografi Altın Oran Ölçeği (px) */
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 21px;
+  --text-xl: 34px;
+
+  --font-family: 'Segoe UI Variable Display', 'Segoe UI Variable Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+
+  /* Bileşen Altın Yükseklikleri */
+  --header-height: 55px;   /* Fibonacci 55px */
+  --sidebar-width: 233px;   /* Fibonacci 233px */
+  --footer-height: 34px;   /* Fibonacci 34px */
+  --btn-height: 34px;      /* Fibonacci 34px */
+  --btn-height-sm: 26px;   /* 34 / 1.3 */
+  --input-height: 34px;    /* Fibonacci 34px */
+
+  /* Sabit ULAK Marka Yeşili & Durum Renkleri */
+  --accent: #10b981;
+  --accent-strong: #059669;
+  --accent-glow: rgba(16, 185, 129, 0.35);
+  --accent-soft: rgba(16, 185, 129, 0.12);
+  --accent-border: rgba(16, 185, 129, 0.28);
+  --accent-tint: rgba(16, 185, 129, 0.06);
+
+  --danger: #ef4444;
+  --danger-strong: #dc2626;
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.26);
+
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.26);
+
+  --info: #06b6d4;
+  --info-soft: rgba(6, 182, 212, 0.12);
+  --info-border: rgba(6, 182, 212, 0.26);
+
+  /* Animasyon Eğrileri */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 0.14s var(--ease);
+  --transition-normal: 0.24s var(--ease);
+}
+
+/* ==========================================================================
+   2. OBSIDIAN LIQUID GLASS — KOYU TEMA (Default)
+   ========================================================================== */
+:root[data-theme="dark"],
+:root {
+  /* Zemin Acrylic & Canvas Katmanı */
+  --app-bg: #090c13;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.06) 0px, transparent 50%),
+                     #090c13;
+
+  --sidebar-bg: rgba(12, 16, 26, 0.88);
+  --header-bg: rgba(12, 16, 26, 0.82);
+  --footer-bg: rgba(10, 13, 22, 0.92);
+  --content-bg: transparent;
+
+  /* Sıvı Cam Yüzeyler (Liquid Glass Surfaces) */
+  --glass-surface: rgba(19, 26, 42, 0.58);
+  --glass-surface-hover: rgba(26, 36, 58, 0.75);
+  --glass-surface-active: rgba(30, 42, 68, 0.85);
+  --glass-surface-dense: rgba(13, 18, 30, 0.94);
+  --glass-surface-subtle: rgba(255, 255, 255, 0.035);
+
+  /* Cam Işık Yansıması & Kenarlıklar */
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-border-light: rgba(255, 255, 255, 0.14);
+  --glass-border-hover: rgba(255, 255, 255, 0.20);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --glass-shadow: 0 13px 34px -8px rgba(0, 0, 0, 0.45);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(0, 0, 0, 0.35);
+
+  /* Tipografi Kontrastı */
+  --text-1: #ffffff;
+  --text-2: #94a3b8;
+  --text-3: #64748b;
+  --text-muted: #475569;
+  --text-inverse: #090c13;
+
+  /* Girdi & Kontroller */
+  --input-bg: rgba(14, 19, 31, 0.80);
+  --input-border: rgba(255, 255, 255, 0.10);
+  --input-border-focus: var(--accent);
+
+  /* Terminal & Konsol */
+  --term-bg: rgba(6, 9, 15, 0.95);
+  --term-border: rgba(255, 255, 255, 0.08);
+  --term-text: #e2e8f0;
+}
+
+/* ==========================================================================
+   3. FROSTED LIQUID GLASS — AÇIK TEMA
+   ========================================================================== */
+:root[data-theme="light"] {
+  /* Zemin Acrylic & Canvas Katmanı */
+  --app-bg: #f3f5f9;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%),
+                     #f3f5f9;
+
+  --sidebar-bg: rgba(255, 255, 255, 0.88);
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --footer-bg: rgba(248, 250, 252, 0.94);
+  --content-bg: transparent;
+
+  /* Sıvı Cam Yüzeyler (Frosted Glass Surfaces) */
+  --glass-surface: rgba(255, 255, 255, 0.72);
+  --glass-surface-hover: rgba(255, 255, 255, 0.92);
+  --glass-surface-active: #ffffff;
+  --glass-surface-dense: rgba(255, 255, 255, 0.96);
+  --glass-surface-subtle: rgba(15, 23, 42, 0.035);
+
+  /* Cam Işık Yansıması & Kenarlıklar */
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-border-light: rgba(15, 23, 42, 0.14);
+  --glass-border-hover: rgba(15, 23, 42, 0.22);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 13px 34px -8px rgba(15, 23, 42, 0.08);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(15, 23, 42, 0.05);
+
+  /* Tipografi Kontrastı */
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #8292a6;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Girdi & Kontroller */
+  --input-bg: #ffffff;
+  --input-border: rgba(15, 23, 42, 0.12);
+  --input-border-focus: var(--accent);
+
+  /* Terminal & Konsol */
+  --term-bg: #f8fafc;
+  --term-border: rgba(15, 23, 42, 0.10);
+  --term-text: #0f172a;
+}

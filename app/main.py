@@ -13,6 +13,8 @@ if app_dir not in sys.path:
 from i18n import _, i18n_instance
 from theme import theme_mgr
 from ui_shared import storage, ToastService, BentoDialog
+from ui_intro import IntroView
+from ui_home import HomeView
 from ui_bt import BluetoothView
 from ui_wifi import WifiView
 from ui_store import StoreView
@@ -21,6 +23,7 @@ from ui_admin import AdminView
 from ui_settings import SettingsView
 from ui_hacker import HackerView
 from ui_firewall import FirewallView
+from ui_pkg_installer import PackageInstallerView, PackageInstallerWindow, open_package_installer
 from api_firewall import fw_api
 
 def get_ulak_logo_path(is_light_mode=False):
@@ -61,7 +64,7 @@ class WirelessManagerWindow(Gtk.Window):
         visual = screen.get_rgba_visual()
         if visual and screen.is_composited():
             self.set_visual(visual)
-        self.set_app_paintable(True)
+            self.set_app_paintable(True)
         self.get_style_context().add_class("main-window")
 
         # Set app window icon
@@ -80,6 +83,7 @@ class WirelessManagerWindow(Gtk.Window):
 
         self._build_ui()
         GLib.timeout_add_seconds(2, self._update_telemetry)
+        GLib.timeout_add_seconds(3, self._check_app_update)
         
     def _build_ui(self):
         self.overlay = Gtk.Overlay()
@@ -105,11 +109,14 @@ class WirelessManagerWindow(Gtk.Window):
         body_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         self.root_frame.pack_start(body_box, True, True, 0)
 
-        self.sidebar = self._build_sidebar(body_box)
-
         # Content Area (Stack)
         self.stack = Gtk.Stack()
-        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.stack.set_transition_type(Gtk.StackTransitionType.NONE)
+
+        self.sidebar = self._build_sidebar(body_box)
+
+        # Kenar cubugu vurgusu her zaman gorunen sayfayi takip etsin
+        self.stack.connect("notify::visible-child", self._sync_nav_with_stack)
 
         def add_scroll_view(view_widget, name):
             # If view is not already a ScrolledWindow, wrap it so it never blocks window from shrinking
@@ -121,6 +128,9 @@ class WirelessManagerWindow(Gtk.Window):
             else:
                 view_widget.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
                 self.stack.add_named(view_widget, name)
+
+        self.home_view = HomeView(self.toast_service)
+        self.stack.add_named(self.home_view, "home")
 
         self.firewall_view = FirewallView(self.toast_service)
         add_scroll_view(self.firewall_view, "firewall")
@@ -140,6 +150,9 @@ class WirelessManagerWindow(Gtk.Window):
         self.hacker_view = HackerView(self.toast_service)
         add_scroll_view(self.hacker_view, "hack")
 
+        self.pkg_view = PackageInstallerView(self.toast_service)
+        add_scroll_view(self.pkg_view, "pkg_installer")
+
         self.store_view = StoreView(self.toast_service)
         add_scroll_view(self.store_view, "store")
 
@@ -154,12 +167,40 @@ class WirelessManagerWindow(Gtk.Window):
         # 3. BOTTOM FOOTER STATUS BAR
         self._build_footer(self.root_frame)
 
-        # Start on Firewall view by default
-        if hasattr(self, 'first_nav_btn') and self.first_nav_btn:
-            self.first_nav_btn.set_active(True)
-            self._on_nav_toggled(self.first_nav_btn, "firewall")
+        # Add intro view as overlay (fullscreen)
+        self.intro_view = IntroView(self.toast_service, self._transition_to_home)
+        self.overlay.add_overlay(self.intro_view)
+        
+        # Hide sidebar, header, footer, stack during intro
+        self.sidebar.set_visible(False)
+        self.stack.set_visible(False)
+        
+        # Hide header and footer
+        self.header_box.set_visible(False)
+        self.footer_box.set_visible(False)
+        
         self.show_all()
         self._update_telemetry()
+
+    def _transition_to_home(self):
+        """Transition from intro view to home view."""
+        # Remove intro overlay
+        self.overlay.remove(self.intro_view)
+        
+        # Show sidebar, stack, header, footer
+        self.sidebar.set_visible(True)
+        self.stack.set_visible(True)
+        self.header_box.set_visible(True)
+        self.footer_box.set_visible(True)
+        
+        # Switch to home view directly
+        if hasattr(self, "nav_buttons") and "home" in self.nav_buttons:
+            self.nav_buttons["home"].set_active(True)
+            self._on_nav_toggled(self.nav_buttons["home"], "home")
+        elif hasattr(self, 'first_nav_btn') and self.first_nav_btn:
+            self.first_nav_btn.set_active(True)
+            self._on_nav_toggled(self.first_nav_btn, "firewall")
+        return False
 
     def _check_resize_edge(self, x, y, width, height, margin=8):
         edge = None
@@ -231,9 +272,9 @@ class WirelessManagerWindow(Gtk.Window):
         event_box = Gtk.EventBox()
         event_box.connect("button-press-event", self._on_window_drag)
 
-        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
-        header.get_style_context().add_class("app-header")
-        event_box.add(header)
+        self.header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
+        self.header_box.get_style_context().add_class("app-header")
+        event_box.add(self.header_box)
 
         # Left: App Brand & Quick Tabs (Termius style)
         brand_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -268,8 +309,8 @@ class WirelessManagerWindow(Gtk.Window):
         tab_hw.connect("clicked", lambda w: self._select_tab("hw"))
         tab_box.pack_start(tab_hw, False, False, 0)
 
-        header.pack_start(brand_box, False, False, 0)
-        header.pack_start(tab_box, False, False, 0)
+        self.header_box.pack_start(brand_box, False, False, 0)
+        self.header_box.pack_start(tab_box, False, False, 0)
 
         # Center: Termius Search Entry
         self.search_box_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -283,7 +324,7 @@ class WirelessManagerWindow(Gtk.Window):
         self.search_entry.get_style_context().add_class("termius-search")
         self.search_box_container.pack_start(self.search_entry, False, False, 0)
 
-        header.pack_start(self.search_box_container, True, True, 0)
+        self.header_box.pack_start(self.search_box_container, True, True, 0)
 
         # Right: Notifications & Custom Window Control Buttons (—, ▢, ✕)
         actions_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
@@ -318,7 +359,7 @@ class WirelessManagerWindow(Gtk.Window):
         btn_close.connect("clicked", lambda w: self.close())
         actions_box.pack_start(btn_close, False, False, 0)
 
-        header.pack_start(actions_box, False, False, 0)
+        self.header_box.pack_start(actions_box, False, False, 0)
         parent.pack_start(event_box, False, False, 0)
 
 
@@ -411,6 +452,20 @@ class WirelessManagerWindow(Gtk.Window):
             
         return False
 
+    def _sync_nav_with_stack(self, stack, _pspec):
+        name = stack.get_visible_child_name()
+        btn = getattr(self, "nav_buttons", {}).get(name)
+        if btn is None or btn.get_active() or getattr(self, "_nav_syncing", False):
+            return
+        self._nav_syncing = True
+        try:
+            btn.set_active(True)
+            lbl = getattr(self, "header_page_lbl", None)
+            if lbl is not None:
+                lbl.set_label(self._get_nav_title(name))
+        finally:
+            self._nav_syncing = False
+
     def _select_tab(self, page_name):
         btn_map = {
             "firewall": getattr(self, "btn_firewall", None),
@@ -491,7 +546,10 @@ class WirelessManagerWindow(Gtk.Window):
         for child in self.sidebar.get_children():
             self.sidebar.remove(child)
         self.nav_group = None
+        self.first_nav_btn = None
+        self.nav_buttons = {}
         self._populate_sidebar()
+        self._load_external_module_views()
         self.sidebar.show_all()
 
     def _build_sidebar(self, parent):
@@ -499,6 +557,8 @@ class WirelessManagerWindow(Gtk.Window):
         self.sidebar.get_style_context().add_class("sidebar-box")
         self.sidebar.set_size_request(180, -1)
         self.nav_group = None
+        self.first_nav_btn = None
+        self.nav_buttons = {}
         self._populate_sidebar()
         parent.pack_start(self.sidebar, False, False, 0)
         return self.sidebar
@@ -523,6 +583,9 @@ class WirelessManagerWindow(Gtk.Window):
         
         # Base categories (excluding Store and Settings, which are fixed at bottom)
         categories = {
+            "GENEL": [
+                {"id": "home", "icon": "go-home-symbolic", "name": _("nav_home")}
+            ],
             "GÜVENLİK": [
                 {"id": "firewall", "icon": "security-high-symbolic", "name": _("tab_firewall").replace("🛡️", "").strip()},
                 {"id": "hack", "icon": "system-search-symbolic", "name": _("tab_hacker")}
@@ -534,6 +597,9 @@ class WirelessManagerWindow(Gtk.Window):
             "DONANIM": [
                 {"id": "hw", "icon": "computer-symbolic", "name": _("tab_hw")},
                 {"id": "admin", "icon": "security-medium-symbolic", "name": _("tab_admin")}
+            ],
+            "ARAÇLAR": [
+                {"id": "pkg_installer", "icon": "system-software-install-symbolic", "name": _("tab_pkg_installer")}
             ]
         }
         
@@ -560,27 +626,14 @@ class WirelessManagerWindow(Gtk.Window):
                         })
                         
                         # Dynamically add view to stack if not exists
-                        if hasattr(self, 'stack') and self.stack.get_child_by_name(man["id"]) is None:
-                            try:
-                                import importlib
-                                mod_name = f"ui_{man['id']}"
-                                module = importlib.import_module(mod_name)
-                                view_class = None
-                                for attr_name in dir(module):
-                                    attr = getattr(module, attr_name)
-                                    if isinstance(attr, type) and issubclass(attr, Gtk.Widget) and attr_name.endswith("View"):
-                                        view_class = attr
-                                        break
-                                if view_class:
-                                    view_instance = view_class(self.toast_service)
-                                    self.stack.add_named(view_instance, man["id"])
-                                    self.stack.show_all()
-                            except Exception as e:
-                                print(f"Could not load UI for module {man['id']}: {e}")
+                        self._load_module_view_by_id(man["id"])
                     except Exception as e:
                         print("Error loading module manifest", e)
 
         # UI Building helper
+        if not hasattr(self, 'nav_buttons'):
+            self.nav_buttons = {}
+
         def create_nav_btn(icon_name, text, name):
             btn = Gtk.RadioButton(group=self.nav_group)
             if not self.nav_group:
@@ -599,17 +652,20 @@ class WirelessManagerWindow(Gtk.Window):
             box.pack_start(lbl, True, True, 0)
             btn.add(box)
             btn.connect("toggled", self._on_nav_toggled, name)
+            self.nav_buttons[name] = btn
             return btn
             
         # 1. Fill Scrollable Content
+        removed_mods = storage.get_global("removed_modules", [])
         for cat_name, items in categories.items():
-            if not items: continue
+            valid_items = [i for i in items if i["id"] not in removed_mods]
+            if not valid_items: continue
             lbl_sec = Gtk.Label(label=cat_name.upper())
             lbl_sec.get_style_context().add_class("nav-section-title")
             lbl_sec.set_halign(Gtk.Align.START)
             self.sidebar_scroll_box.pack_start(lbl_sec, False, False, 0)
             
-            for item in items:
+            for item in valid_items:
                 btn = create_nav_btn(item["icon"], item["name"], item["id"])
                 self.sidebar_scroll_box.pack_start(btn, False, False, 0)
                 
@@ -625,8 +681,37 @@ class WirelessManagerWindow(Gtk.Window):
         btn_settings = create_nav_btn("emblem-system-symbolic", _("settings"), "settings")
         self.sidebar_bottom_box.pack_start(btn_settings, False, False, 0)
 
+    def _load_module_view_by_id(self, mod_id):
+        if not mod_id:
+            return
+        if hasattr(self, 'stack') and self.stack.get_child_by_name(mod_id) is not None:
+            return
+        try:
+            import importlib
+            mod_name = f"ui_{mod_id}"
+            module = importlib.import_module(mod_name)
+            view_class = None
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
+                if isinstance(attr, type) and issubclass(attr, Gtk.Widget) and attr_name.endswith("View"):
+                    view_class = attr
+                    break
+            if view_class:
+                view_instance = view_class(self.toast_service)
+                if not isinstance(view_instance, Gtk.ScrolledWindow):
+                    sc = Gtk.ScrolledWindow()
+                    sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+                    sc.add(view_instance)
+                    self.stack.add_named(sc, mod_id)
+                else:
+                    view_instance.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+                    self.stack.add_named(view_instance, mod_id)
+                self.stack.show_all()
+        except Exception as e:
+            print(f"Could not load UI for module {mod_id}: {e}")
+
     def _load_external_module_views(self):
-        import os, json, importlib
+        import os, json
         modules_dir = os.path.expanduser("~/.local/share/ulak/modules")
         if os.path.exists(modules_dir):
             for d in os.listdir(modules_dir):
@@ -636,40 +721,59 @@ class WirelessManagerWindow(Gtk.Window):
                         with open(man_path, "r") as f:
                             man = json.load(f)
                         mod_id = man.get("id")
-                        if mod_id and self.stack.get_child_by_name(mod_id) is None:
-                            mod_name = f"ui_{mod_id}"
-                            module = importlib.import_module(mod_name)
-                            view_class = None
-                            for attr_name in dir(module):
-                                attr = getattr(module, attr_name)
-                                if isinstance(attr, type) and issubclass(attr, Gtk.Widget) and attr_name.endswith("View"):
-                                    view_class = attr
-                                    break
-                            if view_class:
-                                view_instance = view_class(self.toast_service)
-                                if not isinstance(view_instance, Gtk.ScrolledWindow):
-                                    sc = Gtk.ScrolledWindow()
-                                    sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-                                    sc.add(view_instance)
-                                    self.stack.add_named(sc, mod_id)
-                                else:
-                                    view_instance.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-                                    self.stack.add_named(view_instance, mod_id)
+                        if mod_id:
+                            self._load_module_view_by_id(mod_id)
                     except Exception as e:
                         print(f"Error loading external view {d}:", e)
 
+    def select_tab(self, page_name):
+        self._load_module_view_by_id(page_name)
+        if hasattr(self, 'nav_buttons') and page_name in self.nav_buttons:
+            btn = self.nav_buttons[page_name]
+            btn.set_active(True)
+            if hasattr(self, 'sidebar_scroll') and self.sidebar_scroll:
+                adj = self.sidebar_scroll.get_vadjustment()
+                if adj:
+                    alloc = btn.get_allocation()
+                    if alloc.y > 0:
+                        adj.clamp_page(alloc.y, alloc.y + alloc.height)
+        elif hasattr(self, 'stack') and self.stack.get_child_by_name(page_name):
+            self.stack.set_visible_child_name(page_name)
+            if hasattr(self, 'header_page_lbl'):
+                self.header_page_lbl.set_label(self._get_nav_title(page_name))
+
+    def _get_nav_title(self, page_name):
+        fw_title = _("tab_firewall").replace("🛡️", "").strip()
+        nav_titles = {
+            "home": _("nav_home"),
+            "firewall": fw_title,
+            "hack": _("tab_hacker"),
+            "bt": _("tab_bluetooth"),
+            "wifi": _("tab_wifi"),
+            "hw": _("tab_hw"),
+            "admin": _("tab_admin"),
+            "pkg_installer": _("tab_pkg_installer"),
+            "store": _("tab_store"),
+            "settings": _("settings"),
+            "sys_cleaner": "Sistem Temizleyici",
+            "youtube": "Video & Medya İndirici",
+            "net_monitor": "Ağ & Port Takipçisi",
+            "backup_tool": "Otomatik Yedekleme Aracı"
+        }
+        return nav_titles.get(page_name, page_name)
+
     def _build_footer(self, parent):
-        footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        footer.get_style_context().add_class("app-footer")
+        self.footer_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.footer_box.get_style_context().add_class("app-footer")
 
         # Left Live Telemetry
         self.footer_cpu_pill = Gtk.Label(label="CPU: --%")
         self.footer_cpu_pill.get_style_context().add_class("metric-pill")
-        footer.pack_start(self.footer_cpu_pill, False, False, 0)
+        self.footer_box.pack_start(self.footer_cpu_pill, False, False, 0)
 
         self.footer_ram_pill = Gtk.Label(label="RAM: --%")
         self.footer_ram_pill.get_style_context().add_class("metric-pill")
-        footer.pack_start(self.footer_ram_pill, False, False, 0)
+        self.footer_box.pack_start(self.footer_ram_pill, False, False, 0)
 
         # Center Status
         center_status_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -679,15 +783,26 @@ class WirelessManagerWindow(Gtk.Window):
         self.footer_status_lbl = Gtk.Label(label="Ulak Kalkanı devrede • Dışarıya kapalı")
         self.footer_status_lbl.get_style_context().add_class("footer-text")
         center_status_box.pack_start(self.footer_status_lbl, False, False, 0)
-        footer.pack_start(center_status_box, True, True, 0)
+        self.footer_box.pack_start(center_status_box, True, True, 0)
 
         # Right Host/OS Info
         host = os.uname().nodename
         self.footer_sys_lbl = Gtk.Label(label=f"127.0.0.1 • {host} • ULAK v2.0")
         self.footer_sys_lbl.get_style_context().add_class("footer-text")
-        footer.pack_start(self.footer_sys_lbl, False, False, 0)
+        self.footer_box.pack_start(self.footer_sys_lbl, False, False, 0)
 
-        parent.pack_start(footer, False, False, 0)
+        parent.pack_start(self.footer_box, False, False, 0)
+
+    def _check_app_update(self):
+        from updater import Updater
+
+        def on_checked(has_update, version, deb_url):
+            if not (has_update and deb_url):
+                return
+            self.toast_service.show(f"Yeni sürüm ({version}) bulundu, yükleniyor...", type="info")
+            Updater.apply_update(deb_url, lambda msg: self.toast_service.show(msg, type="info"))
+
+        Updater.check_for_updates(on_checked)
 
     def _update_telemetry(self):
         try:
@@ -724,20 +839,11 @@ class WirelessManagerWindow(Gtk.Window):
 
     def _on_nav_toggled(self, btn, page_name):
         if btn.get_active():
+            if self.stack.get_child_by_name(page_name) is None:
+                self._load_module_view_by_id(page_name)
             self.stack.set_visible_child_name(page_name)
-            fw_title = _("tab_firewall").replace("🛡️", "").strip()
-            nav_titles = {
-                "firewall": fw_title,
-                "hack": _("tab_hacker"),
-                "bt": _("tab_bluetooth"),
-                "wifi": _("tab_wifi"),
-                "hw": _("tab_hw"),
-                "admin": _("tab_admin"),
-                "store": _("tab_store"),
-                "settings": _("settings")
-            }
             if hasattr(self, 'header_page_lbl'):
-                self.header_page_lbl.set_label(nav_titles.get(page_name, page_name))
+                self.header_page_lbl.set_label(self._get_nav_title(page_name))
 
     def _on_notifications_clicked(self, widget):
         dialog = BentoDialog(title=_("notif_title"), parent=self, icon_name="preferences-system-notifications-symbolic", default_width=440, default_height=360)
@@ -771,106 +877,25 @@ class WirelessManagerWindow(Gtk.Window):
         dialog.destroy()
 
 
-class UlakSplashScreen(Gtk.Window):
-    def __init__(self, on_finish_callback):
-        super().__init__(type=Gtk.WindowType.TOPLEVEL)
-        self.on_finish_callback = on_finish_callback
-        self.set_default_size(440, 260)
-        self.set_position(Gtk.WindowPosition.CENTER)
-        self.set_decorated(False)
-        self.set_resizable(False)
-        
-        # Enable RGBA visual for true transparent rounded corners
-        screen = self.get_screen()
-        visual = screen.get_rgba_visual()
-        if visual and screen.is_composited():
-            self.set_visual(visual)
-        self.set_app_paintable(True)
-        self.get_style_context().add_class("splash-window")
-
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        main_box.get_style_context().add_class("splash-box")
-        
-        logo_path = get_ulak_logo_path(is_light_mode=theme_mgr.is_light_mode)
-        if logo_path and os.path.exists(logo_path):
-            try:
-                pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_path, 60, 60, True)
-                img = Gtk.Image.new_from_pixbuf(pb)
-                main_box.pack_start(img, False, False, 0)
-            except: pass
-            
-        title = Gtk.Label(label="ULAK")
-        title.get_style_context().add_class("splash-title")
-        main_box.pack_start(title, False, False, 0)
-        
-        sub = Gtk.Label(label="Ağ & Güvenlik Kiti • v2.0")
-        sub.get_style_context().add_class("splash-sub")
-        main_box.pack_start(sub, False, False, 0)
-        
-        spacer = Gtk.Box()
-        main_box.pack_start(spacer, True, True, 0)
-        
-        self.status_lbl = Gtk.Label(label="Sistem bileşenleri başlatılıyor...")
-        self.status_lbl.get_style_context().add_class("splash-status")
-        self.status_lbl.set_halign(Gtk.Align.START)
-        main_box.pack_start(self.status_lbl, False, False, 0)
-        
-        self.prog = Gtk.ProgressBar()
-        self.prog.get_style_context().add_class("splash-progress")
-        self.prog.set_fraction(0.1)
-        main_box.pack_start(self.prog, False, False, 0)
-        
-        self.add(main_box)
-        self.show_all()
-        
-        self.step = 0
-        self.steps = [
-            (0.20, "Güncellemeler kontrol ediliyor..."),
-            (0.40, "Ağ servisleri ve Wi-Fi denetleniyor..."),
-            (0.70, "Ulak Kalkan güvenlik motoru yükleniyor..."),
-            (0.90, "Yetkiler ve donanım doğrulanıyor..."),
-            (1.00, "Hazır. ULAK açılıyor..."),
-        ]
-        GLib.timeout_add(320, self._step_forward)
-        
-    def _step_forward(self):
-        if self.step == 0:
-            # Check updates on the first step
-            from updater import Updater
-            frac, text = self.steps[self.step]
-            self.prog.set_fraction(frac)
-            self.status_lbl.set_label(text)
-            
-            def on_update_checked(has_update, version, deb_url):
-                if has_update and deb_url:
-                    self.status_lbl.set_label(f"Yeni sürüm ({version}) bulundu! Yükleniyor...")
-                    Updater.apply_update(deb_url, lambda msg: self.status_lbl.set_label(msg))
-                    # We wait here, app will restart. If it fails, we just continue.
-                else:
-                    self.step += 1
-                    GLib.timeout_add(320, self._step_forward)
-                    
-            Updater.check_for_updates(on_update_checked)
-            return False # Stop timer, wait for callback
-            
-        elif self.step < len(self.steps):
-            frac, text = self.steps[self.step]
-            self.prog.set_fraction(frac)
-            self.status_lbl.set_label(text)
-            self.step += 1
-            return True
-        else:
-            self.destroy()
-            self.on_finish_callback()
-            return False
-
 
 def main():
-    def show_main():
-        app = WirelessManagerWindow()
-        app.connect("destroy", Gtk.main_quit)
+    # If a package file is provided via CLI argument, open PackageInstallerWindow directly
+    pkg_arg = None
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--install-package" and len(sys.argv) > 2:
+            pkg_arg = sys.argv[2]
+        elif sys.argv[1].endswith((".deb", ".rpm", ".AppImage", ".appimage", ".tar.gz", ".tar.xz", ".zip", ".pkg.tar.zst")):
+            pkg_arg = sys.argv[1]
 
-    splash = UlakSplashScreen(show_main)
+    if pkg_arg and os.path.exists(pkg_arg):
+        win = PackageInstallerWindow(initial_package_path=pkg_arg)
+        win.connect("destroy", Gtk.main_quit)
+        win.show_all()
+        Gtk.main()
+        return
+
+    app = WirelessManagerWindow()
+    app.connect("destroy", Gtk.main_quit)
     Gtk.main()
 
 

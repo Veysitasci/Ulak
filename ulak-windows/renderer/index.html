@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' media-file: file: data: blob: https:;">
+  <title>ULAK - Network & Security Station</title>
+  
+  <!-- Modular Liquid Glass Stylesheets -->
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/glass.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <div class="app-frame" id="app-frame">
+
+    <!-- APP HEADERBAR (Golden Ratio Fibonacci 55px) -->
+    <header class="app-header">
+      <div class="brand-section">
+        <button class="brand-toggle-btn" id="btn-sidebar-toggle" title="Menüyü Daralt / Genişlet" aria-label="Menüyü Daralt veya Genişlet">
+          <svg class="icon-mono icon-mono-sm" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <img src="../assets/ulak_logo.png" class="brand-logo" id="header-brand-logo" alt="ULAK Logo">
+        <span class="brand-title">ULAK</span>
+      </div>
+
+      <div class="header-center">
+        <div class="header-search-wrap">
+          <svg class="icon-mono icon-mono-xs header-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+          <input type="text" class="header-search-input" id="global-search" placeholder="Modül veya ayar ara..." aria-label="Global Arama">
+          <span class="header-search-kbd">Ctrl+K</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="win-btn" id="btn-theme-toggle" title="Tema Değiştir" aria-label="Açık veya Koyu Tema Değiştir">
+          <svg class="icon-mono icon-mono-sm" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+        <button class="win-btn" id="btn-minimize" title="Simge Durumuna Küçült" aria-label="Pencereyi Simge Durumuna Küçült">—</button>
+        <button class="win-btn" id="btn-maximize" title="Ekranı Kapla" aria-label="Pencereyi Ekranı Kapla veya Küçült">▢</button>
+        <button class="win-btn close" id="btn-close" title="Kapat" aria-label="Uygulamayı Kapat">✕</button>
+      </div>
+    </header>
+
+    <!-- APP BODY -->
+    <div class="app-body">
+      <!-- SIDEBAR -->
+      <aside class="sidebar-box glass-strong" id="sidebar-box">
+        <div class="sidebar-scroll" id="sidebar-scroll">
+          <div class="sidebar-section-title">GENEL</div>
+          <button class="sidebar-btn active" data-page="home">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Ana Sayfa</span>
+          </button>
+
+          <div class="sidebar-section-title">GÜVENLİK</div>
+          <button class="sidebar-btn" data-page="firewall">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Güvenlik Duvarı</span>
+          </button>
+          <button class="sidebar-btn" data-page="hacker">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Hacker Araçları</span>
+          </button>
+
+          <div class="sidebar-section-title">BAĞLANTI</div>
+          <button class="sidebar-btn" data-page="bluetooth">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Bluetooth</span>
+          </button>
+          <button class="sidebar-btn" data-page="wifi">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Wi-Fi</span>
+          </button>
+
+          <div class="sidebar-section-title">DONANIM</div>
+          <button class="sidebar-btn" data-page="hardware">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Donanım</span>
+          </button>
+          <button class="sidebar-btn" data-page="admin">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Sistem Yönetimi</span>
+          </button>
+
+          <div class="sidebar-section-title" id="sidebar-tools-section-title">ARAÇLAR</div>
+          <button class="sidebar-btn" data-page="pkg_installer" id="nav-btn-pkg_installer">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Paket Yükleyici</span>
+          </button>
+
+          <div class="sidebar-section-title" id="sidebar-mod-section-title">MODÜLLER</div>
+          <button class="sidebar-btn" data-page="cleaner" id="nav-btn-cleaner">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Sistem Temizleyici</span>
+          </button>
+          <button class="sidebar-btn" data-page="youtube" id="nav-btn-youtube">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><rect width="20" height="15" x="2" y="4.5" rx="4"/><polygon points="10 9 15 12 10 15 10 9"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Video İndirici</span>
+          </button>
+          <button class="sidebar-btn" data-page="net_monitor" id="nav-btn-net_monitor">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Ağ Takipçisi</span>
+          </button>
+          <button class="sidebar-btn" data-page="backup" id="nav-btn-backup">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Yedekleme</span>
+          </button>
+        </div>
+
+        <div class="sidebar-bottom">
+          <div class="sidebar-section-title">SİSTEM</div>
+          <button class="sidebar-btn" data-page="store">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Mağaza</span>
+          </button>
+          <button class="sidebar-btn" data-page="settings">
+            <span class="sidebar-btn-icon">
+              <svg class="icon-mono" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </span>
+            <span class="sidebar-btn-text">Ayarlar</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONTENT ROOT FOR VIEWS -->
+      <main class="content-stack" id="view-root"></main>
+    </div>
+
+    <!-- APP FOOTER STATUSBAR -->
+    <footer class="app-footer glass-strong">
+      <div class="footer-left">
+        <span class="chip chip-accent" style="width: 8px; height: 8px; border-radius: 50%; padding: 0;"></span>
+        <span id="footer-status-text">Sistem Normal</span>
+        <span class="chip" id="footer-cpu">CPU: 0%</span>
+        <span class="chip" id="footer-ram">RAM: 0%</span>
+        <span class="chip" id="footer-fw">FW: Aktif</span>
+      </div>
+      <div class="footer-right">
+        <span id="footer-host">Windows 11 | ULAK v2.0.0</span>
+      </div>
+    </footer>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- BENTO MODAL CONTAINER -->
+    <div class="modal-overlay" id="modal-container" style="display: none;">
+      <div class="bento-dialog glass-dense">
+        <div class="dialog-header">
+          <div class="dialog-title" id="modal-title">İletişim Başlığı</div>
+          <button class="win-btn close" onclick="window.UlakUI.closeModal()">✕</button>
+        </div>
+        <div class="dialog-body" id="modal-body"></div>
+        <div class="dialog-footer" id="modal-footer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORE SCRIPTS -->
+  <script src="core/icons.js"></script>
+  <script src="core/ui.js"></script>
+  <script src="core/components.js"></script>
+  <script src="core/theme.js"></script>
+  <script src="core/router.js"></script>
+
+  <!-- VIEW MODULES (1 to 14) -->
+  <script src="views/01-home.js"></script>
+  <script src="views/02-firewall.js"></script>
+  <script src="views/03-hacker.js"></script>
+  <script src="views/04-bluetooth.js"></script>
+  <script src="views/05-wifi.js"></script>
+  <script src="views/06-hardware.js"></script>
+  <script src="views/07-admin.js"></script>
+  <script src="views/08-pkg_installer.js"></script>
+  <script src="views/09-cleaner.js"></script>
+  <script src="views/10-youtube.js"></script>
+  <script src="views/11-net_monitor.js"></script>
+  <script src="views/12-backup.js"></script>
+  <script src="views/13-store.js"></script>
+  <script src="views/14-settings.js"></script>
+
+  <!-- MAIN ENTRY SCRIPT -->
+  <script src="renderer.js"></script>
+</body>
+</html>

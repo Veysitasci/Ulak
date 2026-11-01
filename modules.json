@@ -1,19 +1,62 @@
 [
     {
+        "id": "pkg_installer",
+        "name_key": "Evrensel Paket Yükleyici",
+        "desc_key": ".deb, .rpm, .AppImage, .tar ve tüm Linux paketlerini derinlemesine inceleyin, dosya ağacını denetleyin ve güvenle kurun.",
+        "icon": "system-software-install-symbolic",
+        "category": "Araçlar",
+        "features": [
+            ".deb ve Çapraz Dağıtım Desteği",
+            "Paket Dosya Ağacı ve Script İnceleme",
+            "Masaüstü, PATH ve Güvenlik Duvarı Ön Ayarları"
+        ]
+    },
+    {
         "id": "sys_cleaner",
         "name_key": "Sistem Temizleyici",
-        "desc_key": "PC gereksiz paket önbelleklerini, sistem günlüklerini ve DNS önbelleğini temizleyerek disk alanı açar ve performansı artırır.",
+        "desc_key": "Disk sağlığı, önbellek, günlük ve çöp boyutlarını canlı ölçer; gerçek komutlarla temizler ve büyük dosyaları bulur.",
         "icon": "edit-clear-all-symbolic",
-        "is_new": true,
         "category": "PC Kullanımı",
-        "popularity": 4.9,
-        "downloads": "25 B+",
         "features": [
-            "Paket Ön Belleği Temizliği",
-            "Sistem Günlükleri Optimizasyonu",
-            "DNS Önbelleği Sıfırlama"
-        ],
-        "size": "2.4 MB",
-        "update_date": "Bugün"
+            "Canlı Disk Sağlığı ve Kurtarılan Alan Halkaları",
+            "Akıllı Tarama ve Tek Tıkla Tümünü Temizle",
+            "Büyük Dosya Dedektörü (Aranabilir Liste)"
+        ]
+    },
+    {
+        "id": "youtube",
+        "name_key": "Video & Medya İndirici",
+        "desc_key": "YouTube ve diğer video platformlarından 4K video, altyazı ve MP3 formatında yüksek hızlı indirme sağlar.",
+        "icon": "video-x-generic-symbolic",
+        "category": "Medya",
+        "features": [
+            "4K Ultra HD Video İndirme",
+            "MP3 Yüksek Kalite Ses Ayrıştırma",
+            "Çoklu Oynatma Listesi Desteği"
+        ]
+    },
+    {
+        "id": "net_monitor",
+        "name_key": "Ağ & Port Takipçisi",
+        "desc_key": "/proc tabanlı canlı bant genişliği, soket-süreç eşlemeli port taraması, gecikme ölçümü ve gerçek indirme hız testi.",
+        "icon": "network-workgroup-symbolic",
+        "category": "Ağ",
+        "features": [
+            "Canlı Trafik ve Port Taraması",
+            "Soket-Süreç Eşlemeli Dışa Açıklık Analizi",
+            "Canlı Ping ve İnternet Hız Testi"
+        ]
+    },
+    {
+        "id": "backup_tool",
+        "name_key": "Otomatik Yedekleme Aracı",
+        "desc_key": "Gerçek tar.gz arşivleri: manifest tabanlı artımlı yedek, opsiyonel GPG AES-256 şifreleme, canlı bütünlük doğrulaması, güvenli geri yükleme ve harici diske otomatik kopyalama.",
+        "icon": "drive-harddisk-symbolic",
+        "category": "Sistem",
+        "features": [
+            "Artımlı Yedek Motoru ve Canlı Arşiv Listesi",
+            "GPG AES-256 Şifreleme ve Parola Korumalı Geri Yükleme",
+            "Zamanlanmış Otomatik Yedek ve USB Disk Algılama"
+        ]
     }
 ]

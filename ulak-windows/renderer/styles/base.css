@@ -1,0 +1,169 @@
+/* ==========================================================================
+   ULAK BASE STYLES — GOLDEN RATIO TYPOGRAPHY & VECTOR ICONS
+   Conforming to UI Skills Standards (Typography, Tabular Numbers, Motion)
+   ========================================================================== */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  color: var(--text-1);
+  font-size: var(--text-sm);
+  line-height: var(--phi);
+}
+
+/* --------------------------------------------------------------------------
+   UI SKILLS: TYPOGRAPHY, TABULAR NUMBERS & TEXT BALANCE
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6,
+.view-title, .brand-title, .splash-title, .home-hero-floating h1 {
+  text-wrap: balance;
+  -webkit-text-wrap: balance;
+}
+
+p, .view-desc, .stat-tile-sub {
+  text-wrap: pretty;
+  -webkit-text-wrap: pretty;
+}
+
+/* Tabular numbers prevent jitter and layout shift during live metrics */
+.tabular-nums,
+.stat-tile-value,
+.metric-value,
+.gauge-val,
+.data-table td,
+.chip,
+.badge,
+.footer-right,
+.header-search-kbd,
+code, kbd, pre {
+  font-variant-numeric: tabular-nums;
+  -moz-font-feature-settings: "tnum";
+  -webkit-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+}
+
+/* UI Skills Rule 11: Image outlines with low opacity to prevent edge bleed */
+img {
+  outline: 1px solid rgba(255, 255, 255, 0.08);
+  outline-offset: -1px;
+}
+:root[data-theme="light"] img {
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+}
+img.brand-logo, img.splash-logo, #home-hero-logo {
+  outline: none; /* exclude transparent alpha logos */
+}
+
+/* --------------------------------------------------------------------------
+   MANDATORY MONOCHROME VECTOR SVG ICONS
+   Never allow unbounded SVGs to stretch or default to black fills.
+   -------------------------------------------------------------------------- */
+.icon-mono {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: stroke var(--transition-fast), transform var(--transition-fast);
+}
+
+.icon-mono-xs {
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  min-height: 12px !important;
+  max-width: 12px !important;
+  max-height: 12px !important;
+}
+
+.icon-mono-sm {
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+}
+
+.icon-mono-md {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+}
+
+.icon-mono-lg {
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  min-height: 21px !important;
+  max-width: 21px !important;
+  max-height: 21px !important;
+}
+
+.icon-mono-xl {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+}
+
+/* --------------------------------------------------------------------------
+   ACCESSIBILITY & SCROLLBARS
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: var(--r-full);
+  transition: background var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.40);
+}
