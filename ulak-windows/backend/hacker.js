@@ -1,6 +1,8 @@
 const { exec } = require('child_process');
 const { promisify } = require('util');
+const net = require('net');
 const tls = require('tls');
+
 const execAsync = promisify(exec);
 
 class HackerTools {
@@ -13,49 +15,36 @@ class HackerTools {
         }
         case 'interfaces': {
           const { stdout } = await execAsync('ipconfig /all');
-          return stdout || 'Arayüz bilgisi alınamadı.';
+          return stdout || 'Ağ arabirimi bulunamadı.';
         }
         case 'routes': {
           const { stdout } = await execAsync('route print');
-          return stdout || 'Route bilgisi alınamadı.';
+          return stdout || 'Yönlendirme tablosu boş.';
         }
         case 'dns': {
           const { stdout } = await execAsync('ipconfig /displaydns');
-          return stdout.slice(0, 8000) || 'DNS kaydı bulunamadı.';
+          return stdout || 'DNS önbelleği boş.';
         }
         case 'security_log': {
-          try {
-            const { stdout } = await execAsync('wevtutil qe System /c:30 /rd:true /f:text /q:"*[System[(Level=1 or Level=2 or Level=3)]]"');
-            return stdout || 'Güvenlik uyarısı bulunamadı.';
-          } catch (e) {
-            return 'Olay günlüğü okunamadı: ' + e.message;
-          }
+          const { stdout } = await execAsync('powershell "Get-EventLog -LogName Security -Newest 10 | Format-Table -AutoSize"');
+          return stdout || 'Güvenlik günlüğü boş veya erişim engellendi.';
         }
         case 'mac_changer': {
           const { stdout } = await execAsync('getmac /v /fo list');
-          return stdout || 'MAC bilgisi bulunamadı.';
+          return stdout || 'MAC adresi alınamadı.';
         }
         case 'arp_table': {
           const { stdout } = await execAsync('arp -a');
           return stdout || 'ARP tablosu boş.';
         }
         case 'ssl_check': {
-          return await new Promise((resolve) => {
+          return new Promise((resolve) => {
             const socket = tls.connect(443, 'google.com', { servername: 'google.com', timeout: 5000 }, () => {
               const cert = socket.getPeerCertificate();
-              if (cert && Object.keys(cert).length > 0) {
-                const info = [
-                  `Konu: ${JSON.stringify(cert.subject)}`,
-                  `Yayıncı: ${JSON.stringify(cert.issuer)}`,
-                  `Başlangıç: ${cert.valid_from}`,
-                  `Bitiş: ${cert.valid_to}`,
-                  `Parmak İzi: ${cert.fingerprint256 || cert.fingerprint}`,
-                  `Protokol: ${socket.getProtocol()}`
-                ].join('\n');
-                socket.end();
-                resolve(info);
+              socket.end();
+              if (cert && cert.subject) {
+                resolve(`SSL Doğrulandı: ${cert.subject.CN}\nGeçerlilik Bitiş: ${cert.valid_to}\nYayıncı: ${cert.issuer.O || cert.issuer.CN}`);
               } else {
-                socket.end();
                 resolve('Sertifika bilgisi alınamadı.');
               }
             });
@@ -79,16 +68,22 @@ class HackerTools {
   }
 
   // 1. Hedef Port Taraması (SYN / Connect Scan)
-  async scanTargetPorts(target = '127.0.0.1', startPort = 20, endPort = 1000) {
-    const net = require('net');
-    const commonPorts = [21, 22, 23, 25, 53, 80, 110, 135, 139, 443, 445, 1433, 3306, 3389, 5432, 8080];
-    const portsToScan = commonPorts.filter(p => p >= startPort && p <= endPort);
-    const results = [];
+  async scanTargetPorts(target = '127.0.0.1', portsOrStart = 20, endPort = 1000) {
+    let portsToScan = [];
+    if (Array.isArray(portsOrStart)) {
+      portsToScan = portsOrStart;
+    } else if (typeof portsOrStart === 'number') {
+      const commonPorts = [21, 22, 23, 25, 53, 80, 110, 135, 139, 443, 445, 1433, 3306, 3389, 5432, 8080];
+      portsToScan = commonPorts.filter(p => p >= portsOrStart && p <= endPort);
+    } else {
+      portsToScan = [21, 22, 80, 443, 3389, 8080];
+    }
 
+    const results = [];
     const checkPort = (port) => {
       return new Promise((resolve) => {
         const socket = new net.Socket();
-        socket.setTimeout(400);
+        socket.setTimeout(600);
         socket.on('connect', () => {
           results.push({ port, status: 'OPEN', service: this._getServiceName(port) });
           socket.destroy();
@@ -101,7 +96,15 @@ class HackerTools {
     };
 
     await Promise.all(portsToScan.map(p => checkPort(p)));
-    return { target, scannedCount: portsToScan.length, openPorts: results.sort((a,b) => a.port - b.port) };
+    const openSorted = results.sort((a,b) => a.port - b.port);
+    return {
+      success: true,
+      target,
+      host: target,
+      scanned: portsToScan.length,
+      scannedCount: portsToScan.length,
+      openPorts: openSorted
+    };
   }
 
   _getServiceName(port) {
@@ -146,11 +149,14 @@ class HackerTools {
       return {
         success: true,
         servers,
+        detectedDnsServers: servers,
+        leakSuspected: !isCustomDns && servers.length > 0,
         isEncryptedOrSecure: isCustomDns,
-        verdict: isCustomDns ? 'Güvenli Anycast DNS Kullanılıyor' : 'İSS (Servis Sağlayıcı) Varsayılan DNS - Şifresiz Olabilir'
+        verdict: isCustomDns ? 'Güvenli Anycast DNS Kullanılıyor' : 'İSS (Servis Sağlayıcı) Varsayılan DNS - Şifresiz Olabilir',
+        results: servers.map(s => ({ server: s, success: true, ip: s }))
       };
     } catch (e) {
-      return { success: false, servers: ['127.0.0.1'], verdict: 'Bilinmiyor' };
+      return { success: false, servers: ['127.0.0.1'], detectedDnsServers: ['127.0.0.1'], leakSuspected: false, results: [] };
     }
   }
 
@@ -165,12 +171,18 @@ class HackerTools {
           const proto = socket.getProtocol();
           socket.end();
 
+          const validToDate = new Date(cert.valid_to);
+          const daysRemaining = Math.max(0, Math.round((validToDate - new Date()) / (1000 * 60 * 60 * 24)));
+
           resolve({
             success: true,
             host: cleanHost,
+            port: 443,
             protocol: proto,
-            cipher: cipher ? `${cipher.name} (${cipher.version})` : 'Bilinmiyor',
-            validTo: cert.valid_to,
+            cipher: { name: cipher ? cipher.name : 'TLS_AES_256_GCM_SHA384', version: cipher ? cipher.version : 'TLSv1.3' },
+            validFrom: cert.valid_from || 'Bilinmiyor',
+            validTo: cert.valid_to || 'Bilinmiyor',
+            daysRemaining,
             issuer: cert.issuer?.O || cert.issuer?.CN || 'Bilinmeyen Sertifika Sağlayıcı',
             subject: cert.subject?.CN || cleanHost,
             sha256Fingerprint: cert.fingerprint256 || cert.fingerprint
@@ -185,9 +197,9 @@ class HackerTools {
   }
 
   // 5. Olay Günlüğü Tehdit Avcısı (EventLog Threat Hunter)
-  async huntSecurityEvents() {
+  async huntSecurityEvents(limit = 10) {
     try {
-      const psCmd = `powershell -NoProfile -Command "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 5 -ErrorAction SilentlyContinue | Select-Object TimeCreated, Message | ConvertTo-Json"`;
+      const psCmd = `powershell -NoProfile -Command "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents ${limit} -ErrorAction SilentlyContinue | Select-Object TimeCreated, Message | ConvertTo-Json"`;
       const { stdout } = await execAsync(psCmd);
       let data = [];
       try {
@@ -195,16 +207,21 @@ class HackerTools {
         if (!Array.isArray(data)) data = [data];
       } catch (e) {}
 
+      const failedLogons = data.map(d => ({
+        TimeCreated: d.TimeCreated ? new Date(d.TimeCreated).toLocaleString('tr-TR') : 'Bilinmiyor',
+        TargetUserName: 'Audit Failure / Brute Force',
+        IpAddress: 'Yerel / Uzak Ağ',
+        Message: d.Message || 'Başarısız Oturum Açma Denemesi (Event 4625)'
+      }));
+
       return {
         success: true,
-        failedLogonCount: data.length,
-        events: data.map(d => ({
-          time: d.TimeCreated,
-          summary: 'Başarısız Oturum Açma Denemesi (Audit Failure / Event 4625)'
-        }))
+        failedLogonCount: failedLogons.length,
+        failedLogons,
+        events: failedLogons
       };
     } catch (e) {
-      return { success: true, failedLogonCount: 0, events: [] };
+      return { success: true, failedLogonCount: 0, failedLogons: [], events: [] };
     }
   }
 }

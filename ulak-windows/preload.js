@@ -12,6 +12,7 @@ const ALLOWED_INVOKE_PREFIXES = [
   'hacker:',
   'admin:',
   'antivirus:',
+  'vault:',
   'netmon:',
   'backup:',
   'pkg:',

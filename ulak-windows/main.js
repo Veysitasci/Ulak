@@ -292,14 +292,18 @@ ipcMain.handle('bluetooth:get-paired', async () => bluetoothManager.getPairedDev
 ipcMain.handle('bluetooth:remove-device', async (event, deviceId) => bluetoothManager.removeDevice(deviceId));
 ipcMain.handle('bluetooth:toggle', async () => bluetoothManager.toggleBluetooth());
 ipcMain.handle('bluetooth:ble-radar', async () => bluetoothManager.getLiveBleRadar());
+ipcMain.handle('bluetooth:get-live-radar', async () => bluetoothManager.getLiveBleRadar());
 ipcMain.handle('bluetooth:connect-device', async (event, deviceId) => bluetoothManager.connectDevice(deviceId));
+ipcMain.handle('bluetooth:connect', async (event, deviceId) => bluetoothManager.connectDevice(deviceId));
 ipcMain.handle('bluetooth:battery-telemetry', async () => bluetoothManager.getBatteryTelemetry());
+ipcMain.handle('bluetooth:get-battery', async (event, deviceId) => bluetoothManager.getBatteryTelemetry(deviceId));
 ipcMain.handle('bluetooth:restart-radio', async () => bluetoothManager.restartBluetoothRadio());
 ipcMain.handle('bluetooth:open-settings', async () => {
   shell.openExternal('ms-settings:bluetooth');
   return { success: true };
 });
 ipcMain.handle('bluetooth:stealth-mode', async (event, enable) => bluetoothManager.setStealthMode(enable));
+ipcMain.handle('bluetooth:set-stealth', async (event, enable) => bluetoothManager.setStealthMode(enable));
 
 // WiFi Manager additions
 ipcMain.handle('wifi:channel-spectrum', async () => wifiManager.getChannelSpectrumAnalysis());

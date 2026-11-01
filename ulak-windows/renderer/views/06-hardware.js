@@ -226,11 +226,12 @@
 
   async function loadGpuTelemetry(el) {
     try {
-      const gpu = await window.ulak.invoke('system:get-gpu-info');
+      const res = await window.ulak.invoke('system:get-gpu-info');
+      const gpu = (Array.isArray(res) ? res[0] : res) || {};
       const nameEl = el.querySelector('#hw-gpu-name');
       const detailsEl = el.querySelector('#hw-gpu-details');
       if (nameEl) nameEl.textContent = gpu.name || 'Entegre Grafik Kartı';
-      if (detailsEl) detailsEl.textContent = `VRAM: ${gpu.vram || '2 GB'} | Sürücü: ${gpu.driverVersion || 'Standart'} | Çözünürlük: ${gpu.resolution || '1920x1080'}`;
+      if (detailsEl) detailsEl.textContent = `VRAM: ${gpu.vramMB ? gpu.vramMB + ' MB' : (gpu.vram || '2 GB')} | Sürücü: ${gpu.driver || gpu.driverVersion || 'Standart'}`;
     } catch (e) {
       console.error(e);
     }
@@ -238,13 +239,13 @@
 
   async function loadMotherboardInfo(el) {
     try {
-      const mb = await window.ulak.invoke('system:get-motherboard-info');
+      const mb = await window.ulak.invoke('system:get-motherboard-info') || {};
       const mbName = el.querySelector('#hw-mb-name');
       const mbDetails = el.querySelector('#hw-mb-details');
       const biosVer = el.querySelector('#hw-bios-ver');
-      if (mbName) mbName.textContent = `${mb.manufacturer || 'Standart'} - ${mb.product || 'Anakart'}`;
-      if (mbDetails) mbDetails.textContent = `BIOS Sürümü: ${mb.biosVersion || 'N/A'} | Yayın Tarihi: ${mb.biosDate || 'Bilinmiyor'}`;
-      if (biosVer) biosVer.textContent = `BIOS: ${mb.biosVersion || 'Hazır'}`;
+      if (mbName) mbName.textContent = mb.board || `${mb.manufacturer || 'Standart'} - ${mb.product || 'Anakart'}`;
+      if (mbDetails) mbDetails.textContent = `BIOS Sürümü: ${mb.bios || mb.biosVersion || 'N/A'} | Yayın Tarihi: ${mb.biosDate || 'Bilinmiyor'}`;
+      if (biosVer) biosVer.textContent = `BIOS: ${mb.bios || mb.biosVersion || 'Hazır'}`;
     } catch (e) {
       console.error(e);
     }
@@ -252,16 +253,18 @@
 
   async function loadSmartHealth(el) {
     try {
-      const smart = await window.ulak.invoke('system:get-disk-smart');
+      const res = await window.ulak.invoke('system:get-disk-smart');
+      const smart = (Array.isArray(res) ? res[0] : res) || {};
       const statusEl = el.querySelector('#hw-smart-status');
       const detailsEl = el.querySelector('#hw-smart-details');
       const chipEl = el.querySelector('#hw-smart-chip');
 
-      const isHealthy = smart.overallHealth === 'Healthy' || smart.overallHealth === 'OK';
-      if (statusEl) statusEl.textContent = `${smart.model || 'Fiziksel Disk'} (${isHealthy ? 'Sağlıklı' : 'Dikkat'})`;
-      if (detailsEl) detailsEl.textContent = `Medya: ${smart.mediaType || 'SSD / NVMe'} | Boyut: ${smart.sizeGB ? smart.sizeGB + ' GB' : '--'} | S.M.A.R.T.: ${smart.overallHealth}`;
+      const health = smart.health || smart.overallHealth || 'Healthy';
+      const isHealthy = health.toLowerCase().includes('healthy') || health.toLowerCase().includes('ok') || health.toLowerCase().includes('sağlıklı');
+      if (statusEl) statusEl.textContent = `${smart.name || smart.model || 'Fiziksel Disk'} (${isHealthy ? 'Sağlıklı' : 'Dikkat'})`;
+      if (detailsEl) detailsEl.textContent = `Medya: ${smart.type || smart.mediaType || 'SSD / NVMe'} | Boyut: ${smart.sizeGB ? smart.sizeGB + ' GB' : '--'} | S.M.A.R.T.: ${health}`;
       if (chipEl) {
-        chipEl.textContent = smart.overallHealth;
+        chipEl.textContent = isHealthy ? 'Sağlıklı (OK)' : health;
         chipEl.className = `chip ${isHealthy ? 'chip-accent' : 'chip-warning'}`;
       }
     } catch (e) {
@@ -271,23 +274,26 @@
 
   async function loadBatteryHealth(el) {
     try {
-      const batt = await window.ulak.invoke('system:get-battery-health');
+      const batt = await window.ulak.invoke('system:get-battery-health') || {};
       const titleEl = el.querySelector('#hw-wear-title');
       const detailsEl = el.querySelector('#hw-wear-details');
       const chipEl = el.querySelector('#hw-wear-chip');
 
-      if (!batt.hasBattery) {
-        if (titleEl) titleEl.textContent = 'Masaüstü Bilgisayar';
-        if (detailsEl) detailsEl.textContent = 'Pil aşınma raporu masaüstü sistemlerde uygulanamaz.';
+      const hasBatt = batt.hasReport !== undefined ? batt.hasReport : batt.hasBattery;
+      if (!hasBatt) {
+        if (titleEl) titleEl.textContent = 'Masaüstü / Şebeke Gücü';
+        if (detailsEl) detailsEl.textContent = batt.message || 'Pil aşınma raporu masaüstü sistemlerde uygulanamaz.';
         if (chipEl) chipEl.textContent = 'AC Güç';
         return;
       }
 
-      if (titleEl) titleEl.textContent = `Aşınma: %${batt.wearPercent || 0} (${batt.healthGrade || 'İyi'})`;
-      if (detailsEl) detailsEl.textContent = `Fabrika Tasarımı: ${batt.designCapacity} mWh | Mevcut Tam Şarj: ${batt.fullChargeCapacity} mWh`;
+      const wear = batt.wearPercent !== undefined ? batt.wearPercent : 0;
+      const status = batt.healthStatus || batt.healthGrade || 'İyi';
+      if (titleEl) titleEl.textContent = `Aşınma: %${wear} (${status})`;
+      if (detailsEl) detailsEl.textContent = `Fabrika Tasarımı: ${batt.designCapacity} mWh | Mevcut Tam Şarj: ${batt.fullCapacity || batt.fullChargeCapacity} mWh`;
       if (chipEl) {
-        chipEl.textContent = `%${batt.wearPercent || 0} Aşınma`;
-        chipEl.className = `chip ${batt.wearPercent > 30 ? 'chip-danger' : 'chip-accent'}`;
+        chipEl.textContent = `%${wear} Aşınma`;
+        chipEl.className = `chip ${wear > 30 ? 'chip-danger' : 'chip-accent'}`;
       }
     } catch (e) {
       console.error(e);

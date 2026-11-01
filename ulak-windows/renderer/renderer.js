@@ -127,10 +127,23 @@ function updateSidebarModules() {
   };
 
   const defaultAllModules = ['crypto_vault', 'antivirus', 'youtube', 'sys_cleaner', 'net_monitor', 'backup_tool', 'pkg_installer'];
-  if (localStorage.getItem('ulak-modules') === null) {
-    localStorage.setItem('ulak-modules', JSON.stringify(defaultAllModules));
+  let installed = JSON.parse(localStorage.getItem('ulak-modules') || '[]');
+  if (installed.length === 0) {
+    installed = defaultAllModules;
+    localStorage.setItem('ulak-modules', JSON.stringify(installed));
+  } else {
+    const uninstalled = JSON.parse(localStorage.getItem('ulak-uninstalled-modules') || '[]');
+    let changed = false;
+    defaultAllModules.forEach(id => {
+      if (!installed.includes(id) && !uninstalled.includes(id)) {
+        installed.push(id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      localStorage.setItem('ulak-modules', JSON.stringify(installed));
+    }
   }
-  const installed = JSON.parse(localStorage.getItem('ulak-modules') || '[]');
 
   let anyAddonInstalled = false;
   for (const [id, btnId] of Object.entries(modMap)) {

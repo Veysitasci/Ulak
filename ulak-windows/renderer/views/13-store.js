@@ -190,6 +190,8 @@
 
               if (!currentList.includes(modId)) currentList.push(modId);
               localStorage.setItem('ulak-modules', JSON.stringify(currentList));
+              const uninstalled = JSON.parse(localStorage.getItem('ulak-uninstalled-modules') || '[]');
+              localStorage.setItem('ulak-uninstalled-modules', JSON.stringify(uninstalled.filter(id => id !== modId)));
               window.dispatchEvent(new Event('ulak-modules-updated'));
               window.UlakUI.toast(`Modül başarıyla indirildi ve kuruldu.`, 'success');
             } catch (err) {
@@ -206,6 +208,9 @@
 
             currentList = currentList.filter(id => id !== modId);
             localStorage.setItem('ulak-modules', JSON.stringify(currentList));
+            const uninstalled = JSON.parse(localStorage.getItem('ulak-uninstalled-modules') || '[]');
+            if (!uninstalled.includes(modId)) uninstalled.push(modId);
+            localStorage.setItem('ulak-uninstalled-modules', JSON.stringify(uninstalled));
             window.dispatchEvent(new Event('ulak-modules-updated'));
             window.UlakUI.toast('Modül kaldırıldı ve devre dışı bırakıldı.', 'info');
             renderStoreTab(el);

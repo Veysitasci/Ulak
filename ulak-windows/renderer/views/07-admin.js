@@ -136,10 +136,11 @@
         termBody.textContent += '\n[+] Sistem kullanıcıları ve yetki düzeyleri sorgulanıyor...\n';
         try {
           const res = await window.ulak.invoke('admin:get-users-detailed');
-          let out = `Yerel Kullanıcı Hesapları (${res.users?.length || 0}):\n\n`;
-          (res.users || []).forEach(u => {
+          const users = Array.isArray(res) ? res : (res.users || []);
+          let out = `Yerel Kullanıcı Hesapları (${users.length}):\n\n`;
+          users.forEach(u => {
             out += `Kullanıcı: ${u.name.padEnd(20)} Yönetici: ${u.isAdmin ? '[EVET]' : '[HAYIR]'} Aktif: ${u.enabled ? 'Açık' : 'Devre Dışı'}\n`;
-            if (u.description) out += `  Açıklama: ${u.description}\n`;
+            if (u.description || u.desc) out += `  Açıklama: ${u.description || u.desc}\n`;
           });
           printOutput(out);
           window.UlakUI.toast('Kullanıcı denetimi tamamlandı.', 'info');
@@ -195,7 +196,7 @@
 
     try {
       const res = await window.ulak.invoke('admin:get-services', 'all');
-      const services = res.services || [];
+      const services = Array.isArray(res) ? res : (res.services || []);
 
       if (services.length === 0) {
         return window.UlakUI.state(container, 'empty', { title: 'Servis bulunamadı' });

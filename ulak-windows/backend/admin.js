@@ -80,15 +80,18 @@ class AdminManager {
       let data = JSON.parse(stdout || '[]');
       if (!Array.isArray(data)) data = [data];
 
-      return data.map(s => ({
+      const list = data.map(s => ({
         name: s.Name,
         displayName: s.DisplayName || s.Name,
-        status: s.Status === 4 ? 'Running (Çalışıyor)' : 'Stopped (Durduruldu)',
+        status: s.Status === 4 ? 'Running' : 'Stopped',
+        statusText: s.Status === 4 ? 'Running (Çalışıyor)' : 'Stopped (Durduruldu)',
         isRunning: s.Status === 4,
         startType: s.StartType === 2 ? 'Otomatik' : s.StartType === 3 ? 'Manuel' : 'Devre Dışı'
       }));
+
+      return { success: true, services: list };
     } catch (e) {
-      return [];
+      return { success: false, services: [] };
     }
   }
 
@@ -142,13 +145,16 @@ class AdminManager {
       let data = JSON.parse(stdout || '[]');
       if (!Array.isArray(data)) data = [data];
 
-      return data.map(u => ({
+      const list = data.map(u => ({
         name: u.Name,
         enabled: u.Enabled !== false,
-        desc: u.Description || 'Yerel Kullanıcı'
+        isAdmin: u.Name.toLowerCase().includes('admin') || u.Name.toLowerCase() === 'administrator',
+        description: u.Description || 'Yerel Kullanıcı Hesabı'
       }));
+
+      return { success: true, users: list };
     } catch (e) {
-      return [];
+      return { success: false, users: [] };
     }
   }
 }
