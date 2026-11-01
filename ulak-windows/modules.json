@@ -1,5 +1,20 @@
 [
   {
+    "id": "antivirus",
+    "name_key": "Antivirüs & Tehdit Avcısı",
+    "desc_key": "Heuristik dosya analizi, Shannon entropisi, Windows Defender entegrasyonu, karantina kasası ve güvenli dosya parçalayıcı.",
+    "icon": "shield",
+    "category": "Güvenlik",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "Derinlemesine Heuristik & Polimorfik Kod Taraması (Steganografi, Webshell, PE)",
+      "Windows Defender Canlı Kalkan Durumu & Hızlı Sistem Taraması",
+      "Kriptografik MD5 & SHA-256 Tehdit İmza Tespiti",
+      "Güvenli Karantina Kasası, Şifreli İzolasyon & Geri Yükleme Motoru",
+      "DoD 5220.22-M Standardında 3 Aşamalı Kalıcı Dosya Parçalayıcı (File Shredder)"
+    ]
+  },
+  {
     "id": "youtube",
     "name_key": "Video & Medya İndirici",
     "desc_key": "YouTube ve 1000+ siteden 4K Ultra HD video, oynatma listesi ve MP3 yüksek kalite ses indirme motoru.",

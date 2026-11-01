@@ -177,6 +177,36 @@ const DEFAULT_MODULE_CATALOG = [
 
   // --- MAĞAZA VE GITHUB EKLENTİLERİ (İsteğe Bağlı) ---
   {
+    id: 'antivirus',
+    name: 'Antivirüs & Tehdit Avcısı',
+    category: 'Güvenlik',
+    icon: 'shield',
+    isCore: false,
+    githubUrl: 'https://github.com/Veysitasci/Ulak',
+    desc: 'Heuristik dosya analizi, Shannon entropisi, Windows Defender entegrasyonu, karantina kasası ve güvenli dosya parçalayıcı.',
+    currentVersion: '1.2.0',
+    availableVersions: [
+      {
+        version: '1.2.0',
+        date: '1 Kasım 2026',
+        isLatest: true,
+        changelog: 'DoD 5220.22-M kalıcı dosya parçalayıcı, XOR şifreli karantina kasası ve USB autorun zararlı taraması eklendi.'
+      },
+      {
+        version: '1.1.0',
+        date: '15 Ekim 2026',
+        isLatest: false,
+        changelog: 'Windows Defender PowerShell köprüsü ve hızlı sistem tarama motoru entegre edildi.'
+      },
+      {
+        version: '1.0.0',
+        date: '1 Ekim 2026',
+        isLatest: false,
+        changelog: 'İlk kararlı sürüm: Shannon Entropi hesaplayıcı ve polimorfik PE/Steganografi dedektörü.'
+      }
+    ]
+  },
+  {
     id: 'youtube',
     name: 'Video & Medya İndirici',
     category: 'Medya',

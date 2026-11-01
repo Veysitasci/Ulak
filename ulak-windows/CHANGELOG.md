@@ -1,5 +1,38 @@
 # ULAK Windows — Sürüm & Modül Değişiklik Günlüğü (Changelog)
 
+## [v2.3.0] - 2026-11-01
+
+### 🚀 Özet
+ULAK Modül Mağazası'na (Store) tam destekli yeni bir güvenlik modülü eklendi: **Antivirüs & Tehdit Avcısı (`antivirus`)**. Modül hem backend hem de renderer katmanında tam entegre edilmiş; UI Skills MCP standartlarına (konsantrik border-radius, dokunsal basma tepkileri, tabular sayısal hizalama, drag-and-drop görsel yükleme alanı ve Sonner bildirim mimarisi) uygun olarak inşa edilmiştir.
+
+---
+
+### 📦 Yeni Eklenen Mağaza Modülü: Antivirüs & Tehdit Avcısı (`antivirus`)
+
+1. **Derin Dosya & Heuristik Kod Analiz Laboratuvarı:**
+   - Sürükle-bırak (drag-and-drop) veya dosya seçici ile herhangi bir dosya üzerinde anlık derin güvenlik incelemesi.
+   - Shannon Entropi hesaplayıcısı (0.00 - 8.00) ile sıkıştırılmış/şifrelenmiş zararlı yük tespiti.
+   - Görsel steganografi analizi (PNG IEND sonrası trailing baytlar, JPEG EOI kalıntıları).
+   - Poliglot ikili analizi (görsel/belge içine gizlenmiş MZ/ELF çalıştırılabilir kodları).
+   - Webshell, Base64 eval kalıpları, gizlenmiş PowerShell komutları ve Reverse Shell kalıp denetleyicisi.
+   - Kriptografik MD5 ve SHA-256 sağlama toplamı hesaplayıcı.
+
+2. **Windows Defender Kalkan Entegrasyonu:**
+   - Windows Defender gerçek zamanlı koruma, davranış izleme ve virüsten koruma servis durumunu anlık sorgulama.
+   - Tek tıkla arka planda Windows Defender Hızlı Sistem Taraması (QuickScan) başlatabilme yeteneği.
+
+3. **DoD 5220.22-M Standardında Güvenli Dosya Parçalayıcı (File Shredder):**
+   - Şüpheli veya hassas dosyaları kurtarılamaz biçimde yok etmek için 3 aşamalı (rastgele baytlar, 0xFF ve 0x00 ile ezme) fiziksel disk parçalama motoru.
+
+4. **Şifreli Karantina Kasası & Geri Yükleme Motoru:**
+   - Tespit edilen tehditleri XOR/AES karartma algoritmasıyla çalıştırılamaz hale getirerek `%USERPROFILE%\.ulak\quarantine` kasasında izole etme.
+   - İstenildiğinde karantinadaki dosyayı orijinal konumuna geri yükleme veya kalıcı olarak yok etme.
+
+5. **USB & Harici Bellek Tehdit Radarı:**
+   - Sisteme takılan çıkarılabilir USB sürücüleri otomatik algılama, kök dizindeki `autorun.inf` ve gizli `.vbs`, `.lnk` kısayol virüslerini tarama.
+
+---
+
 ## [v2.2.0] - 2026-11-01
 
 ### 🚀 Özet

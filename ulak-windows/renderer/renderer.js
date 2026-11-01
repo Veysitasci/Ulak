@@ -117,6 +117,7 @@ function setupNavigation() {
 
 function updateSidebarModules() {
   const modMap = {
+    'antivirus': 'nav-btn-antivirus',
     'sys_cleaner': 'nav-btn-cleaner',
     'youtube': 'nav-btn-youtube',
     'net_monitor': 'nav-btn-net_monitor',
@@ -124,7 +125,7 @@ function updateSidebarModules() {
     'pkg_installer': 'nav-btn-pkg_installer'
   };
 
-  const defaultAllModules = ['youtube', 'sys_cleaner', 'net_monitor', 'backup_tool', 'pkg_installer'];
+  const defaultAllModules = ['antivirus', 'youtube', 'sys_cleaner', 'net_monitor', 'backup_tool', 'pkg_installer'];
   if (localStorage.getItem('ulak-modules') === null) {
     localStorage.setItem('ulak-modules', JSON.stringify(defaultAllModules));
   }

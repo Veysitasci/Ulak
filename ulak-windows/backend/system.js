@@ -479,9 +479,9 @@ class SystemMonitor {
   }
 
   // 5. En Çok Kaynak Tüketen Süreçler (Top Resource Consumers)
-  async getTopResourceProcesses() {
+  async getTopResourceProcesses(sortBy = 'memory', limit = 25) {
     try {
-      const psCmd = `powershell -NoProfile -Command "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 8 Id, ProcessName, @{Name='MemoryMB';Expression={[math]::Round($_.WorkingSet64/1MB)}} | ConvertTo-Json"`;
+      const psCmd = `powershell -NoProfile -Command "Get-Process | Where-Object { $_.WorkingSet64 -gt 0 } | Sort-Object WorkingSet64 -Descending | Select-Object -First ${limit} Id, ProcessName, CPU, @{Name='MemoryMB';Expression={[math]::Round($_.WorkingSet64/1MB)}} | ConvertTo-Json"`;
       const { stdout } = await execAsync(psCmd);
       let data = JSON.parse(stdout || '[]');
       if (!Array.isArray(data)) data = [data];
@@ -489,10 +489,13 @@ class SystemMonitor {
       return data.map(p => ({
         pid: p.Id,
         name: p.ProcessName,
-        memoryMB: p.MemoryMB
+        memoryMB: p.MemoryMB || 0,
+        memory: `${p.MemoryMB || 0} MB`,
+        mem: `${p.MemoryMB || 0} MB`,
+        cpu: p.CPU ? Math.round(p.CPU) : 0
       }));
     } catch (e) {
-      return [];
+      return this.getProcesses(limit);
     }
   }
 }

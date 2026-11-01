@@ -274,9 +274,11 @@ ipcMain.handle('firewall:block-port', async (event, port, protocol) => firewallM
 ipcMain.handle('firewall:allow-port', async (event, port, protocol) => firewallManager.allowPort(port, protocol));
 ipcMain.handle('firewall:get-connections', async () => firewallManager.getActiveConnections());
 ipcMain.handle('firewall:stealth-ping', async (event, enable) => firewallManager.setStealthPing(enable));
+ipcMain.handle('firewall:set-stealth-ping', async (event, enable) => firewallManager.setStealthPing(enable));
 ipcMain.handle('firewall:get-system-rules', async (event, filter) => firewallManager.getSystemFirewallRules(filter));
 ipcMain.handle('firewall:set-profile-state', async (event, profile, state) => firewallManager.setProfileState(profile, state));
 ipcMain.handle('firewall:paranoid-outbound', async (event, enable) => firewallManager.setParanoidOutbound(enable));
+ipcMain.handle('firewall:set-paranoid-outbound', async (event, enable) => firewallManager.setParanoidOutbound(enable));
 ipcMain.handle('firewall:export-policy', async () => firewallManager.exportFirewallPolicy());
 
 // Bluetooth Manager
@@ -296,20 +298,27 @@ ipcMain.handle('bluetooth:open-settings', async () => {
   return { success: true };
 });
 ipcMain.handle('bluetooth:stealth-mode', async (event, enable) => bluetoothManager.setStealthMode(enable));
-ipcMain.handle('bluetooth:restart-radio', async () => bluetoothManager.restartBluetoothRadio());
 
 // WiFi Manager additions
 ipcMain.handle('wifi:channel-spectrum', async () => wifiManager.getChannelSpectrumAnalysis());
+ipcMain.handle('wifi:get-channel-spectrum', async () => wifiManager.getChannelSpectrumAnalysis());
 ipcMain.handle('wifi:saved-passwords', async () => wifiManager.getStructuredSavedPasswords());
+ipcMain.handle('wifi:get-saved-passwords', async () => wifiManager.getStructuredSavedPasswords());
 ipcMain.handle('wifi:bssid-roaming', async () => wifiManager.getBssidRoamingTelemetry());
+ipcMain.handle('wifi:get-roaming-telemetry', async () => wifiManager.getBssidRoamingTelemetry());
 ipcMain.handle('wifi:export-profiles', async () => wifiManager.exportWifiProfiles());
 
 // System Monitor additions
 ipcMain.handle('system:gpu-telemetry', async () => systemMonitor.getGpuTelemetry());
+ipcMain.handle('system:get-gpu-info', async () => systemMonitor.getGpuTelemetry());
 ipcMain.handle('system:disk-smart', async () => systemMonitor.getDiskHealthSmart());
+ipcMain.handle('system:get-disk-smart', async () => systemMonitor.getDiskHealthSmart());
 ipcMain.handle('system:battery-health', async () => systemMonitor.getBatteryHealthReport());
+ipcMain.handle('system:get-battery-health', async () => systemMonitor.getBatteryHealthReport());
 ipcMain.handle('system:motherboard-bios', async () => systemMonitor.getMotherboardBiosInfo());
-ipcMain.handle('system:top-processes', async () => systemMonitor.getTopResourceProcesses());
+ipcMain.handle('system:get-motherboard-info', async () => systemMonitor.getMotherboardBiosInfo());
+ipcMain.handle('system:top-processes', async (event, sortBy, limit) => systemMonitor.getTopResourceProcesses(sortBy, limit));
+ipcMain.handle('system:get-top-processes', async (event, sortBy, limit) => systemMonitor.getTopResourceProcesses(sortBy, limit));
 
 // Hacker Tools
 ipcMain.handle('hacker:run-tool', async (event, toolId) => hackerTools.runTool(toolId));
@@ -318,6 +327,7 @@ ipcMain.handle('hacker:discover-subnet', async () => hackerTools.discoverLocalSu
 ipcMain.handle('hacker:test-dns-leak', async () => hackerTools.testDnsLeak());
 ipcMain.handle('hacker:inspect-tls', async (event, host) => hackerTools.inspectTlsSecurity(host));
 ipcMain.handle('hacker:hunt-events', async () => hackerTools.huntSecurityEvents());
+ipcMain.handle('hacker:hunt-security-events', async () => hackerTools.huntSecurityEvents());
 
 // Admin Tools
 ipcMain.handle('admin:exec-cmd', async (event, cmd) => adminManager.executeCommand(cmd));
@@ -328,10 +338,15 @@ ipcMain.handle('admin:pkg-update-all', async () => adminManager.updateAll());
 ipcMain.handle('admin:autostart', async () => adminManager.getAutostartItems());
 ipcMain.handle('admin:users', async () => adminManager.getUsers());
 ipcMain.handle('admin:services-list', async () => adminManager.getWindowsServicesList());
+ipcMain.handle('admin:get-services', async () => adminManager.getWindowsServicesList());
 ipcMain.handle('admin:service-control', async (event, name, act) => adminManager.controlWindowsService(name, act));
+ipcMain.handle('admin:control-service', async (event, name, act) => adminManager.controlWindowsService(name, act));
 ipcMain.handle('admin:file-check', async (event, tool) => adminManager.runSystemFileCheck(tool));
+ipcMain.handle('admin:run-sfc', async (event, tool) => adminManager.runSystemFileCheck(tool));
 ipcMain.handle('admin:power-plan', async () => adminManager.setHighPerformancePowerPlan());
+ipcMain.handle('admin:set-power-plan', async () => adminManager.setHighPerformancePowerPlan());
 ipcMain.handle('admin:local-users', async () => adminManager.getUserAccountsDetailed());
+ipcMain.handle('admin:get-users-detailed', async () => adminManager.getUserAccountsDetailed());
 
 // Package Manager
 ipcMain.handle('package:search', async (event, query, source) => packageManager.searchPackage(query, source));
@@ -372,32 +387,35 @@ ipcMain.handle('youtube:open-file', async (event, filePath) => {
   return false;
 });
 
-// Hacker Tools
-ipcMain.handle('hacker:run-tool', async (event, toolId) => hackerTools.runTool(toolId));
-
-// Admin Tools
-ipcMain.handle('admin:exec-cmd', async (event, cmd) => adminManager.executeCommand(cmd));
-ipcMain.handle('admin:fw-status', async () => adminManager.getFirewallStatus());
-ipcMain.handle('admin:fw-toggle', async (event, state) => adminManager.setFirewall(state));
-ipcMain.handle('admin:pkg-check', async () => adminManager.checkUpdates());
-ipcMain.handle('admin:pkg-update-all', async () => adminManager.updateAll());
-ipcMain.handle('admin:autostart', async () => adminManager.getAutostartItems());
-ipcMain.handle('admin:users', async () => adminManager.getUsers());
-
-// Antivirus Deep File Scanner
+// Antivirus Deep File Scanner & Threat Defense
 ipcMain.handle('antivirus:scan-file', async (event, filePath) => antivirusEngine.scanFile(filePath));
 ipcMain.handle('antivirus:select-and-scan', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Derin Analiz ve Parçalama İçin Dosya Seçin',
+    title: 'Derin Analiz İçin Dosya Seçin',
     properties: ['openFile'],
     filters: [
-      { name: 'Görseller ve Belgeler', extensions: ['png', 'jpg', 'jpeg', 'svg', 'gif', 'bmp', 'pdf'] },
-      { name: 'Tüm Dosyalar', extensions: ['*'] }
+      { name: 'Tüm Dosyalar ve Programlar', extensions: ['*'] }
     ]
   });
   if (result.canceled || result.filePaths.length === 0) return null;
   return antivirusEngine.scanFile(result.filePaths[0]);
 });
+ipcMain.handle('antivirus:get-defender-status', async () => antivirusEngine.getDefenderStatus());
+ipcMain.handle('antivirus:quick-scan', async () => antivirusEngine.runDefenderQuickScan());
+ipcMain.handle('antivirus:shred-file', async (event, filePath, passes) => antivirusEngine.shredFile(filePath, passes));
+ipcMain.handle('antivirus:select-and-shred', async (event, passes) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Kalıcı Olarak Parçalanacak Dosyayı Seçin',
+    properties: ['openFile']
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return antivirusEngine.shredFile(result.filePaths[0], passes || 3);
+});
+ipcMain.handle('antivirus:quarantine-file', async (event, filePath) => antivirusEngine.quarantineFile(filePath));
+ipcMain.handle('antivirus:get-quarantine', async () => antivirusEngine.getQuarantineList());
+ipcMain.handle('antivirus:restore-quarantine', async (event, id) => antivirusEngine.restoreQuarantineFile(id));
+ipcMain.handle('antivirus:delete-quarantine', async (event, id) => antivirusEngine.deleteQuarantineFile(id));
+ipcMain.handle('antivirus:scan-usb', async () => antivirusEngine.scanUsbDrives());
 
 // Network & Port Monitor
 ipcMain.handle('netmon:get-sockets', async () => netMonitor.getSockets());
