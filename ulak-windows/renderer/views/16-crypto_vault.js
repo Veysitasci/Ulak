@@ -155,26 +155,29 @@
                 <span class="chip chip-accent" id="passgen-strength-chip">Çok Güçlü</span>
               </div>
 
-              <div class="setting-row glass-soft" style="align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                <div id="passgen-display" style="font-family: monospace; font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: 1px; font-variant-numeric: tabular-nums;">
+              <div class="setting-row glass-soft" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; padding: 14px 16px; min-width: 0;">
+                <div id="passgen-display" style="flex: 1; min-width: 0; word-break: break-all; font-family: monospace; font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; font-variant-numeric: tabular-nums; line-height: 1.4; user-select: all; padding-right: 6px;">
                   Tıklayarak üretin
                 </div>
-                <div style="display:flex; gap:8px;">
-                  <button class="btn btn-secondary btn-sm" id="passgen-btn-copy">Kopyala</button>
-                  <button class="btn btn-primary btn-sm" id="passgen-btn-generate">Yeni Parola</button>
+                <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
+                  <button class="btn btn-secondary btn-sm" id="passgen-btn-copy" style="white-space: nowrap;">Kopyala</button>
+                  <button class="btn btn-primary btn-sm" id="passgen-btn-generate" style="white-space: nowrap;">Yeni Parola</button>
                 </div>
               </div>
 
-              <div class="grid-2" style="gap: 12px;">
-                <div class="field">
-                  <label class="field-label">Karakter Uzunluğu: <strong id="passgen-len-label" style="font-variant-numeric: tabular-nums;">20</strong></label>
-                  <input type="range" id="passgen-len-slider" min="8" max="64" value="20" style="width: 100%;">
+              <div class="grid-2" style="gap: 14px; align-items: center;">
+                <div class="field" style="margin-bottom: 0;">
+                  <label class="field-label" style="display: flex; justify-content: space-between;">
+                    <span>Karakter Uzunluğu</span>
+                    <strong id="passgen-len-label" style="font-variant-numeric: tabular-nums; color: var(--accent);">20</strong>
+                  </label>
+                  <input type="range" id="passgen-len-slider" min="8" max="64" value="20" style="width: 100%; cursor: pointer;">
                 </div>
-                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; font-size:12px;">
-                  <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="passgen-opt-upper" checked> Büyük Harf (A-Z)</label>
-                  <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="passgen-opt-lower" checked> Küçük Harf (a-z)</label>
-                  <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="passgen-opt-nums" checked> Rakamlar (0-9)</label>
-                  <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="passgen-opt-syms" checked> Semboller (!@#$)</label>
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 12px; padding-top: 4px;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="passgen-opt-upper" checked> Büyük Harf (A-Z)</label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="passgen-opt-lower" checked> Küçük Harf (a-z)</label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="passgen-opt-nums" checked> Rakamlar (0-9)</label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="passgen-opt-syms" checked> Semboller (!@#$)</label>
                 </div>
               </div>
             </div>
