@@ -565,6 +565,12 @@ select option:hover {
   color: var(--accent);
 }
 
+.chip-success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
 .chip-danger {
   background: var(--danger-soft);
   border-color: var(--danger-border);

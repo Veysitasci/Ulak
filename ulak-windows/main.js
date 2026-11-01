@@ -290,6 +290,11 @@ ipcMain.handle('bluetooth:toggle', async () => bluetoothManager.toggleBluetooth(
 ipcMain.handle('bluetooth:ble-radar', async () => bluetoothManager.getLiveBleRadar());
 ipcMain.handle('bluetooth:connect-device', async (event, deviceId) => bluetoothManager.connectDevice(deviceId));
 ipcMain.handle('bluetooth:battery-telemetry', async () => bluetoothManager.getBatteryTelemetry());
+ipcMain.handle('bluetooth:restart-radio', async () => bluetoothManager.restartBluetoothRadio());
+ipcMain.handle('bluetooth:open-settings', async () => {
+  shell.openExternal('ms-settings:bluetooth');
+  return { success: true };
+});
 ipcMain.handle('bluetooth:stealth-mode', async (event, enable) => bluetoothManager.setStealthMode(enable));
 ipcMain.handle('bluetooth:restart-radio', async () => bluetoothManager.restartBluetoothRadio());
 

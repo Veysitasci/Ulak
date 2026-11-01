@@ -207,7 +207,6 @@ class HackerTools {
       return { success: true, failedLogonCount: 0, events: [] };
     }
   }
-  }
 }
 
 module.exports = HackerTools;
