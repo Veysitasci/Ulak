@@ -1,29 +1,76 @@
-# Python
+# ==============================================================================
+# ULAK - Git Ignore Configuration
+# Multi-Platform: Linux, Windows, Android
+# ==============================================================================
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs & Temporary files
+*.log
+*.tmp
+*.bak
+*.orig
+
+# Python & Cython
 __pycache__/
 *.py[cod]
+*$py.class
 *.so
+*.c
+*.pyd
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
-
-# Virtual environments
+.coverage
+htmlcov/
 .venv/
 venv/
+ENV/
 
-# Build and packaging artifacts
+# Build & Release Artifacts
 build/
 dist/
+bin/
+repo/
 *.deb
+*.rpm
+*.AppImage
+*.tar.gz
+*.zip
+*.7z
 
-# IDE/editor
-.vscode/
-.idea/
+# Windows Electron & Packaging (ulak-windows)
+node_modules/
+ulak-windows/node_modules/
+ulak-windows/dist/
+ulak-windows/bin/ffmpeg.exe
+ulak-windows/bin/yt-dlp.exe
+installer_build/payload.zip
+installer_build/*.zip
+packaging/windows/payload.zip
 
-# OS files
-.DS_Store
-Thumbs.db
+# Android (ulak-android)
+.gradle/
+ulak-android/.gradle/
+.kotlin/
+ulak-android/.kotlin/
+ulak-android/build/
+ulak-android/app/build/
+ulak-android/local.properties
+*.apk
+*.aab
+.cxx/
 
-# Logs and temp
-*.log
-*.tmp
-*.swp
+# AI Tooling & Internal Worktrees
+.kilo/
+.agent/

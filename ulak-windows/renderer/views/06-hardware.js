@@ -13,7 +13,7 @@
         <div class="hardware-view">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px;">
             <div style="flex: 1;">
-              ${C.headerCard('Donanım & Sistem Kaynakları', 'GPU & VRAM Telemetrisi, Disk S.M.A.R.T., Batarya Aşınma Raporu, BIOS Kimliği ve Görev Yöneticisi', 'cpu')}
+              ${C.headerCard('Donanım & Sistem Kaynakları', 'GPU & VRAM Telemetrisi, Disk S.M.A.R.T., Batarya Aşınma Raporu, BIOS Kimliği ve Görev Yöneticisi', 'cpu', 'hardware')}
             </div>
           </div>
 

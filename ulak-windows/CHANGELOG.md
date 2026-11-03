@@ -1,5 +1,42 @@
 # ULAK Windows — Sürüm & Modül Değişiklik Günlüğü (Changelog)
 
+## [v2.5.0] - 2026-11-02
+
+### 🚀 Özet
+ULAK v2.5.0 sürümü ile birlikte sisteme derinlemesine Windows işlem denetimi ve tehdit avı sağlayan yeni **Süreç & Tehdit Radarı (`proc_radar`)** modülü eklendi. Ayrıca Masaüstü Maskotlarının (Gözcü Baykuş & Barış Kuşu) kanat çırpma animasyonlarında oluşan görsel kırılmalar ve saydamlık boşlukları tamamen giderilerek pürüzsüz 2. nesil gövde eklem mimarisine geçildi; Ayarlar sürüm günlüğü kaydırma çubuğu ve Nord teması donanım kategorilendirmesi mükemmelleştirildi.
+
+---
+
+### 📦 Yeni Eklenen Modül: Süreç & Tehdit Radarı (`proc_radar`)
+
+1. **Canlı Windows Süreç Telemetrisi & Donanım Tüketimi:**
+   - PowerShell tabanlı yüksek hızlı arka plan toplayıcı ile aktif Windows süreçleri, PID, çalışan yürütülebilir dosya yolu ve MB cinsinden canlı RAM tüketimi izleme.
+   - 4-halkalı telemetri göstergeleri: Toplam Süreç, Şüpheli/Tehdit Sayısı, Yüksek RAM Tüketenler (>1.5 GB) ve Kümülatif Bellek Yükü.
+
+2. **Heuristik Masquerading & Sahte Sistem Süreci Tespiti:**
+   - Kritik Windows çekirdek yürütülebilirlerinin (`svchost.exe`, `explorer.exe`, `csrss.exe`, `lsass.exe`, `services.exe`, `smss.exe`) resmi `System32` veya `Windows` dizinleri dışından (örn. `%TEMP%`, `AppData\Local\Temp`, `Users\Public`, `Downloads`) başlatıldığını algılayan sahtecilik motoru.
+   - Otomatik risk derecelendirmesi: `high` (Tehdit/Kritik), `warning` (Şüpheli Dizin / Yüksek Kaynak), `normal` (Standart Güvenli Süreç).
+
+3. **Görev Avcısı & Güvenli Süreç Sonlandırma (Task Hunter):**
+   - Ağaç tabanlı veya zorlamalı süreç sonlandırma (`taskkill /F /PID /T` ve PowerShell `Stop-Process`).
+   - Sistem çökmesini önlemek için kritik Windows çekirdek süreçlerini (PID <= 4) ve istasyon bileşenlerini koruma altına alan akıllı güvenlik kilidi.
+
+4. **Derin Süreç Denetçisi (Process Inspector Modal):**
+   - Tek tıkla tam komut satırı argümanları (Command Line), iş parçacığı sayısı (Threads) ve sürece enjekte edilmiş/yüklenmiş DLL modülleri listesi.
+
+---
+
+### 🎨 Maskot & Arayüz İyileştirmeleri
+
+1. **2. Nesil Pürüzsüz Kanat Eklem Mimarisi (Zero-Seam Rigging):**
+   - Barış Kuşu ve Gözcü Baykuş kanat çırpma hareketlerinde gövdede oluşan saydam kırılma ve çizgiler, eklem arkası dolgu inpainting ve yumuşak Gauss maskelemesi ile tamamen giderildi. Kanatlar her açıda kesintisiz kristal gövde üstünde hareket eder.
+2. **Ayarlar Sürüm Günlüğü Akıcı Kaydırma:**
+   - Sürüm değişiklik modalı bağımsız viewport katmanına taşınarak esnek kaydırma ve doğrudan fare tekerleği (wheel) yönlendiricisi ile optimize edildi.
+3. **Nord Teması & Donanım Menü Düzeni:**
+   - Süreç Radarı Donanım kategorisine entegre edilerek ana menü ve mağazada doğru biçimde konumlandırıldı.
+
+---
+
 ## [v2.4.0] - 2026-11-01
 
 ### 🚀 Özet

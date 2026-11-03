@@ -46,6 +46,33 @@ function setupWindowControls() {
   if (btnClose) btnClose.addEventListener('click', () => window.ulak.invoke('window:close'));
   if (btnTheme) btnTheme.addEventListener('click', () => window.UlakTheme.toggle());
 
+  const btnPetToggle = document.getElementById('btn-pet-quick-toggle');
+  const headerPetIcon = document.getElementById('header-pet-icon');
+  if (btnPetToggle) {
+    if (window.ulak) {
+      window.ulak.invoke('pet:get-settings').then(s => {
+        if (s && s.activePetId && headerPetIcon) {
+          headerPetIcon.src = s.activePetId === 'dove' ? 'assets/pets/dove.png' : 'assets/pets/owl.png';
+        }
+      }).catch(() => {});
+
+      window.ulak.on('pet:settings-changed', (newSettings) => {
+        if (newSettings && newSettings.activePetId && headerPetIcon) {
+          headerPetIcon.src = newSettings.activePetId === 'dove' ? 'assets/pets/dove.png' : 'assets/pets/owl.png';
+        }
+      });
+    }
+
+    btnPetToggle.addEventListener('click', async () => {
+      if (window.ulak) {
+        const isNowEnabled = await window.ulak.invoke('pet:toggle');
+        if (window.UlakUI && window.UlakUI.toast) {
+          window.UlakUI.toast(`Masaüstü maskotu ${isNowEnabled ? 'etkinleştirildi' : 'gizlendi'}.`, 'info');
+        }
+      }
+    });
+  }
+
   if (btnSidebar && sidebar) {
     btnSidebar.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
@@ -64,7 +91,7 @@ function setupWindowControls() {
 
 function setupNavigation() {
   // Sidebar clicks
-  document.querySelectorAll('.sidebar-btn').forEach((btn) => {
+  document.querySelectorAll('.sidebar-btn[data-page]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const pageId = btn.getAttribute('data-page');
       window.UlakRouter.navigate(pageId);
@@ -84,19 +111,20 @@ function setupNavigation() {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase().trim();
-      document.querySelectorAll('.sidebar-btn').forEach((b) => {
-        if (!query) {
-          b.style.display = 'flex';
-        } else {
+      if (!query) {
+        document.querySelectorAll('.sidebar-btn').forEach((b) => b.style.display = 'flex');
+        updateSidebarModules();
+      } else {
+        document.querySelectorAll('.sidebar-btn').forEach((b) => {
           const match = b.innerText.toLowerCase().includes(query);
           b.style.display = match ? 'flex' : 'none';
-        }
-      });
+        });
+      }
     });
 
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const visible = Array.from(document.querySelectorAll('.sidebar-btn')).filter(b => b.style.display !== 'none');
+        const visible = Array.from(document.querySelectorAll('.sidebar-btn[data-page]')).filter(b => b.style.display !== 'none');
         if (visible.length > 0) {
           window.UlakRouter.navigate(visible[0].getAttribute('data-page'));
           searchInput.blur();
@@ -117,52 +145,39 @@ function setupNavigation() {
 
 function updateSidebarModules() {
   const modMap = {
+    'firewall': 'nav-btn-firewall',
+    'hacker': 'nav-btn-hacker',
+    'admin': 'nav-btn-admin',
     'crypto_vault': 'nav-btn-crypto_vault',
     'antivirus': 'nav-btn-antivirus',
-    'sys_cleaner': 'nav-btn-cleaner',
     'youtube': 'nav-btn-youtube',
     'net_monitor': 'nav-btn-net_monitor',
     'backup_tool': 'nav-btn-backup',
-    'pkg_installer': 'nav-btn-pkg_installer'
+    'pkg_installer': 'nav-btn-pkg_installer',
+    'proc_radar': 'nav-btn-proc_radar'
   };
 
-  const defaultAllModules = ['crypto_vault', 'antivirus', 'youtube', 'sys_cleaner', 'net_monitor', 'backup_tool', 'pkg_installer'];
-  let installed = JSON.parse(localStorage.getItem('ulak-modules') || '[]');
-  if (installed.length === 0) {
-    installed = defaultAllModules;
-    localStorage.setItem('ulak-modules', JSON.stringify(installed));
-  } else {
-    const uninstalled = JSON.parse(localStorage.getItem('ulak-uninstalled-modules') || '[]');
-    let changed = false;
-    defaultAllModules.forEach(id => {
-      if (!installed.includes(id) && !uninstalled.includes(id)) {
-        installed.push(id);
-        changed = true;
-      }
-    });
-    if (changed) {
-      localStorage.setItem('ulak-modules', JSON.stringify(installed));
-    }
-  }
+  // Sadece kullanıcının Mağazadan (GitHub) yüklediği eklentiler gösterilir.
+  // İlk temiz kurulumda varsayılan olarak sabit çekirdekler aktiftir (Wi-Fi, Bluetooth, Donanım, Sistem Temizleyici).
+  const installed = JSON.parse(localStorage.getItem('ulak-modules') || '[]');
 
-  let anyAddonInstalled = false;
   for (const [id, btnId] of Object.entries(modMap)) {
     const el = document.getElementById(btnId);
     if (el) {
-      const isVisible = installed.includes(id);
-      el.style.display = isVisible ? 'flex' : 'none';
-      if (isVisible) anyAddonInstalled = true;
+      el.style.display = installed.includes(id) ? 'flex' : 'none';
     }
   }
 
-  const modTitle = document.getElementById('sidebar-mod-section-title');
-  if (modTitle) {
-    modTitle.style.display = anyAddonInstalled ? 'block' : 'none';
+  // Güvenlik bölümü başlığı (eğer altındaki eklentilerden en az biri yüklüyse göster, yoksa gizle)
+  const secGuvenlik = document.getElementById('sidebar-sec-guvenlik');
+  if (secGuvenlik) {
+    const hasSec = ['firewall', 'antivirus', 'crypto_vault', 'hacker'].some(id => installed.includes(id));
+    secGuvenlik.style.display = hasSec ? 'block' : 'none';
   }
 
   const toolsTitle = document.getElementById('sidebar-tools-section-title');
   if (toolsTitle) {
-    toolsTitle.style.display = installed.includes('pkg_installer') ? 'block' : 'none';
+    toolsTitle.style.display = 'block';
   }
 }
 

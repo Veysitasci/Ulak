@@ -70,14 +70,18 @@
 
   /* Animasyon Eğrileri */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring-easing: linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1);
   --transition-fast: 0.14s var(--ease);
   --transition-normal: 0.24s var(--ease);
+  --transition-spring: 0.55s var(--spring-easing);
 }
 
 /* ==========================================================================
    2. OBSIDIAN LIQUID GLASS — KOYU TEMA (Default)
    ========================================================================== */
 :root[data-theme="dark"],
+:root[data-theme="ulak-dark"],
+:root[data-theme="dark-dark"],
 :root {
   /* Zemin Acrylic & Canvas Katmanı */
   --app-bg: #090c13;
@@ -136,7 +140,9 @@
 /* ==========================================================================
    3. FROSTED LIQUID GLASS — AÇIK TEMA
    ========================================================================== */
-:root[data-theme="light"] {
+:root[data-theme="light"],
+:root[data-theme="ulak-light"],
+:root[data-theme="light-light"] {
   /* Zemin Acrylic & Canvas Katmanı */
   --app-bg: #f3f5f9;
   --app-bg-gradient: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 55%),
@@ -189,4 +195,717 @@
   --term-bg: #f8fafc;
   --term-border: rgba(15, 23, 42, 0.10);
   --term-text: #0f172a;
+}
+
+/* ==========================================================================
+   4. NORD THEMES (Dark & Light)
+   ========================================================================== */
+/* Nord Koyu Mod (Polar Night) */
+:root[data-theme="nord"],
+:root[data-theme="nord-dark"] {
+  --app-bg: #2E3440;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(136, 192, 208, 0.14) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(129, 161, 193, 0.10) 0px, transparent 50%),
+                     #2E3440;
+
+  --sidebar-bg: rgba(46, 52, 64, 0.94);
+  --header-bg: rgba(46, 52, 64, 0.90);
+  --footer-bg: rgba(40, 45, 56, 0.96);
+  --content-bg: transparent;
+
+  --accent: #88C0D0;
+  --accent-strong: #81A1C1;
+  --accent-glow: rgba(136, 192, 208, 0.38);
+  --accent-soft: rgba(136, 192, 208, 0.16);
+  --accent-border: rgba(136, 192, 208, 0.34);
+  --accent-tint: rgba(136, 192, 208, 0.08);
+
+  --danger: #BF616A;
+  --danger-strong: #BF616A;
+  --danger-soft: rgba(191, 97, 106, 0.16);
+  --danger-border: rgba(191, 97, 106, 0.32);
+
+  --warning: #EBCB8B;
+  --warning-soft: rgba(235, 203, 139, 0.16);
+  --warning-border: rgba(235, 203, 139, 0.32);
+
+  --info: #8FBCBB;
+  --info-soft: rgba(143, 188, 187, 0.16);
+  --info-border: rgba(143, 188, 187, 0.32);
+
+  --glass-surface: rgba(59, 66, 82, 0.70);
+  --glass-surface-hover: rgba(67, 76, 94, 0.85);
+  --glass-surface-active: #434C5E;
+  --glass-surface-dense: rgba(46, 52, 64, 0.96);
+  --glass-surface-subtle: rgba(236, 239, 244, 0.05);
+
+  --glass-border: rgba(76, 86, 106, 0.60);
+  --glass-border-light: rgba(76, 86, 106, 0.82);
+  --glass-border-hover: rgba(136, 192, 208, 0.50);
+  --glass-highlight: inset 0 1px 0 rgba(236, 239, 244, 0.12);
+  --glass-shadow: 0 13px 34px -8px rgba(0, 0, 0, 0.50);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(0, 0, 0, 0.35);
+
+  --text-1: #ECEFF4;
+  --text-2: #D8DEE9;
+  --text-3: #81A1C1;
+  --text-muted: #4C566A;
+  --text-inverse: #2E3440;
+
+  --input-bg: rgba(43, 49, 60, 0.90);
+  --input-border: #4C566A;
+  --input-border-focus: #88C0D0;
+
+  --select-bg: #3B4252;
+  --select-border: #4C566A;
+  --select-border-hover: #88C0D0;
+  --select-border-focus: #88C0D0;
+  --select-popover-bg: #3B4252;
+  --select-option-hover: rgba(136, 192, 208, 0.18);
+  --select-option-selected: rgba(136, 192, 208, 0.28);
+  --select-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px #4C566A;
+
+  --term-bg: #242933;
+  --term-border: #4C566A;
+  --term-text: #ECEFF4;
+}
+
+/* Nord Açık Mod (Snow Storm) */
+:root[data-theme="nord-light"] {
+  --app-bg: #ECEFF4;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(136, 192, 208, 0.18) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(94, 129, 172, 0.12) 0px, transparent 50%),
+                     #ECEFF4;
+
+  --sidebar-bg: rgba(229, 233, 240, 0.94);
+  --header-bg: rgba(229, 233, 240, 0.90);
+  --footer-bg: rgba(216, 222, 233, 0.96);
+  --content-bg: transparent;
+
+  --accent: #5E81AC;
+  --accent-strong: #81A1C1;
+  --accent-glow: rgba(94, 129, 172, 0.35);
+  --accent-soft: rgba(94, 129, 172, 0.14);
+  --accent-border: rgba(94, 129, 172, 0.30);
+  --accent-tint: rgba(94, 129, 172, 0.06);
+
+  --danger: #BF616A;
+  --danger-strong: #BF616A;
+  --danger-soft: rgba(191, 97, 106, 0.14);
+  --danger-border: rgba(191, 97, 106, 0.28);
+
+  --warning: #D08770;
+  --warning-soft: rgba(208, 135, 112, 0.14);
+  --warning-border: rgba(208, 135, 112, 0.28);
+
+  --info: #88C0D0;
+  --info-soft: rgba(136, 192, 208, 0.16);
+  --info-border: rgba(136, 192, 208, 0.30);
+
+  --glass-surface: rgba(255, 255, 255, 0.75);
+  --glass-surface-hover: rgba(255, 255, 255, 0.92);
+  --glass-surface-active: #FFFFFF;
+  --glass-surface-dense: rgba(240, 243, 248, 0.96);
+  --glass-surface-subtle: rgba(46, 52, 64, 0.04);
+
+  --glass-border: rgba(76, 86, 106, 0.16);
+  --glass-border-light: rgba(76, 86, 106, 0.28);
+  --glass-border-hover: rgba(94, 129, 172, 0.45);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 13px 34px -8px rgba(46, 52, 64, 0.10);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(46, 52, 64, 0.06);
+
+  --text-1: #2E3440;
+  --text-2: #434C5E;
+  --text-3: #4C566A;
+  --text-muted: #7B88A1;
+  --text-inverse: #ECEFF4;
+
+  --input-bg: #FFFFFF;
+  --input-border: rgba(76, 86, 106, 0.22);
+  --input-border-focus: #5E81AC;
+
+  --select-bg: #FFFFFF;
+  --select-border: rgba(76, 86, 106, 0.22);
+  --select-border-hover: #5E81AC;
+  --select-border-focus: #5E81AC;
+  --select-popover-bg: #FFFFFF;
+  --select-option-hover: rgba(94, 129, 172, 0.12);
+  --select-option-selected: rgba(94, 129, 172, 0.20);
+  --select-shadow: 0 14px 34px -6px rgba(46, 52, 64, 0.12), 0 0 0 1px rgba(76, 86, 106, 0.16);
+
+  --term-bg: #E5E9F0;
+  --term-border: rgba(76, 86, 106, 0.18);
+  --term-text: #2E3440;
+}
+
+/* ==========================================================================
+   5. DRACULA THEMES (Dark & Light)
+   ========================================================================== */
+/* Dracula Koyu Mod */
+:root[data-theme="dracula"],
+:root[data-theme="dracula-dark"] {
+  --app-bg: #282A36;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(189, 147, 249, 0.14) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(255, 121, 198, 0.10) 0px, transparent 50%),
+                     #282A36;
+
+  --sidebar-bg: rgba(40, 42, 54, 0.94);
+  --header-bg: rgba(40, 42, 54, 0.90);
+  --footer-bg: rgba(33, 34, 44, 0.96);
+  --content-bg: transparent;
+
+  --accent: #BD93F9;
+  --accent-strong: #FF79C6;
+  --accent-glow: rgba(189, 147, 249, 0.38);
+  --accent-soft: rgba(189, 147, 249, 0.16);
+  --accent-border: rgba(189, 147, 249, 0.35);
+  --accent-tint: rgba(189, 147, 249, 0.08);
+
+  --danger: #FF5555;
+  --danger-strong: #FF5555;
+  --danger-soft: rgba(255, 85, 85, 0.16);
+  --danger-border: rgba(255, 85, 85, 0.32);
+
+  --warning: #FFB86C;
+  --warning-soft: rgba(255, 184, 108, 0.16);
+  --warning-border: rgba(255, 184, 108, 0.32);
+
+  --info: #8BE9FD;
+  --info-soft: rgba(139, 233, 253, 0.16);
+  --info-border: rgba(139, 233, 253, 0.32);
+
+  --glass-surface: rgba(52, 55, 70, 0.70);
+  --glass-surface-hover: rgba(68, 71, 90, 0.85);
+  --glass-surface-active: #44475A;
+  --glass-surface-dense: rgba(40, 42, 54, 0.96);
+  --glass-surface-subtle: rgba(248, 248, 242, 0.05);
+
+  --glass-border: rgba(98, 114, 164, 0.45);
+  --glass-border-light: rgba(98, 114, 164, 0.72);
+  --glass-border-hover: rgba(189, 147, 249, 0.50);
+  --glass-highlight: inset 0 1px 0 rgba(248, 248, 242, 0.12);
+  --glass-shadow: 0 13px 34px -8px rgba(0, 0, 0, 0.55);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(0, 0, 0, 0.40);
+
+  --text-1: #F8F8F2;
+  --text-2: #E2E2DC;
+  --text-3: #6272A4;
+  --text-muted: #6272A4;
+  --text-inverse: #282A36;
+
+  --input-bg: rgba(33, 34, 44, 0.90);
+  --input-border: #6272A4;
+  --input-border-focus: #BD93F9;
+
+  --select-bg: #343746;
+  --select-border: #6272A4;
+  --select-border-hover: #BD93F9;
+  --select-border-focus: #BD93F9;
+  --select-popover-bg: #343746;
+  --select-option-hover: rgba(189, 147, 249, 0.18);
+  --select-option-selected: rgba(189, 147, 249, 0.28);
+  --select-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.70), 0 0 0 1px #6272A4;
+
+  --term-bg: #1E1F29;
+  --term-border: #6272A4;
+  --term-text: #F8F8F2;
+}
+
+/* Dracula Açık Mod (Alucard) */
+:root[data-theme="dracula-light"] {
+  --app-bg: #F8F8F2;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(189, 147, 249, 0.16) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(255, 121, 198, 0.12) 0px, transparent 50%),
+                     #F8F8F2;
+
+  --sidebar-bg: rgba(238, 238, 232, 0.94);
+  --header-bg: rgba(238, 238, 232, 0.90);
+  --footer-bg: rgba(228, 228, 220, 0.96);
+  --content-bg: transparent;
+
+  --accent: #9546E8;
+  --accent-strong: #BD93F9;
+  --accent-glow: rgba(149, 70, 232, 0.35);
+  --accent-soft: rgba(149, 70, 232, 0.12);
+  --accent-border: rgba(149, 70, 232, 0.30);
+  --accent-tint: rgba(149, 70, 232, 0.06);
+
+  --danger: #D93B3B;
+  --danger-strong: #D93B3B;
+  --danger-soft: rgba(217, 59, 59, 0.14);
+  --danger-border: rgba(217, 59, 59, 0.28);
+
+  --warning: #D97706;
+  --warning-soft: rgba(217, 119, 6, 0.14);
+  --warning-border: rgba(217, 119, 6, 0.28);
+
+  --info: #0891B2;
+  --info-soft: rgba(8, 145, 178, 0.14);
+  --info-border: rgba(8, 145, 178, 0.28);
+
+  --glass-surface: rgba(255, 255, 255, 0.75);
+  --glass-surface-hover: rgba(255, 255, 255, 0.92);
+  --glass-surface-active: #FFFFFF;
+  --glass-surface-dense: rgba(244, 244, 238, 0.96);
+  --glass-surface-subtle: rgba(40, 42, 54, 0.04);
+
+  --glass-border: rgba(98, 114, 164, 0.20);
+  --glass-border-light: rgba(98, 114, 164, 0.35);
+  --glass-border-hover: rgba(149, 70, 232, 0.45);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 13px 34px -8px rgba(40, 42, 54, 0.10);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(40, 42, 54, 0.06);
+
+  --text-1: #282A36;
+  --text-2: #44475A;
+  --text-3: #6272A4;
+  --text-muted: #8490B5;
+  --text-inverse: #F8F8F2;
+
+  --input-bg: #FFFFFF;
+  --input-border: rgba(98, 114, 164, 0.25);
+  --input-border-focus: #9546E8;
+
+  --select-bg: #FFFFFF;
+  --select-border: rgba(98, 114, 164, 0.25);
+  --select-border-hover: #9546E8;
+  --select-border-focus: #9546E8;
+  --select-popover-bg: #FFFFFF;
+  --select-option-hover: rgba(149, 70, 232, 0.10);
+  --select-option-selected: rgba(149, 70, 232, 0.20);
+  --select-shadow: 0 14px 34px -6px rgba(40, 42, 54, 0.12), 0 0 0 1px rgba(98, 114, 164, 0.20);
+
+  --term-bg: #EAEAE2;
+  --term-border: rgba(98, 114, 164, 0.22);
+  --term-text: #282A36;
+}
+
+/* ==========================================================================
+   6. CATPPUCCIN THEMES (Dark & Light)
+   ========================================================================== */
+/* Catppuccin Koyu Mod (Mocha) */
+:root[data-theme="catppuccin"],
+:root[data-theme="catppuccin-dark"],
+:root[data-theme="catppuccin-mocha"] {
+  --app-bg: #1E1E2E;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(203, 166, 247, 0.14) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(137, 180, 250, 0.10) 0px, transparent 50%),
+                     #1E1E2E;
+
+  --sidebar-bg: rgba(24, 24, 37, 0.94);
+  --header-bg: rgba(24, 24, 37, 0.90);
+  --footer-bg: rgba(17, 17, 27, 0.96);
+  --content-bg: transparent;
+
+  --accent: #CBA6F7;
+  --accent-strong: #B4BEFE;
+  --accent-glow: rgba(203, 166, 247, 0.38);
+  --accent-soft: rgba(203, 166, 247, 0.16);
+  --accent-border: rgba(203, 166, 247, 0.35);
+  --accent-tint: rgba(203, 166, 247, 0.08);
+
+  --danger: #F38BA8;
+  --danger-strong: #F38BA8;
+  --danger-soft: rgba(243, 139, 168, 0.16);
+  --danger-border: rgba(243, 139, 168, 0.32);
+
+  --warning: #FAB387;
+  --warning-soft: rgba(250, 179, 135, 0.16);
+  --warning-border: rgba(250, 179, 135, 0.32);
+
+  --info: #89B4FA;
+  --info-soft: rgba(137, 180, 250, 0.16);
+  --info-border: rgba(137, 180, 250, 0.32);
+
+  --glass-surface: rgba(49, 50, 68, 0.70);
+  --glass-surface-hover: rgba(69, 71, 90, 0.85);
+  --glass-surface-active: #45475A;
+  --glass-surface-dense: rgba(30, 30, 46, 0.96);
+  --glass-surface-subtle: rgba(205, 214, 244, 0.05);
+
+  --glass-border: rgba(147, 153, 178, 0.25);
+  --glass-border-light: rgba(147, 153, 178, 0.45);
+  --glass-border-hover: rgba(203, 166, 247, 0.48);
+  --glass-highlight: inset 0 1px 0 rgba(205, 214, 244, 0.12);
+  --glass-shadow: 0 13px 34px -8px rgba(0, 0, 0, 0.55);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(0, 0, 0, 0.38);
+
+  --text-1: #CDD6F4;
+  --text-2: #A6ADC8;
+  --text-3: #7F849C;
+  --text-muted: #585B70;
+  --text-inverse: #11111B;
+
+  --input-bg: rgba(24, 24, 37, 0.90);
+  --input-border: #45475A;
+  --input-border-focus: #CBA6F7;
+
+  --select-bg: #313244;
+  --select-border: #45475A;
+  --select-border-hover: #CBA6F7;
+  --select-border-focus: #CBA6F7;
+  --select-popover-bg: #313244;
+  --select-option-hover: rgba(203, 166, 247, 0.18);
+  --select-option-selected: rgba(203, 166, 247, 0.28);
+  --select-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px #45475A;
+
+  --term-bg: #11111B;
+  --term-border: #313244;
+  --term-text: #CDD6F4;
+}
+
+/* Catppuccin Açık Mod (Latte) */
+:root[data-theme="catppuccin-light"],
+:root[data-theme="catppuccin-latte"] {
+  --app-bg: #EFF1F5;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(136, 57, 239, 0.14) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(30, 102, 245, 0.10) 0px, transparent 50%),
+                     #EFF1F5;
+
+  --sidebar-bg: rgba(230, 233, 239, 0.94);
+  --header-bg: rgba(230, 233, 239, 0.90);
+  --footer-bg: rgba(220, 224, 232, 0.96);
+  --content-bg: transparent;
+
+  --accent: #8839EF;
+  --accent-strong: #1E66F5;
+  --accent-glow: rgba(136, 57, 239, 0.35);
+  --accent-soft: rgba(136, 57, 239, 0.14);
+  --accent-border: rgba(136, 57, 239, 0.32);
+  --accent-tint: rgba(136, 57, 239, 0.06);
+
+  --danger: #D20F39;
+  --danger-strong: #D20F39;
+  --danger-soft: rgba(210, 15, 57, 0.14);
+  --danger-border: rgba(210, 15, 57, 0.28);
+
+  --warning: #DF8E1D;
+  --warning-soft: rgba(223, 142, 29, 0.14);
+  --warning-border: rgba(223, 142, 29, 0.28);
+
+  --info: #1E66F5;
+  --info-soft: rgba(30, 102, 245, 0.14);
+  --info-border: rgba(30, 102, 245, 0.28);
+
+  --glass-surface: rgba(255, 255, 255, 0.75);
+  --glass-surface-hover: rgba(255, 255, 255, 0.92);
+  --glass-surface-active: #FFFFFF;
+  --glass-surface-dense: rgba(236, 239, 244, 0.96);
+  --glass-surface-subtle: rgba(76, 79, 105, 0.04);
+
+  --glass-border: rgba(156, 160, 176, 0.28);
+  --glass-border-light: rgba(156, 160, 176, 0.48);
+  --glass-border-hover: rgba(136, 57, 239, 0.45);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 13px 34px -8px rgba(76, 79, 105, 0.10);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(76, 79, 105, 0.06);
+
+  --text-1: #4C4F69;
+  --text-2: #5C5F77;
+  --text-3: #6C6F85;
+  --text-muted: #9CA0B0;
+  --text-inverse: #EFF1F5;
+
+  --input-bg: #FFFFFF;
+  --input-border: rgba(156, 160, 176, 0.30);
+  --input-border-focus: #8839EF;
+
+  --select-bg: #FFFFFF;
+  --select-border: rgba(156, 160, 176, 0.30);
+  --select-border-hover: #8839EF;
+  --select-border-focus: #8839EF;
+  --select-popover-bg: #FFFFFF;
+  --select-option-hover: rgba(136, 57, 239, 0.10);
+  --select-option-selected: rgba(136, 57, 239, 0.20);
+  --select-shadow: 0 14px 34px -6px rgba(76, 79, 105, 0.12), 0 0 0 1px rgba(156, 160, 176, 0.25);
+
+  --term-bg: #E6E9EF;
+  --term-border: rgba(156, 160, 176, 0.30);
+  --term-text: #4C4F69;
+}
+
+/* ==========================================================================
+   7. GRUVBOX THEMES (Dark & Light)
+   ========================================================================== */
+/* Gruvbox Koyu Mod */
+:root[data-theme="gruvbox"],
+:root[data-theme="gruvbox-dark"] {
+  --app-bg: #282828;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(254, 128, 25, 0.12) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(250, 189, 47, 0.10) 0px, transparent 50%),
+                     #282828;
+
+  --sidebar-bg: rgba(40, 40, 40, 0.94);
+  --header-bg: rgba(40, 40, 40, 0.90);
+  --footer-bg: rgba(29, 32, 33, 0.96);
+  --content-bg: transparent;
+
+  --accent: #FE8019;
+  --accent-strong: #FABD2F;
+  --accent-glow: rgba(254, 128, 25, 0.38);
+  --accent-soft: rgba(254, 128, 25, 0.16);
+  --accent-border: rgba(254, 128, 25, 0.35);
+  --accent-tint: rgba(254, 128, 25, 0.08);
+
+  --danger: #FB4934;
+  --danger-strong: #FB4934;
+  --danger-soft: rgba(251, 73, 52, 0.16);
+  --danger-border: rgba(251, 73, 52, 0.32);
+
+  --warning: #FABD2F;
+  --warning-soft: rgba(250, 189, 47, 0.16);
+  --warning-border: rgba(250, 189, 47, 0.32);
+
+  --info: #8EC07C;
+  --info-soft: rgba(142, 192, 124, 0.16);
+  --info-border: rgba(142, 192, 124, 0.32);
+
+  --glass-surface: rgba(60, 56, 54, 0.70);
+  --glass-surface-hover: rgba(80, 73, 69, 0.85);
+  --glass-surface-active: #504945;
+  --glass-surface-dense: rgba(40, 40, 40, 0.96);
+  --glass-surface-subtle: rgba(235, 219, 178, 0.05);
+
+  --glass-border: rgba(146, 131, 116, 0.38);
+  --glass-border-light: rgba(146, 131, 116, 0.65);
+  --glass-border-hover: rgba(254, 128, 25, 0.48);
+  --glass-highlight: inset 0 1px 0 rgba(235, 219, 178, 0.12);
+  --glass-shadow: 0 13px 34px -8px rgba(0, 0, 0, 0.55);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(0, 0, 0, 0.38);
+
+  --text-1: #EBDBB2;
+  --text-2: #D5C4A1;
+  --text-3: #928374;
+  --text-muted: #7C6F64;
+  --text-inverse: #282828;
+
+  --input-bg: rgba(29, 32, 33, 0.90);
+  --input-border: #504945;
+  --input-border-focus: #FE8019;
+
+  --select-bg: #3C3836;
+  --select-border: #504945;
+  --select-border-hover: #FE8019;
+  --select-border-focus: #FE8019;
+  --select-popover-bg: #3C3836;
+  --select-option-hover: rgba(254, 128, 25, 0.18);
+  --select-option-selected: rgba(254, 128, 25, 0.28);
+  --select-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px #504945;
+
+  --term-bg: #1D2021;
+  --term-border: #3C3836;
+  --term-text: #EBDBB2;
+}
+
+/* Gruvbox Açık Mod */
+:root[data-theme="gruvbox-light"] {
+  --app-bg: #FBF1C7;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(214, 93, 14, 0.14) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(181, 118, 20, 0.10) 0px, transparent 50%),
+                     #FBF1C7;
+
+  --sidebar-bg: rgba(235, 219, 178, 0.94);
+  --header-bg: rgba(235, 219, 178, 0.90);
+  --footer-bg: rgba(213, 196, 161, 0.96);
+  --content-bg: transparent;
+
+  --accent: #D65D0E;
+  --accent-strong: #B57614;
+  --accent-glow: rgba(214, 93, 14, 0.35);
+  --accent-soft: rgba(214, 93, 14, 0.14);
+  --accent-border: rgba(214, 93, 14, 0.32);
+  --accent-tint: rgba(214, 93, 14, 0.06);
+
+  --danger: #CC241D;
+  --danger-strong: #CC241D;
+  --danger-soft: rgba(204, 36, 29, 0.14);
+  --danger-border: rgba(204, 36, 29, 0.28);
+
+  --warning: #D79921;
+  --warning-soft: rgba(215, 153, 33, 0.14);
+  --warning-border: rgba(215, 153, 33, 0.28);
+
+  --info: #458588;
+  --info-soft: rgba(69, 133, 136, 0.14);
+  --info-border: rgba(69, 133, 136, 0.28);
+
+  --glass-surface: rgba(255, 255, 255, 0.75);
+  --glass-surface-hover: rgba(255, 255, 255, 0.92);
+  --glass-surface-active: #FFFFFF;
+  --glass-surface-dense: rgba(244, 235, 202, 0.96);
+  --glass-surface-subtle: rgba(60, 56, 54, 0.04);
+
+  --glass-border: rgba(189, 174, 147, 0.45);
+  --glass-border-light: rgba(189, 174, 147, 0.70);
+  --glass-border-hover: rgba(214, 93, 14, 0.45);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 13px 34px -8px rgba(40, 40, 40, 0.10);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(40, 40, 40, 0.06);
+
+  --text-1: #282828;
+  --text-2: #3C3836;
+  --text-3: #7C6F64;
+  --text-muted: #928374;
+  --text-inverse: #FBF1C7;
+
+  --input-bg: #FFFFFF;
+  --input-border: rgba(189, 174, 147, 0.50);
+  --input-border-focus: #D65D0E;
+
+  --select-bg: #FFFFFF;
+  --select-border: rgba(189, 174, 147, 0.50);
+  --select-border-hover: #D65D0E;
+  --select-border-focus: #D65D0E;
+  --select-popover-bg: #FFFFFF;
+  --select-option-hover: rgba(214, 93, 14, 0.12);
+  --select-option-selected: rgba(214, 93, 14, 0.22);
+  --select-shadow: 0 14px 34px -6px rgba(40, 40, 40, 0.12), 0 0 0 1px rgba(189, 174, 147, 0.45);
+
+  --term-bg: #EBDBB2;
+  --term-border: rgba(189, 174, 147, 0.50);
+  --term-text: #282828;
+}
+
+/* ==========================================================================
+   8. ROSÉ PINE THEMES (Dark & Light)
+   ========================================================================== */
+/* Rosé Pine Koyu Mod */
+:root[data-theme="rosePine"],
+:root[data-theme="rosePine-dark"] {
+  --app-bg: #191724;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(235, 188, 186, 0.14) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(196, 167, 231, 0.10) 0px, transparent 50%),
+                     #191724;
+
+  --sidebar-bg: rgba(25, 23, 36, 0.94);
+  --header-bg: rgba(25, 23, 36, 0.90);
+  --footer-bg: rgba(20, 18, 29, 0.96);
+  --content-bg: transparent;
+
+  --accent: #EBBCBA;
+  --accent-strong: #C4A7E7;
+  --accent-glow: rgba(235, 188, 186, 0.38);
+  --accent-soft: rgba(235, 188, 186, 0.16);
+  --accent-border: rgba(235, 188, 186, 0.35);
+  --accent-tint: rgba(235, 188, 186, 0.08);
+
+  --danger: #EB6F92;
+  --danger-strong: #EB6F92;
+  --danger-soft: rgba(235, 111, 146, 0.16);
+  --danger-border: rgba(235, 111, 146, 0.32);
+
+  --warning: #F6C177;
+  --warning-soft: rgba(246, 193, 119, 0.16);
+  --warning-border: rgba(246, 193, 119, 0.32);
+
+  --info: #9CCFD8;
+  --info-soft: rgba(156, 207, 216, 0.16);
+  --info-border: rgba(156, 207, 216, 0.32);
+
+  --glass-surface: rgba(31, 29, 46, 0.70);
+  --glass-surface-hover: rgba(38, 35, 58, 0.85);
+  --glass-surface-active: #26233A;
+  --glass-surface-dense: rgba(25, 23, 36, 0.96);
+  --glass-surface-subtle: rgba(224, 222, 244, 0.05);
+
+  --glass-border: rgba(110, 106, 134, 0.38);
+  --glass-border-light: rgba(110, 106, 134, 0.65);
+  --glass-border-hover: rgba(235, 188, 186, 0.48);
+  --glass-highlight: inset 0 1px 0 rgba(224, 222, 244, 0.12);
+  --glass-shadow: 0 13px 34px -8px rgba(0, 0, 0, 0.55);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(0, 0, 0, 0.38);
+
+  --text-1: #E0DEF4;
+  --text-2: #C4A7E7;
+  --text-3: #6E6A86;
+  --text-muted: #56526E;
+  --text-inverse: #191724;
+
+  --input-bg: rgba(20, 18, 29, 0.90);
+  --input-border: #26233A;
+  --input-border-focus: #EBBCBA;
+
+  --select-bg: #1F1D2E;
+  --select-border: #26233A;
+  --select-border-hover: #EBBCBA;
+  --select-border-focus: #EBBCBA;
+  --select-popover-bg: #1F1D2E;
+  --select-option-hover: rgba(235, 188, 186, 0.18);
+  --select-option-selected: rgba(235, 188, 186, 0.28);
+  --select-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px #26233A;
+
+  --term-bg: #14121D;
+  --term-border: #1F1D2E;
+  --term-text: #E0DEF4;
+}
+
+/* Rosé Pine Açık Mod (Dawn) */
+:root[data-theme="rosePine-light"],
+:root[data-theme="rosePine-dawn"] {
+  --app-bg: #FAF4ED;
+  --app-bg-gradient: radial-gradient(at 0% 0%, rgba(215, 130, 126, 0.16) 0px, transparent 55%),
+                     radial-gradient(at 100% 100%, rgba(144, 122, 169, 0.10) 0px, transparent 50%),
+                     #FAF4ED;
+
+  --sidebar-bg: rgba(242, 233, 222, 0.94);
+  --header-bg: rgba(242, 233, 222, 0.90);
+  --footer-bg: rgba(235, 224, 210, 0.96);
+  --content-bg: transparent;
+
+  --accent: #B4637A;
+  --accent-strong: #907AA9;
+  --accent-glow: rgba(180, 99, 122, 0.35);
+  --accent-soft: rgba(180, 99, 122, 0.14);
+  --accent-border: rgba(180, 99, 122, 0.32);
+  --accent-tint: rgba(180, 99, 122, 0.06);
+
+  --danger: #B4637A;
+  --danger-strong: #B4637A;
+  --danger-soft: rgba(180, 99, 122, 0.14);
+  --danger-border: rgba(180, 99, 122, 0.28);
+
+  --warning: #EA9D34;
+  --warning-soft: rgba(234, 157, 52, 0.14);
+  --warning-border: rgba(234, 157, 52, 0.28);
+
+  --info: #56949F;
+  --info-soft: rgba(86, 148, 159, 0.14);
+  --info-border: rgba(86, 148, 159, 0.28);
+
+  --glass-surface: rgba(255, 255, 255, 0.75);
+  --glass-surface-hover: rgba(255, 255, 255, 0.92);
+  --glass-surface-active: #FFFFFF;
+  --glass-surface-dense: rgba(248, 240, 230, 0.96);
+  --glass-surface-subtle: rgba(87, 82, 121, 0.04);
+
+  --glass-border: rgba(152, 147, 165, 0.25);
+  --glass-border-light: rgba(152, 147, 165, 0.45);
+  --glass-border-hover: rgba(180, 99, 122, 0.45);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 13px 34px -8px rgba(87, 82, 121, 0.10);
+  --glass-shadow-sm: 0 4px 13px -2px rgba(87, 82, 121, 0.06);
+
+  --text-1: #575279;
+  --text-2: #797593;
+  --text-3: #9893A5;
+  --text-muted: #B5B1C2;
+  --text-inverse: #FAF4ED;
+
+  --input-bg: #FFFFFF;
+  --input-border: rgba(152, 147, 165, 0.30);
+  --input-border-focus: #B4637A;
+
+  --select-bg: #FFFFFF;
+  --select-border: rgba(152, 147, 165, 0.30);
+  --select-border-hover: #B4637A;
+  --select-border-focus: #B4637A;
+  --select-popover-bg: #FFFFFF;
+  --select-option-hover: rgba(180, 99, 122, 0.10);
+  --select-option-selected: rgba(180, 99, 122, 0.20);
+  --select-shadow: 0 14px 34px -6px rgba(87, 82, 121, 0.12), 0 0 0 1px rgba(152, 147, 165, 0.25);
+
+  --term-bg: #F2E9DE;
+  --term-border: rgba(152, 147, 165, 0.30);
+  --term-text: #575279;
 }

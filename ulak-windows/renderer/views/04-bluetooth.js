@@ -10,7 +10,7 @@
       const I = window.UlakIcons;
       return `
         <div class="bluetooth-view" style="display: flex; flex-direction: column; gap: 16px;">
-          ${C.headerCard('Bluetooth Yönetimi', 'Kablosuz Aygıtlar, Gerçek Bağlantı Durumu ve Donanım Kontrolü', 'bluetooth')}
+          ${C.headerCard('Bluetooth Yönetimi', 'Kablosuz Aygıtlar, Gerçek Bağlantı Durumu ve Donanım Kontrolü', 'bluetooth', 'bluetooth')}
 
           <!-- Adapter Status Hero Card -->
           <div class="glass-card liquid-glow" style="padding: 18px 20px;">
@@ -253,7 +253,7 @@
     const isConnected = !!d.connected;
     const iconName = d.icon || 'bluetooth';
     const batteryHtml = d.battery != null
-      ? `<span class="chip chip-accent" style="font-variant-numeric: tabular-nums;">🔋 %${d.battery}</span>`
+      ? `<span class="chip chip-accent" style="font-variant-numeric: tabular-nums;">${window.UlakIcons.getIcon('battery', 'icon-mono-xs')} %${d.battery}</span>`
       : '';
     const statusBadge = isConnected
       ? `<span class="chip chip-success"><span class="chip-dot"></span> Bağlı</span>`

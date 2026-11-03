@@ -1,6 +1,6 @@
 {
   "name": "ulak-windows",
-  "version": "1.0.0",
+  "version": "2.5.0",
   "description": "ULAK - Network & Security Station for Windows",
   "main": "main.js",
   "scripts": {

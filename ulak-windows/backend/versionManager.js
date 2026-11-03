@@ -233,12 +233,18 @@ const DEFAULT_MODULE_CATALOG = [
     githubUrl: 'https://github.com/yt-dlp/yt-dlp',
     binaryUrl: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe',
     desc: 'YouTube ve 1000+ siteden 4K video, altyazı ve MP3 formatında yüksek hızlı indirme.',
-    currentVersion: '2026.10.15',
+    currentVersion: '2026.10.26',
     availableVersions: [
+      {
+        version: '2026.10.26',
+        date: '26 Ekim 2026',
+        isLatest: true,
+        changelog: 'YouTube HTTP 403 Forbidden ve deobfuscation çözümleri, Node.js EJS entegrasyonu ve Android istemci desteği.'
+      },
       {
         version: '2026.10.15',
         date: '15 Ekim 2026',
-        isLatest: true,
+        isLatest: false,
         changelog: 'En yeni YouTube oynatıcı algoritması uyumluluğu ve 4K 60fps akış desteği.'
       },
       {

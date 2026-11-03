@@ -1,0 +1,302 @@
+name: ULAK Multi-Platform Release & Distribution
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version (e.g. 2.5.0)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ============================================================================
+  # 1. LINUX BUILD (.deb)
+  # ============================================================================
+  build-linux:
+    name: Build Linux (.deb)
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: ulak
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      deb_filename: ${{ steps.deb.outputs.filename }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Release Version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION_INPUT="${{ github.event.inputs.version }}"
+          if [[ -n "$VERSION_INPUT" ]]; then
+            VERSION="$VERSION_INPUT"
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="2.5.0"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building ULAK Linux Version: $VERSION"
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev apt-utils gnupg
+
+      - name: Build Debian Package
+        id: deb
+        run: |
+          chmod +x scripts/build_deb.sh
+          APP_NAME="$APP_NAME" ./scripts/build_deb.sh "${{ steps.version.outputs.version }}"
+          DEB_FILE=$(ls dist/*.deb | head -n 1)
+          echo "filename=$(basename "$DEB_FILE")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-deb
+          path: dist/*.deb
+          if-no-files-found: error
+
+  # ============================================================================
+  # 2. WINDOWS BUILD (.exe Setup & Portable)
+  # ============================================================================
+  build-windows:
+    name: Build Windows (Installer .exe)
+    runs-on: windows-latest
+    needs: [build-linux]
+    outputs:
+      version: ${{ needs.build-linux.outputs.version }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ulak-windows/package-lock.json
+
+      - name: Install Windows Dependencies
+        working-directory: ulak-windows
+        run: |
+          npm ci
+
+      - name: Build Windows Executable
+        working-directory: ulak-windows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run build-win
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: |
+            ulak-windows/dist/*.exe
+            ulak-windows/dist/*.zip
+          if-no-files-found: warn
+
+  # ============================================================================
+  # 3. UNIFIED SYNCHRONOUS GITHUB RELEASE
+  # ============================================================================
+  create-release:
+    name: Synchronous Multi-Platform Release
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-windows]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Release Workspace
+        run: |
+          mkdir -p release-assets
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-deb
+          path: release-assets/
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+          path: release-assets/
+
+      - name: Generate Checksums & Release Notes
+        id: prep
+        working-directory: release-assets
+        run: |
+          echo "### SHA-256 Checksums" > checksums.txt
+          echo '```' >> checksums.txt
+          sha256sum * >> checksums.txt 2>/dev/null || true
+          echo '```' >> checksums.txt
+
+          VERSION="${{ needs.build-linux.outputs.version }}"
+          cat <<EOF > release_notes.md
+          # 🚀 ULAK v${VERSION} Release
+
+          A modern, multi-platform Network, Hardware & Security Station (Bento Grid Interface).
+          Modern Bento Grid arayüzüne sahip hepsi bir arada Ağ, Donanım ve Güvenlik İstasyonu.
+
+          ### 📦 Platform İndirmeleri / Platform Downloads
+          - **🐧 Linux (Debian / Ubuntu / Kali / Pardus):** \`ulak_${VERSION}_all.deb\`
+          - **🪟 Windows (10 / 11 64-bit):** \`ULAK-Setup-${VERSION}.exe\`
+
+          ### ✨ Öne Çıkan Özellikler / Highlights
+          - 🛡️ **ULAK Firewall:** Canlı port izleme, Paranoid mod, nftables/Windows Defender kuralları.
+          - 📶 **Wi-Fi & Bluetooth Station:** Canlı sinyal analizi, donanım eşleştirme ve hotspot.
+          - 🔒 **Kripto Kasa (Crypto Vault):** AES-256-GCM dosya şifreleme ve PNG steganografi.
+          - 🛡️ **Antivirüs & Tehdit Avcısı:** EICAR testi, bellek ve disk tarama, port analizi.
+          - 📊 **Donanım & Süreç Monitörü:** Canlı CPU, GPU, RAM, Disk telemetrisi.
+          - 🛒 **ULAK Store:** Dinamik modül ve eklenti yükleme merkezi.
+          - 🎨 **Bento Grid & Glassmorphism:** Karanlık/Aydınlık/Akrilik tema desteği.
+
+          $(cat checksums.txt)
+          EOF
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ULAK v${{ needs.build-linux.outputs.version }}
+          body_path: release-assets/release_notes.md
+          draft: false
+          prerelease: false
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # 4. APT REPOSITORY (gh-pages)
+  # ============================================================================
+  publish-apt:
+    name: Update APT Repository (gh-pages)
+    runs-on: ubuntu-latest
+    needs: [create-release, build-linux]
+    env:
+      APP_NAME: ulak
+      VERSION: ${{ needs.build-linux.outputs.version }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install APT Repository Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev apt-utils gnupg
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-deb
+          path: dist/
+
+      - name: Build APT Repository Structure
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPO_DIR="repo"
+          APT_DIR="$REPO_DIR/apt"
+
+          rm -rf "$REPO_DIR"
+          mkdir -p "$APT_DIR/pool/main/d/$APP_NAME"
+          cp dist/*.deb "$APT_DIR/pool/main/d/$APP_NAME/"
+
+          mkdir -p "$APT_DIR/dists/stable/main/binary-all"
+          pushd "$APT_DIR" >/dev/null
+          dpkg-scanpackages --arch all pool > dists/stable/main/binary-all/Packages
+          gzip -kf dists/stable/main/binary-all/Packages
+          popd >/dev/null
+
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="ULAK" \
+            -o APT::FTPArchive::Release::Label="ULAK" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="stable" \
+            -o APT::FTPArchive::Release::Architectures="all" \
+            -o APT::FTPArchive::Release::Components="main" \
+            release "$APT_DIR/dists/stable" > "$APT_DIR/dists/stable/Release"
+
+          if [[ -n "${APT_GPG_PRIVATE_KEY:-}" ]]; then
+            export GNUPGHOME
+            GNUPGHOME="$(mktemp -d)"
+
+            echo "${APT_GPG_PRIVATE_KEY}" | gpg --batch --import
+            KEY_ID="$(gpg --batch --list-keys --with-colons | awk -F: '/^pub/{print $5; exit}')"
+
+            if [[ -n "${APT_GPG_PASSPHRASE:-}" ]]; then
+              printf "%s" "${APT_GPG_PASSPHRASE}" > gpg-passphrase.txt
+              PASS_ARGS=(--pinentry-mode loopback --passphrase-file gpg-passphrase.txt)
+            else
+              PASS_ARGS=()
+            fi
+
+            gpg --batch --yes "${PASS_ARGS[@]}" -u "$KEY_ID" \
+              --armor --output "$APT_DIR/public.key" --export "$KEY_ID"
+
+            gpg --batch --yes "${PASS_ARGS[@]}" -u "$KEY_ID" \
+              -abs -o "$APT_DIR/dists/stable/Release.gpg" "$APT_DIR/dists/stable/Release"
+
+            gpg --batch --yes "${PASS_ARGS[@]}" -u "$KEY_ID" \
+              --clearsign -o "$APT_DIR/dists/stable/InRelease" "$APT_DIR/dists/stable/Release"
+          else
+            echo "Warning: APT_GPG_PRIVATE_KEY secret not set. Repository will be unsigned."
+          fi
+
+          cat > "$REPO_DIR/index.html" <<'EOF'
+          <!doctype html>
+          <html lang="tr">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>ULAK APT Repository</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; color: #f3f4f6; padding: 40px; text-align: center; }
+              .card { max-width: 600px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+              h1 { color: #38bdf8; margin-bottom: 8px; }
+              code { background: #1f2937; padding: 4px 8px; border-radius: 6px; color: #a5f3fc; }
+              a { color: #38bdf8; text-decoration: none; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h1>🛡️ ULAK APT Repository</h1>
+              <p>Official Debian/Ubuntu APT repository for ULAK Network & Security Station.</p>
+              <p>Path: <code>/apt</code></p>
+              <p><a href="https://github.com/Veysitasci/Ulak">GitHub Deposu</a> | <a href="https://github.com/Veysitasci/Ulak/releases">Son Sürümler</a></p>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./repo
+          force_orphan: true

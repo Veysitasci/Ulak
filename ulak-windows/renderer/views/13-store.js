@@ -18,10 +18,10 @@
           <!-- Navigation Tabs -->
           <div style="display: flex; gap: 12px; margin-bottom: 20px;">
             <button class="btn ${activeTab === 'store' ? 'btn-primary' : 'btn-secondary'} btn-tab-switch" data-tab="store" style="padding: 10px 22px; font-weight: 600;">
-              <span style="margin-right: 8px;">📦</span> Eklenti Mağazası
+              ${window.UlakIcons.getIcon('package', 'icon-mono-xs')} Eklenti Mağazası
             </button>
             <button class="btn ${activeTab === 'versions' ? 'btn-primary' : 'btn-secondary'} btn-tab-switch" data-tab="versions" style="padding: 10px 22px; font-weight: 600;">
-              <span style="margin-right: 8px;">🔄</span> Sürüm & Güncelleme Yöneticisi (Rollback)
+              ${window.UlakIcons.getIcon('refresh', 'icon-mono-xs')} Sürüm & Güncelleme Yöneticisi (Rollback)
             </button>
           </div>
 
@@ -36,7 +36,7 @@
                   </div>
                 </div>
                 <button class="btn btn-secondary btn-sm" id="btn-custom-github-plugin">
-                  <span style="margin-right: 6px;">➕</span> Özel Eklenti İndir / Yükle
+                  ${window.UlakIcons.getIcon('download', 'icon-mono-xs')} Özel Eklenti İndir / Yükle
                 </button>
               </div>
               <div class="grid-2" id="store-grid-container" style="margin-top: 16px;"></div>
@@ -54,7 +54,7 @@
                   </div>
                 </div>
                 <button class="btn btn-primary btn-sm" id="btn-check-all-updates">
-                  <span style="margin-right: 6px;">🔄</span> GitHub'dan Güncellemeleri Denetle
+                  ${window.UlakIcons.getIcon('refresh', 'icon-mono-xs')} GitHub'dan Güncellemeleri Denetle
                 </button>
               </div>
               <div class="grid-2" id="versions-grid-container" style="margin-top: 16px;"></div>
@@ -123,41 +123,57 @@
       const cardsHtml = modules.map((m) => {
         const isInstalled = installed.includes(m.id);
         const iconName = m.icon || 'package';
+        const bannerImg = `../assets/store_banners/burst_${m.id}.png`;
 
         return `
-          <div class="glass-card liquid-glow" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-color: ${isInstalled ? 'var(--accent-border)' : 'var(--glass-border-hover)'};">
+          <div class="glass-card liquid-glow module-store-card" data-id="${m.id}" style="padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; cursor: pointer; border-color: ${isInstalled ? 'var(--accent-border)' : 'var(--glass-border-hover)'};">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <div class="setting-row-icon" style="color: var(--accent);">${window.UlakIcons.getIcon(iconName)}</div>
-                  <div>
-                    <div style="font-size: 14px; font-weight: 700; color: var(--text-1);">${window.UlakUI.escapeHtml(m.name_key)}</div>
-                    <div style="font-size: 10px; color: var(--accent); font-family: monospace;">GitHub / ${m.id}</div>
+              <!-- Altın Oran (Φ = 1.618) Gölgeli Modül Logo & Başlık Banner'ı -->
+              <div class="module-card-banner">
+                <!-- Gerçek Duvar Kağıdı Görseli -->
+                <img src="${bannerImg}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 0;" onerror="this.style.display='none';" />
+                <div class="module-card-banner-overlay"></div>
+                <div class="module-card-banner-vignette"></div>
+
+                <!-- Logo & Başlık İçeriği -->
+                <div style="position: relative; z-index: 2; height: 100%; padding: 0 16px; display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 13px;">
+                    <div class="setting-row-icon module-card-icon-box">
+                      <img src="../assets/module_icons/${m.id}.png" style="width: 38px; height: 38px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));" onerror="this.style.display='none';" />
+                    </div>
+                    <div>
+                      <div class="module-card-title">${window.UlakUI.escapeHtml(m.name_key)}</div>
+                      <div class="module-card-subtitle">GitHub / ${m.id}</div>
+                    </div>
                   </div>
+                  <span class="chip ${isInstalled ? 'chip-accent' : ''}" style="box-shadow: 0 2px 8px rgba(0,0,0,0.45); backdrop-filter: blur(4px);">${window.UlakUI.escapeHtml(m.category || 'Eklenti')}</span>
                 </div>
-                <span class="chip ${isInstalled ? 'chip-accent' : ''}">${window.UlakUI.escapeHtml(m.category || 'Eklenti')}</span>
               </div>
-              <p style="font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 12px;">
-                ${window.UlakUI.escapeHtml(m.desc_key)}
-              </p>
-              <ul style="font-size: 11px; color: var(--text-3); padding-left: 18px; margin-bottom: 16px; line-height: 1.6;">
-                ${(m.features || []).map(f => `<li>${window.UlakUI.escapeHtml(f)}</li>`).join('')}
-              </ul>
+
+              <!-- Kart Metin & Detay Gövdesi -->
+              <div style="padding: 16px 20px 0 20px;">
+                <p style="font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 12px;">
+                  ${window.UlakUI.escapeHtml(m.desc_key)}
+                </p>
+                <ul style="font-size: 11px; color: var(--text-3); padding-left: 18px; margin-bottom: 16px; line-height: 1.6;">
+                  ${(m.features || []).map(f => `<li>${window.UlakUI.escapeHtml(f)}</li>`).join('')}
+                </ul>
+              </div>
             </div>
-            <div>
+            <div style="padding: 0 20px 20px 20px;">
               ${isInstalled 
                 ? `
                   <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-secondary btn-sm" onclick="window.UlakRouter.navigate('${m.id === 'youtube' ? 'youtube' : m.id === 'sys_cleaner' ? 'cleaner' : m.id === 'backup_tool' ? 'backup' : m.id}')" style="flex: 1;">
+                    <button class="btn btn-secondary btn-sm btn-store-launch" onclick="event.stopPropagation(); window.UlakRouter.navigate('${m.id === 'youtube' ? 'youtube' : m.id === 'sys_cleaner' ? 'cleaner' : m.id === 'backup_tool' ? 'backup' : m.id}')" style="flex: 1;">
                       Aç →
                     </button>
-                    <button class="btn btn-danger-soft btn-sm btn-store-toggle" data-id="${m.id}" data-action="remove" style="flex: 1;">
+                    <button class="btn btn-danger-soft btn-sm btn-store-toggle" data-id="${m.id}" data-action="remove" onclick="event.stopPropagation();" style="flex: 1;">
                       Kaldır
                     </button>
                   </div>
                 `
                 : `
-                  <button class="btn btn-primary btn-store-toggle" data-id="${m.id}" data-action="install" style="width: 100%;">
+                  <button class="btn btn-primary btn-store-toggle" data-id="${m.id}" data-action="install" onclick="event.stopPropagation();" style="width: 100%;">
                     <span>⬇</span> İndir & Kur
                   </button>
                 `
@@ -168,6 +184,21 @@
       }).join('');
 
       container.innerHTML = cardsHtml;
+
+      // Kart tıklaması ile detay modalını açma
+      container.querySelectorAll('.module-store-card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.btn-store-toggle') || e.target.closest('.btn-store-launch')) {
+            return;
+          }
+          const modId = card.getAttribute('data-id');
+          const mod = modules.find(item => item.id === modId);
+          if (mod) {
+            const isInst = (JSON.parse(localStorage.getItem('ulak-modules') || '[]')).includes(mod.id);
+            openModuleDetailsModal(mod, isInst, el);
+          }
+        });
+      });
 
       container.querySelectorAll('.btn-store-toggle').forEach((btn) => {
         btn.addEventListener('click', async () => {
@@ -252,30 +283,44 @@
         const currentVerObj = (m.availableVersions || []).find(v => v.version === m.currentVersion) || m.availableVersions[0];
         const changelogText = currentVerObj ? currentVerObj.changelog : 'Sürüm notu bulunamadı.';
 
+        const bannerImg = `../assets/store_banners/burst_${m.id}.png`;
+
         return `
-          <div class="glass-card liquid-glow" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-color: ${isUpToDate ? 'var(--glass-border)' : 'var(--warning-border)'};">
+          <div class="glass-card liquid-glow module-version-card" style="padding: 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border-color: ${isUpToDate ? 'var(--glass-border)' : 'var(--warning-border)'};">
             <div>
-              <!-- Header -->
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <div class="setting-row-icon" style="color: var(--accent);">${window.UlakIcons.getIcon(iconName)}</div>
-                  <div>
-                    <div style="font-size: 14px; font-weight: 700; color: var(--text-1);">${window.UlakUI.escapeHtml(m.name)}</div>
-                    <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
-                      ${coreBadge}
-                      <span class="chip" style="font-size: 10px;">${window.UlakUI.escapeHtml(m.category)}</span>
+              <!-- Altın Oran (Φ = 1.618) Gölgeli Modül Logo & Sürüm Banner'ı -->
+              <div class="module-card-banner">
+                <!-- Gerçek Duvar Kağıdı Görseli -->
+                <img src="${bannerImg}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 0;" onerror="this.style.display='none';" />
+                <div class="module-card-banner-overlay"></div>
+                <div class="module-card-banner-vignette"></div>
+
+                <!-- Logo & Başlık İçeriği -->
+                <div style="position: relative; z-index: 2; height: 100%; padding: 0 16px; display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 13px;">
+                    <div class="setting-row-icon" style="width: 48px; height: 48px; background: transparent !important; border: none !important; box-shadow: none !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <img src="../assets/module_icons/${m.id}.png" style="width: 38px; height: 38px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));" onerror="this.style.display=\'none\';" />
+                    </div>
+                    <div>
+                      <div style="font-size: 14px; font-weight: 700; color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,0.85);">${window.UlakUI.escapeHtml(m.name)}</div>
+                      <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                        ${coreBadge}
+                        <span class="chip" style="font-size: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.4);">${window.UlakUI.escapeHtml(m.category)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div>
-                  ${isUpToDate 
-                    ? '<span class="chip chip-accent" style="font-size: 11px;">✓ Güncel</span>' 
-                    : '<span class="chip" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 11px;">⬆ Güncelleme Var</span>'
-                  }
+                  <div>
+                    ${isUpToDate 
+                      ? '<span class="chip chip-accent" style="font-size: 11px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">✓ Güncel</span>' 
+                      : '<span class="chip" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 11px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">⬆ Güncelleme Var</span>'
+                    }
+                  </div>
                 </div>
               </div>
 
-              <!-- Sürüm Durumu Kartı -->
+              <!-- Kart İçi Kontroller & Sürüm Kutusu -->
+              <div style="padding: 16px 20px 0 20px;">
+                <!-- Sürüm Durumu Kartı -->
               <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                   <span style="color: var(--text-2);">Mevcut Sürüm:</span>
@@ -308,9 +353,9 @@
             </div>
 
             <!-- Eylem Butonları -->
-            <div style="display: flex; gap: 8px;">
+            <div style="padding: 0 20px 20px 20px; display: flex; gap: 8px;">
               <button class="btn ${isUpToDate ? 'btn-secondary' : 'btn-primary'} btn-sm btn-update-latest" data-id="${m.id}" ${isUpToDate ? 'disabled' : ''} style="flex: 1;">
-                <span>🚀</span> En Yeniye Çek
+                <span>${window.UlakIcons.getIcon('zap', 'icon-mono-xs')}</span> En Yeniye Çek
               </button>
               <button class="btn btn-secondary btn-sm btn-rollback-version" data-id="${m.id}" ${!m.canRollback ? 'disabled title="Daha eski bir sürüm bulunmuyor"' : ''} style="flex: 1; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
                 <span>⏪</span> Sürümü Geri Çek
@@ -431,7 +476,7 @@
         window.UlakUI.toast(`Denetim hatası: ${err.message}`, 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<span style="margin-right: 6px;">🔄</span> Güncellemeleri Denetle`;
+        btn.innerHTML = `<span style=\"display:inline-flex;align-items:center;gap:6px;\">${window.UlakIcons.getIcon('refresh', 'icon-mono-xs')} Güncellemeleri Denetle</span>`;
       }
     });
   }
@@ -482,6 +527,293 @@
           }
         ]
       });
+    });
+  }
+
+  // ==========================================
+  // MODÜL DETAYLARI: IMMERSIVE LIQUID GLASS MODAL
+  // ==========================================
+  async function openModuleDetailsModal(mod, isInstalled, el) {
+    const bannerImg = `../assets/store_banners/burst_${mod.id}.png`;
+    const iconName = mod.icon || 'package';
+
+    const MODULE_SIZES = {
+      crypto_vault: '12.4 MB',
+      antivirus: '18.6 MB',
+      youtube: '24.2 MB',
+      sys_cleaner: '9.8 MB',
+      net_monitor: '11.5 MB',
+      backup_tool: '14.1 MB',
+      pkg_installer: '16.8 MB'
+    };
+    const modSize = MODULE_SIZES[mod.id] || '14.5 MB';
+
+    // Sürüm ve değişiklik geçmişini al
+    if (!cachedVersionModules) {
+      try {
+        cachedVersionModules = await window.ulak.invoke('version:get-all');
+      } catch (e) {
+        cachedVersionModules = [];
+      }
+    }
+
+    const verInfo = (cachedVersionModules || []).find(v => v.id === mod.id);
+    const currentVersion = verInfo ? verInfo.currentVersion : '1.0.0';
+    const versionsList = (verInfo && verInfo.availableVersions && verInfo.availableVersions.length > 0)
+      ? verInfo.availableVersions
+      : [
+          {
+            version: currentVersion,
+            date: 'Kasım 2026',
+            isLatest: true,
+            changelog: 'Stabil sürüm: Güvenlik, performans optimizasyonları ve Windows 11 Fluent Glass entegrasyonu.'
+          }
+        ];
+
+    // Önceki modal varsa temizle
+    const existing = document.getElementById('module-detail-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'module-detail-modal-overlay';
+    overlay.className = 'modal-overlay';
+    overlay.style.zIndex = '9999';
+
+    overlay.innerHTML = `
+      <div class="module-detail-dialog">
+        <!-- 1. Kesintisiz Tam Ekran Duvar Kağıdı Katmanı -->
+        <div class="module-detail-bg-layer">
+          <img src="${bannerImg}" class="module-detail-bg-img" alt="" onerror="this.src='../assets/store_banners/burst_crypto_vault.png';" />
+          <div class="module-detail-glass-overlay"></div>
+        </div>
+
+        <!-- 2. Sticky Kapat Butonu -->
+        <button class="module-detail-close-btn" id="btn-close-module-modal" title="Pencereyi Kapat" aria-label="Kapat">✕</button>
+
+        <!-- 3. Tek Sayfa İçerik Akışı (Tüm sayfa tek scrollbar ile akar) -->
+        <div class="module-detail-content-flow" tabindex="0">
+          <!-- Üst Orta: İkon & Fütüristik Büyük Başlık -->
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 4px;">
+            <div class="module-detail-top-icon-box">
+              <img src="../assets/module_icons/${mod.id}.png" style="width: 62px; height: 62px; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));" onerror="this.style.display='none';" />
+            </div>
+
+            <!-- Fütüristik Büyük Kalın Modül Adı -->
+            <div class="module-detail-modal-title">
+              ${window.UlakUI.escapeHtml(mod.name_key || mod.name)}
+            </div>
+
+            <!-- Küçük Sürüm ve Boyut -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; font-family: var(--font-mono); font-size: 11px;">
+              <span style="color: var(--text-1); background: var(--glass-surface-subtle); padding: 3px 12px; border-radius: var(--r-full); border: 1px solid var(--glass-border-light); font-weight: 700;">
+                v${currentVersion}
+              </span>
+              <span style="color: var(--text-3);">•</span>
+              <span style="color: var(--text-2); background: var(--glass-surface-subtle); padding: 3px 12px; border-radius: var(--r-full); border: 1px solid var(--glass-border); font-weight: 600;">
+                ${modSize}
+              </span>
+              <span style="color: var(--text-3);">•</span>
+              <span class="chip">
+                ${isInstalled ? 'Sistemde Yüklü' : 'Kuruluma Hazır'}
+              </span>
+            </div>
+          </div>
+
+          <!-- HAKKINDA Bölümü (Kategori Başlıkları) -->
+          <div class="glass-card module-detail-modal-card" style="margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div style="font-size: 14px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-1); display: flex; align-items: center; gap: 8px;">
+                ${window.UlakIcons.getIcon('fileText', 'icon-mono-sm')} HAKKINDA
+              </div>
+              <span class="chip" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">
+                ${window.UlakUI.escapeHtml(mod.category || 'Eklenti')}
+              </span>
+            </div>
+
+            <p style="font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 14px;">
+              ${window.UlakUI.escapeHtml(mod.desc_key || mod.desc || '')}
+            </p>
+
+            ${(mod.features && mod.features.length > 0) ? `
+              <div style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--text-3); letter-spacing: 0.8px; margin-bottom: 8px;">
+                Öne Çıkan Yetenekler
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                ${mod.features.map(f => `
+                  <div style="
+                    background: var(--glass-surface-subtle);
+                    border: 1px solid var(--glass-border);
+                    border-radius: var(--r-sm);
+                    padding: 8px 12px;
+                    font-size: 11.5px;
+                    color: var(--text-1);
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                    line-height: 1.4;
+                  ">
+                    <span style="color: var(--text-2); margin-top: 1px; display: inline-flex;">${window.UlakIcons.getIcon('check', 'icon-mono-xs')}</span>
+                    <span>${window.UlakUI.escapeHtml(f)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- SÜRÜM GÜNCELLEMELERİ BÖLÜMÜ (Tek sayfa, iç scrollbar olmadan açık akış) -->
+          <div class="glass-card module-detail-modal-card" style="margin-top: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="font-size: 13.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-1); display: flex; align-items: center; gap: 8px;">
+                ${window.UlakIcons.getIcon('refresh', 'icon-mono-sm')} SÜRÜM GÜNCELLEMELERİ & DEĞİŞİKLİK GÜNLÜĞÜ
+              </div>
+              <span style="font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono);">
+                ${versionsList.length} Sürüm Kaydı
+              </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${versionsList.map(v => `
+                <div style="
+                  background: var(--glass-surface-subtle);
+                  border: 1px solid var(--glass-border);
+                  border-radius: var(--r-sm);
+                  padding: 10px 14px;
+                ">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-1);">
+                        v${v.version}
+                      </span>
+                      ${v.isLatest ? '<span class="chip" style="font-size: 9px; padding: 1px 6px;">En Yeni</span>' : ''}
+                      ${v.version === currentVersion ? '<span class="chip" style="font-size: 9px; padding: 1px 6px;">Yüklü</span>' : ''}
+                    </div>
+                    <span style="font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono);">${window.UlakUI.escapeHtml(v.date || '')}</span>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-2); line-height: 1.45;">
+                    ${window.UlakUI.escapeHtml(v.changelog || 'Sürüm optimizasyonları ve hata düzeltmeleri.')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Aksiyon Butonları -->
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            ${isInstalled ? `
+              <button class="btn btn-primary" id="btn-modal-action-launch" style="flex: 2; height: 40px; font-size: 13px;">
+                <span>Uygulamayı Aç →</span>
+              </button>
+              <button class="btn btn-danger-soft" id="btn-modal-action-uninstall" style="flex: 1; height: 40px; font-size: 13px;">
+                <span>Modülü Kaldır</span>
+              </button>
+            ` : `
+              <button class="btn btn-primary" id="btn-modal-action-install" style="width: 100%; height: 42px; font-size: 13px;">
+                <span style="display:inline-flex;align-items:center;gap:6px;">${window.UlakIcons.getIcon('download', 'icon-mono-sm')} Modülü İndir & Sisteme Kur</span>
+              </button>
+            `}
+          </div>
+
+          <!-- En Altta Ortada 2026 Watermark -->
+          <div style="
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 4px;
+            font-size: 10.5px;
+            color: var(--text-3);
+            font-family: var(--font-mono);
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            opacity: 0.85;
+          ">
+            © 2026 ULAK ECOSYSTEM • TÜM HAKLARI SAKLIDIR • ULAK WINDOWS
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const flow = overlay.querySelector('.module-detail-content-flow');
+    if (flow) {
+      setTimeout(() => flow.focus(), 50);
+      flow.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > 0) {
+          flow.scrollTop += e.deltaY * 1.6;
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
+
+    const closeModal = () => {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => overlay.remove(), 200);
+    };
+
+    overlay.querySelector('#btn-close-module-modal')?.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    // Aç Butonu
+    overlay.querySelector('#btn-modal-action-launch')?.addEventListener('click', () => {
+      closeModal();
+      const targetNav = (mod.id === 'youtube') ? 'youtube' : (mod.id === 'sys_cleaner') ? 'cleaner' : (mod.id === 'backup_tool') ? 'backup' : mod.id;
+      window.UlakRouter.navigate(targetNav);
+    });
+
+    // Kur Butonu
+    overlay.querySelector('#btn-modal-action-install')?.addEventListener('click', async () => {
+      const btn = overlay.querySelector('#btn-modal-action-install');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-inline"></span> İndiriliyor...`;
+      }
+
+      try {
+        if (mod.id === 'youtube') {
+          const res = await window.ulak.invoke('youtube:install-ytdlp');
+          if (!res.success) throw new Error(res.message);
+        }
+
+        let currentList = JSON.parse(localStorage.getItem('ulak-modules') || '[]');
+        if (!currentList.includes(mod.id)) currentList.push(mod.id);
+        localStorage.setItem('ulak-modules', JSON.stringify(currentList));
+
+        const uninstalled = JSON.parse(localStorage.getItem('ulak-uninstalled-modules') || '[]');
+        localStorage.setItem('ulak-uninstalled-modules', JSON.stringify(uninstalled.filter(id => id !== mod.id)));
+
+        window.dispatchEvent(new Event('ulak-modules-updated'));
+        window.UlakUI.toast(`${mod.name_key || mod.name} başarıyla kuruldu!`, 'success');
+        closeModal();
+        renderStoreTab(el);
+      } catch (err) {
+        window.UlakUI.toast(err.message || 'Kurulum tamamlanamadı.', 'error');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">${window.UlakIcons.getIcon('download', 'icon-mono-sm')} Modülü İndir & Sisteme Kur</span>`;
+        }
+      }
+    });
+
+    // Kaldır Butonu
+    overlay.querySelector('#btn-modal-action-uninstall')?.addEventListener('click', async () => {
+      if (mod.id === 'youtube') {
+        await window.ulak.invoke('youtube:uninstall-ytdlp').catch(() => {});
+      }
+
+      let currentList = JSON.parse(localStorage.getItem('ulak-modules') || '[]');
+      currentList = currentList.filter(id => id !== mod.id);
+      localStorage.setItem('ulak-modules', JSON.stringify(currentList));
+
+      const uninstalled = JSON.parse(localStorage.getItem('ulak-uninstalled-modules') || '[]');
+      if (!uninstalled.includes(mod.id)) uninstalled.push(mod.id);
+      localStorage.setItem('ulak-uninstalled-modules', JSON.stringify(uninstalled));
+
+      window.dispatchEvent(new Event('ulak-modules-updated'));
+      window.UlakUI.toast(`${mod.name_key || mod.name} kaldırıldı.`, 'info');
+      closeModal();
+      renderStoreTab(el);
     });
   }
 

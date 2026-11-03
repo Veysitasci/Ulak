@@ -12,8 +12,8 @@
           <div class="glass-card liquid-glow" style="margin-bottom: 20px; padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
               <div style="display: flex; align-items: center; gap: 14px;">
-                <div class="setting-row-icon" style="width: 50px; height: 50px; border-radius: var(--r-md);">
-                  ${window.UlakIcons.getIcon('video', 'icon-mono-lg')}
+                <div class="setting-row-icon" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: transparent !important; border: none !important; box-shadow: none !important;">
+                  <img src="../assets/module_icons/youtube.png" class="view-header-3d-icon" style="width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));" onerror="this.style.display=\'none\';" />
                 </div>
                 <div>
                   <div style="font-size: 19px; font-weight: 700; color: var(--text-1); letter-spacing: -0.01em;">Video & Medya İndirici Pro</div>
@@ -49,7 +49,7 @@
             <!-- 5 KRİTİK ÖZELLİK AYAR PANELİ (BENTO GRID) -->
             <div class="grid-3" style="gap: 12px; margin-bottom: 16px;">
               <!-- 1. Kalite & Format (MCP UI Encased) -->
-              <div class="glass-card" style="padding: 14px; background: rgba(255,255,255,0.02);">
+              <div class="glass-card" style="padding: 14px; background: var(--glass-surface-subtle);">
                 <label style="font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; display: block; margin-bottom: 8px;">
                   1. Format & Kalite
                 </label>
@@ -71,7 +71,7 @@
               </div>
 
               <!-- 2. Hız Sınırı & Paralel Parça (MCP UI Encased) -->
-              <div class="glass-card" style="padding: 14px; background: rgba(255,255,255,0.02);">
+              <div class="glass-card" style="padding: 14px; background: var(--glass-surface-subtle);">
                 <label style="font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; display: block; margin-bottom: 8px;">
                   2. Bant Genişliği & Parça
                 </label>
@@ -98,7 +98,7 @@
               </div>
 
               <!-- 3. Altyazı & Playlist Seçenekleri -->
-              <div class="glass-card" style="padding: 14px; background: rgba(255,255,255,0.02); display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+              <div class="glass-card" style="padding: 14px; background: var(--glass-surface-subtle); display: flex; flex-direction: column; justify-content: center; gap: 8px;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--text-1); font-weight: 500;">
                   <input type="checkbox" id="yt-opt-subtitles" style="accent-color: var(--accent); width: 16px; height: 16px;">
                   <span>Türkçe/İngilizce Altyazı (.srt) İndir</span>
@@ -111,7 +111,7 @@
             </div>
 
             <!-- Playlist Aralık Girişi (Koşullu Açılır) -->
-            <div id="yt-playlist-range-box" style="display: none; margin-bottom: 16px; padding: 12px; border-radius: var(--r-sm); background: rgba(var(--accent-rgb, 100, 150, 255), 0.08); border: 1px solid var(--glass-border);">
+            <div id="yt-playlist-range-box" style="display: none; margin-bottom: 16px; padding: 12px; border-radius: var(--r-sm); background: var(--accent-tint); border: 1px solid var(--accent-border);">
               <div style="font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 8px;">Oynatma Listesi Video Aralığı:</div>
               <div style="display: flex; gap: 10px; align-items: center;">
                 <span style="font-size: 12px; color: var(--text-2);">Başlangıç:</span>
@@ -133,30 +133,28 @@
             </div>
           </div>
 
-          <!-- Video Önizleme Kartı (Sade İndirme Düzeyleri ve Canlı Oynatıcı) -->
+          <!-- Video Önizleme Kartı (Sade İndirme Düzeyleri ve Modal Önizleme Tetikleyicileri) -->
           <div class="view-section glass-card" id="yt-preview-card" style="display: none; margin-bottom: 20px;">
-            <!-- Canlı Embed Oynatıcı (YouTube veya Harici) -->
-            <div id="yt-embed-player-wrap" style="display: none; width: 100%; aspect-ratio: 16/9; max-height: 380px; border-radius: var(--r-md); overflow: hidden; margin-bottom: 14px; background: #000; border: 1px solid var(--glass-border);">
-              <iframe id="yt-embed-iframe" src="" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-
             <div style="display: flex; gap: 18px; align-items: center; flex-wrap: wrap;">
-              <div style="position: relative; width: 190px; height: 108px; border-radius: var(--r-sm); overflow: hidden; background: var(--glass-bg-soft); border: 1px solid var(--glass-border); box-shadow: 0 4px 14px rgba(0,0,0,0.3); cursor: pointer;" id="yt-thumb-container" title="Canlı Önizlemeyi Başlat">
+              <div style="position: relative; width: 190px; height: 108px; border-radius: var(--r-sm); overflow: hidden; background: var(--glass-surface-subtle); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm); cursor: pointer;" id="yt-thumb-container" title="ULAK Medya Oynatıcıda Önizle">
                 <img id="yt-thumb" src="" alt="Thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
-                <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; transition: background var(--transition-fast);">
-                  <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px var(--accent-glow);">
+                <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center;">
                     ${window.UlakIcons.getIcon('play', 'icon-mono-sm')}
                   </div>
                 </div>
-                <span id="yt-duration-badge" class="chip" style="position: absolute; bottom: 6px; right: 6px; font-size: 10px; background: rgba(0,0,0,0.85); padding: 2px 6px; font-variant-numeric: tabular-nums;">--:--</span>
+                <span id="yt-duration-badge" class="chip" style="position: absolute; bottom: 6px; right: 6px; font-size: 10px; background: rgba(0,0,0,0.85); color: #ffffff; padding: 2px 6px; font-variant-numeric: tabular-nums;">--:--</span>
               </div>
               <div style="flex: 1; min-width: 250px;">
                 <div style="font-size: 16px; font-weight: 700; color: var(--text-1); line-height: 1.4;" id="yt-title">Video Başlığı</div>
                 <div style="font-size: 13px; color: var(--accent); margin-top: 6px; font-weight: 600;" id="yt-author">Kanal: --</div>
-                <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
                   <span style="font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums;" id="yt-duration-text">Toplam Süre: --</span>
-                  <button class="btn btn-secondary btn-sm" id="yt-btn-toggle-embed" style="padding: 2px 8px; font-size: 11px;">
-                    ${window.UlakIcons.getIcon('play', 'icon-mono-xs')} Canlı Önizle
+                  <button class="btn btn-secondary btn-sm" id="yt-btn-toggle-embed" style="padding: 3px 10px; font-size: 11px;" aria-label="Video Olarak Önizle">
+                    ${window.UlakIcons.getIcon('play', 'icon-mono-xs')} Video Önizle
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="yt-btn-toggle-audio-preview" style="padding: 3px 10px; font-size: 11px;" aria-label="Ses Olarak Önizle">
+                    ${window.UlakIcons.getIcon('headphones', 'icon-mono-xs')} MP3 / Ses Önizle
                   </button>
                 </div>
               </div>
@@ -165,7 +163,7 @@
             <!-- Sade Hızlı İndirme Düzeyleri Çubuğu -->
             <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: var(--text-2); text-transform: uppercase;">İndirme Düzeyi:</span>
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">İndirme Düzeyi:</span>
                 <span style="font-size: 11px; color: var(--text-3);">(Tek tıkla indir)</span>
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="yt-quick-level-buttons">
@@ -188,34 +186,99 @@
             </div>
           </div>
 
-          <!-- İndirilen Medya Oynatıcısı (İndirildikten Sonra Video ise Video, MP3 ise Ses Çalar) -->
-          <div class="view-section glass-card liquid-glow" id="yt-downloaded-player-card" style="display: none; margin-bottom: 20px; border-color: var(--accent-border);">
-            <div class="view-section-header" style="margin-bottom: 12px;">
-              <div class="view-section-title" style="color: var(--accent);">
-                ${window.UlakIcons.getIcon('play', 'icon-mono-sm')} <span id="yt-player-header-title">Oynatılıyor</span>
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button class="btn btn-secondary btn-sm" id="yt-player-open-system-btn" title="Varsayılan Windows Oynatıcısında Aç">
-                  ${window.UlakIcons.getIcon('external-link', 'icon-mono-xs')} Sistem Oynatıcısında Aç
-                </button>
-                <button class="btn btn-ghost btn-sm" id="yt-player-close-btn" title="Oynatıcıyı Kapat">✕</button>
-              </div>
-            </div>
-
-            <!-- Video Player -->
-            <div id="yt-player-video-box" style="display: none; width: 100%; border-radius: var(--r-sm); overflow: hidden; background: #000; border: 1px solid var(--glass-border);">
-              <video id="yt-player-video" controls autoplay style="width: 100%; max-height: 400px; display: block;"></video>
-            </div>
-
-            <!-- Audio Player (MP3 / Ses) -->
-            <div id="yt-player-audio-box" style="display: none; padding: 14px 18px; border-radius: var(--r-sm); background: var(--glass-surface-dense); border: 1px solid var(--glass-border);">
-              <div style="display: flex; align-items: center; gap: 14px;">
-                <div class="chip chip-accent" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                  ${window.UlakIcons.getIcon('headphones', 'icon-mono-md')}
+          <!-- ULAK ÖZEL MEDYA OYNATICI MODALI (UI Skills Baseline-UI & Liquid Glass) -->
+          <div class="ulak-media-modal-overlay" id="ulak-media-modal" role="dialog" aria-modal="true" aria-labelledby="ulak-modal-title">
+            <div class="ulak-media-dialog">
+              <!-- Modal Üst Başlık Barı -->
+              <div class="ulak-media-header">
+                <div class="ulak-media-header-left">
+                  <span class="chip chip-accent" id="ulak-modal-badge" style="font-size: 10.5px; font-weight: 700;">ULAK OYNATICI</span>
+                  <div class="ulak-media-title" id="ulak-modal-title">Medya Oynatılıyor</div>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                  <div id="yt-player-audio-title" style="font-weight: 700; font-size: 13.5px; color: var(--text-1); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Şarkı Başlığı</div>
-                  <audio id="yt-player-audio" controls autoplay style="width: 100%; height: 38px; outline: none;"></audio>
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                  <div id="ulak-modal-preview-switch" style="display: none; gap: 6px;">
+                    <button class="btn btn-secondary btn-sm" id="ulak-modal-switch-video" style="padding: 3px 9px; font-size: 11px;">Video</button>
+                    <button class="btn btn-secondary btn-sm" id="ulak-modal-switch-audio" style="padding: 3px 9px; font-size: 11px;">MP3 Ses</button>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" id="ulak-modal-open-system-btn" style="display: none; padding: 4px 10px; font-size: 11px;" title="Varsayılan Windows Oynatıcısında Aç" aria-label="Sistem Oynatıcısında Aç">
+                    ${window.UlakIcons.getIcon('external-link', 'icon-mono-xs')} Sistemde Aç
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="ulak-modal-fullscreen-btn" style="display: none; padding: 4px 8px; font-size: 11px;" title="Tam Ekran" aria-label="Tam Ekran">
+                    ${window.UlakIcons.getIcon('maximize', 'icon-mono-xs')}
+                  </button>
+                  <button class="btn btn-ghost btn-sm" id="ulak-modal-close-btn" title="Oynatıcıyı Kapat (ESC)" aria-label="Oynatıcıyı Kapat" style="padding: 4px 8px; font-weight: 700;">✕</button>
+                </div>
+              </div>
+
+              <!-- Medya Sahnesi (Video veya Ses Deck) -->
+              <div class="ulak-media-stage" id="ulak-media-stage">
+                <!-- Video Sahnesi -->
+                <div class="ulak-media-video-wrap" id="ulak-modal-video-wrap" style="display: none;" title="Oynat / Duraklat (Çift tıkla: Tam Ekran)">
+                  <video id="ulak-modal-video" preload="metadata"></video>
+                </div>
+
+                <!-- Ses (MP3 / Audio) Sahnesi -->
+                <div class="ulak-media-audio-stage" id="ulak-modal-audio-stage" style="display: none;">
+                  <div class="ulak-audio-disc" id="ulak-audio-disc">
+                    ${window.UlakIcons.getIcon('headphones', 'icon-mono-lg')}
+                  </div>
+                  <div class="ulak-audio-meta">
+                    <div class="ulak-audio-track-name" id="ulak-audio-track-name">Ses Dosyası</div>
+                    <div class="ulak-audio-track-sub" id="ulak-audio-track-sub">ULAK Stüdyo Ses Motoru • 320 kbps</div>
+                  </div>
+                  <div class="ulak-eq-bars is-paused" id="ulak-eq-bars" aria-hidden="true">
+                    <span class="ulak-eq-bar"></span>
+                    <span class="ulak-eq-bar"></span>
+                    <span class="ulak-eq-bar"></span>
+                    <span class="ulak-eq-bar"></span>
+                  </div>
+                  <audio id="ulak-modal-audio" preload="metadata" style="display: none;"></audio>
+                </div>
+              </div>
+
+              <!-- Özel ULAK Oynatıcı Kontrolleri (İleri/Geri Sayma & Zaman Çizelgesi) -->
+              <div class="ulak-media-controls">
+                <!-- Zaman Çizelgesi (Seek Bar) ve Saniye Sayaçları -->
+                <div class="ulak-seek-row">
+                  <span class="ulak-time-label current" id="ulak-player-current-time">00:00</span>
+                  <input type="range" class="ulak-range" id="ulak-player-seek" min="0" max="1000" value="0" step="1" aria-label="Medya Zaman Çizelgesi">
+                  <span class="ulak-time-label" id="ulak-player-total-time">00:00</span>
+                </div>
+
+                <!-- Alt Kontrol Satırı: Ses, İleri/Geri Sarma (-10sn / +10sn) ve Hız -->
+                <div class="ulak-transport-row">
+                  <!-- Sol: Ses Kontrolü -->
+                  <div class="ulak-transport-left">
+                    <button class="btn btn-ghost btn-sm" id="ulak-btn-mute" title="Sesi Kapat / Aç" aria-label="Sesi Kapat veya Aç" style="padding: 5px 8px;">
+                      ${window.UlakIcons.getIcon('volume-2', 'icon-mono-sm')}
+                    </button>
+                    <input type="range" class="ulak-range" id="ulak-player-volume" min="0" max="100" value="100" step="1" style="width: 84px; --seek-pct: 100%;" aria-label="Ses Seviyesi">
+                    <span id="ulak-player-vol-label" style="font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; min-width: 32px;">100%</span>
+                  </div>
+
+                  <!-- Orta: -10sn Geri Sar | Oynat/Duraklat | +10sn İleri Sar | Başa Sar -->
+                  <div class="ulak-transport-center">
+                    <button class="ulak-seek-step-btn" id="ulak-btn-restart" title="Başa Sar (00:00)" aria-label="Başa Sar">
+                      00:00
+                    </button>
+                    <button class="ulak-seek-step-btn" id="ulak-btn-rewind-10" title="10 Saniye Geri Sar (Sol Ok)" aria-label="10 Saniye Geri Sar">
+                      −10 sn
+                    </button>
+                    <button class="ulak-play-main-btn" id="ulak-btn-play-toggle" title="Oynat / Duraklat (Boşluk)" aria-label="Oynat veya Duraklat">
+                      ${window.UlakIcons.getIcon('play', 'icon-mono-sm')}
+                    </button>
+                    <button class="ulak-seek-step-btn" id="ulak-btn-forward-10" title="10 Saniye İleri Sar (Sağ Ok)" aria-label="10 Saniye İleri Sar">
+                      +10 sn
+                    </button>
+                  </div>
+
+                  <!-- Sağ: Oynatma Hızı -->
+                  <div class="ulak-transport-right">
+                    <span style="font-size: 11px; color: var(--text-3);">Hız:</span>
+                    <button class="ulak-seek-step-btn" id="ulak-btn-speed" title="Oynatma Hızını Değiştir" aria-label="Oynatma Hızı">
+                      1.0x
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -285,14 +348,14 @@
       }
 
       function formatDurationShort(sec) {
-        if (!sec || isNaN(sec)) return '--:--';
-        sec = parseInt(sec, 10);
+        if (sec === undefined || sec === null || isNaN(sec) || !isFinite(sec) || sec < 0) return '00:00';
+        sec = Math.floor(Number(sec));
         const hrs = Math.floor(sec / 3600);
         const mins = Math.floor((sec % 3600) / 60);
         const s = sec % 60;
         const pad = (n) => n.toString().padStart(2, '0');
         if (hrs > 0) return `${hrs}:${pad(mins)}:${pad(s)}`;
-        return `${mins}:${pad(s)}`;
+        return `${pad(mins)}:${pad(s)}`;
       }
 
       // Check engine status
@@ -313,103 +376,420 @@
         }
       });
 
-      function extractYouTubeId(url) {
-        if (!url) return null;
-        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-        return match ? match[1] : null;
-      }
-
-      function toggleLiveEmbed(url) {
-        const embedWrap = el.querySelector('#yt-embed-player-wrap');
-        const iframe = el.querySelector('#yt-embed-iframe');
-        const ytid = extractYouTubeId(url);
-        if (!embedWrap || !iframe) return;
-
-        if (embedWrap.style.display === 'block') {
-          embedWrap.style.display = 'none';
-          iframe.src = '';
-        } else {
-          if (ytid) {
-            embedWrap.style.display = 'block';
-            iframe.src = `https://www.youtube-nocookie.com/embed/${ytid}?autoplay=1`;
-            embedWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          } else {
-            window.UlakUI.toast('Bu bağlantı için gömülü web oynatıcısı desteklenmiyor.', 'info');
-          }
-        }
-      }
-
+      let lastPreviewInfo = null;
       let currentPlayingFile = '';
-      function playDownloadedMedia(filePath) {
-        if (!filePath) return;
-        const card = el.querySelector('#yt-downloaded-player-card');
-        const titleHeader = el.querySelector('#yt-player-header-title');
-        const videoBox = el.querySelector('#yt-player-video-box');
-        const videoEl = el.querySelector('#yt-player-video');
-        const audioBox = el.querySelector('#yt-player-audio-box');
-        const audioEl = el.querySelector('#yt-player-audio');
-        const audioTitle = el.querySelector('#yt-player-audio-title');
 
-        if (!card) return;
-        currentPlayingFile = filePath;
+      // =========================================================================
+      // ULAK STUDIO MEDIA PLAYER MODAL (UI Skills Baseline-UI & Liquid Glass)
+      // =========================================================================
+      const modalOverlay = el.querySelector('#ulak-media-modal');
+      const modalBadge = el.querySelector('#ulak-modal-badge');
+      const modalTitle = el.querySelector('#ulak-modal-title');
+      const modalPreviewSwitch = el.querySelector('#ulak-modal-preview-switch');
+      const modalSwitchVideoBtn = el.querySelector('#ulak-modal-switch-video');
+      const modalSwitchAudioBtn = el.querySelector('#ulak-modal-switch-audio');
+      const modalOpenSystemBtn = el.querySelector('#ulak-modal-open-system-btn');
+      const modalFullscreenBtn = el.querySelector('#ulak-modal-fullscreen-btn');
+      const modalCloseBtn = el.querySelector('#ulak-modal-close-btn');
 
-        const normalized = filePath.replace(/\\/g, '/');
-        const mediaUrl = `media-file://${normalized}`;
-        const fileName = filePath.split(/[/\\]/).pop() || 'Medya Dosyası';
-        const ext = fileName.split('.').pop().toLowerCase();
-        const isAudio = ['mp3', 'm4a', 'wav', 'flac', 'aac', 'ogg', 'opus'].includes(ext);
+      const modalVideoWrap = el.querySelector('#ulak-modal-video-wrap');
+      const modalVideoEl = el.querySelector('#ulak-modal-video');
+      const modalAudioStage = el.querySelector('#ulak-modal-audio-stage');
+      const modalAudioEl = el.querySelector('#ulak-modal-audio');
+      const audioTrackName = el.querySelector('#ulak-audio-track-name');
+      const audioTrackSub = el.querySelector('#ulak-audio-track-sub');
+      const eqBars = el.querySelector('#ulak-eq-bars');
 
-        card.style.display = 'block';
-        if (titleHeader) {
-          titleHeader.textContent = isAudio ? `Oynatılıyor (Ses): ${fileName}` : `Oynatılıyor (Video): ${fileName}`;
+      const seekSlider = el.querySelector('#ulak-player-seek');
+      const currentTimeEl = el.querySelector('#ulak-player-current-time');
+      const totalTimeEl = el.querySelector('#ulak-player-total-time');
+
+      const btnRestart = el.querySelector('#ulak-btn-restart');
+      const btnRewind10 = el.querySelector('#ulak-btn-rewind-10');
+      const btnPlayToggle = el.querySelector('#ulak-btn-play-toggle');
+      const btnForward10 = el.querySelector('#ulak-btn-forward-10');
+
+      const btnMute = el.querySelector('#ulak-btn-mute');
+      const volumeSlider = el.querySelector('#ulak-player-volume');
+      const volLabel = el.querySelector('#ulak-player-vol-label');
+      const btnSpeed = el.querySelector('#ulak-btn-speed');
+
+      let activeMediaEl = null;
+      let isSeekingDrag = false;
+      let currentSpeedIdx = 1; // 1.0x
+      const speedSteps = [0.75, 1.0, 1.25, 1.5, 2.0];
+      let savedVolume = 1.0;
+
+      function updatePlayButtonIcon(isPlaying) {
+        if (!btnPlayToggle) return;
+        btnPlayToggle.innerHTML = window.UlakIcons.getIcon(isPlaying ? 'pause' : 'play', 'icon-mono-sm');
+        if (eqBars) {
+          eqBars.classList.toggle('is-paused', !isPlaying);
         }
-
-        // Önceki medyayı durdur
-        if (videoEl) { videoEl.pause(); videoEl.src = ''; }
-        if (audioEl) { audioEl.pause(); audioEl.src = ''; }
-
-        if (isAudio) {
-          if (videoBox) videoBox.style.display = 'none';
-          if (audioBox) audioBox.style.display = 'block';
-          if (audioTitle) audioTitle.textContent = fileName;
-          if (audioEl) {
-            audioEl.src = mediaUrl;
-            audioEl.play().catch(() => {});
-          }
-        } else {
-          if (audioBox) audioBox.style.display = 'none';
-          if (videoBox) videoBox.style.display = 'block';
-          if (videoEl) {
-            videoEl.src = mediaUrl;
-            videoEl.play().catch(() => {});
-          }
-        }
-
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
-      // Oynatıcı Kontrolleri (Sistemde Aç / Kapat)
-      el.querySelector('#yt-player-close-btn')?.addEventListener('click', () => {
-        const card = el.querySelector('#yt-downloaded-player-card');
-        const videoEl = el.querySelector('#yt-player-video');
-        const audioEl = el.querySelector('#yt-player-audio');
-        if (videoEl) { videoEl.pause(); videoEl.src = ''; }
-        if (audioEl) { audioEl.pause(); audioEl.src = ''; }
-        if (card) card.style.display = 'none';
+      function updateSeekVisuals(currentSec, durationSec) {
+        if (currentTimeEl) currentTimeEl.textContent = formatDurationShort(currentSec);
+        const validDur = durationSec && isFinite(durationSec) && durationSec > 0 ? durationSec : 0;
+        if (totalTimeEl && validDur > 0) {
+          totalTimeEl.textContent = formatDurationShort(validDur);
+        }
+        if (seekSlider && !isSeekingDrag) {
+          if (validDur > 0) {
+            const val = Math.min(1000, Math.max(0, Math.round((currentSec / validDur) * 1000)));
+            seekSlider.value = val;
+            seekSlider.style.setProperty('--seek-pct', `${(val / 10).toFixed(1)}%`);
+          } else {
+            seekSlider.value = 0;
+            seekSlider.style.setProperty('--seek-pct', '0%');
+          }
+        }
+      }
+
+      function bindMediaElementEvents(mediaEl) {
+        if (!mediaEl) return;
+        mediaEl.addEventListener('loadedmetadata', () => {
+          if (mediaEl !== activeMediaEl) return;
+          updateSeekVisuals(mediaEl.currentTime || 0, mediaEl.duration || 0);
+        });
+        mediaEl.addEventListener('durationchange', () => {
+          if (mediaEl !== activeMediaEl) return;
+          updateSeekVisuals(mediaEl.currentTime || 0, mediaEl.duration || 0);
+        });
+        mediaEl.addEventListener('timeupdate', () => {
+          if (mediaEl !== activeMediaEl) return;
+          updateSeekVisuals(mediaEl.currentTime || 0, mediaEl.duration || 0);
+        });
+        mediaEl.addEventListener('play', () => {
+          if (mediaEl !== activeMediaEl) return;
+          updatePlayButtonIcon(true);
+        });
+        mediaEl.addEventListener('pause', () => {
+          if (mediaEl !== activeMediaEl) return;
+          updatePlayButtonIcon(false);
+        });
+        mediaEl.addEventListener('ended', () => {
+          if (mediaEl !== activeMediaEl) return;
+          updatePlayButtonIcon(false);
+          updateSeekVisuals(mediaEl.duration || 0, mediaEl.duration || 0);
+        });
+      }
+
+      bindMediaElementEvents(modalVideoEl);
+      bindMediaElementEvents(modalAudioEl);
+
+      function stopAllModalMedia() {
+        if (modalVideoEl) {
+          modalVideoEl.pause();
+          modalVideoEl.removeAttribute('src');
+          modalVideoEl.load();
+        }
+        if (modalAudioEl) {
+          modalAudioEl.pause();
+          modalAudioEl.removeAttribute('src');
+          modalAudioEl.load();
+        }
+        activeMediaEl = null;
+        updatePlayButtonIcon(false);
+        updateSeekVisuals(0, 0);
+      }
+
+      function closeMediaModal() {
+        stopAllModalMedia();
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        if (modalOverlay) {
+          modalOverlay.classList.remove('is-open');
+        }
+      }
+
+      function openMediaModal(opts = {}) {
+        const {
+          type = 'video', // 'video' | 'audio'
+          src = '',
+          title = 'Medya Oynatılıyor',
+          subtitle = 'ULAK Stüdyo Medya Motoru',
+          badge = 'ULAK OYNATICI',
+          isPreview = false,
+          localFilePath = '',
+          fallbackDuration = 0
+        } = opts;
+
+        if (!src || !modalOverlay) return;
+
+        stopAllModalMedia();
+        currentPlayingFile = localFilePath || '';
+
+        if (modalBadge) modalBadge.textContent = badge;
+        if (modalTitle) modalTitle.textContent = title;
+        if (modalPreviewSwitch) {
+          modalPreviewSwitch.style.display = isPreview ? 'flex' : 'none';
+        }
+        if (modalOpenSystemBtn) {
+          modalOpenSystemBtn.style.display = localFilePath ? 'inline-flex' : 'none';
+        }
+        if (modalFullscreenBtn) {
+          modalFullscreenBtn.style.display = type === 'video' ? 'inline-flex' : 'none';
+        }
+
+        if (totalTimeEl) {
+          totalTimeEl.textContent = fallbackDuration > 0 ? formatDurationShort(fallbackDuration) : '00:00';
+        }
+        if (currentTimeEl) currentTimeEl.textContent = '00:00';
+        if (seekSlider) {
+          seekSlider.value = 0;
+          seekSlider.style.setProperty('--seek-pct', '0%');
+        }
+
+        if (type === 'audio') {
+          if (modalVideoWrap) modalVideoWrap.style.display = 'none';
+          if (modalAudioStage) modalAudioStage.style.display = 'flex';
+          if (audioTrackName) audioTrackName.textContent = title;
+          if (audioTrackSub) audioTrackSub.textContent = subtitle;
+          activeMediaEl = modalAudioEl;
+        } else {
+          if (modalAudioStage) modalAudioStage.style.display = 'none';
+          if (modalVideoWrap) modalVideoWrap.style.display = 'flex';
+          activeMediaEl = modalVideoEl;
+        }
+
+        modalOverlay.classList.add('is-open');
+
+        if (activeMediaEl) {
+          const volVal = volumeSlider ? Number(volumeSlider.value) / 100 : 1;
+          activeMediaEl.volume = Math.max(0, Math.min(1, volVal));
+          activeMediaEl.playbackRate = speedSteps[currentSpeedIdx] || 1.0;
+          activeMediaEl.src = src;
+          activeMediaEl.load();
+          activeMediaEl.play().catch((err) => {
+            console.warn('Media play warning:', err);
+          });
+        }
+      }
+
+      // Seek Slider (İleri / Geri Sarma Çubuğu)
+      seekSlider?.addEventListener('mousedown', () => { isSeekingDrag = true; });
+      seekSlider?.addEventListener('touchstart', () => { isSeekingDrag = true; }, { passive: true });
+
+      seekSlider?.addEventListener('input', () => {
+        isSeekingDrag = true;
+        const val = Number(seekSlider.value);
+        seekSlider.style.setProperty('--seek-pct', `${(val / 10).toFixed(1)}%`);
+        if (activeMediaEl && isFinite(activeMediaEl.duration) && activeMediaEl.duration > 0) {
+          const targetSec = (val / 1000) * activeMediaEl.duration;
+          if (currentTimeEl) currentTimeEl.textContent = formatDurationShort(targetSec);
+          activeMediaEl.currentTime = targetSec;
+        }
       });
 
-      el.querySelector('#yt-player-open-system-btn')?.addEventListener('click', async () => {
+      seekSlider?.addEventListener('change', () => {
+        if (activeMediaEl && isFinite(activeMediaEl.duration) && activeMediaEl.duration > 0) {
+          const val = Number(seekSlider.value);
+          activeMediaEl.currentTime = (val / 1000) * activeMediaEl.duration;
+        }
+        isSeekingDrag = false;
+      });
+
+      // Oynat / Duraklat Butonu
+      function togglePlayPause() {
+        if (!activeMediaEl) return;
+        if (activeMediaEl.paused || activeMediaEl.ended) {
+          activeMediaEl.play().catch(() => {});
+        } else {
+          activeMediaEl.pause();
+        }
+      }
+
+      btnPlayToggle?.addEventListener('click', togglePlayPause);
+
+      // Video Sahnesine Tıklayınca Oynat/Duraklat, Çift Tıklayınca Tam Ekran
+      modalVideoWrap?.addEventListener('click', () => {
+        togglePlayPause();
+      });
+      modalVideoWrap?.addEventListener('dblclick', () => {
+        if (!document.fullscreenElement) {
+          modalVideoWrap.requestFullscreen?.().catch(() => {});
+        } else {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      });
+
+      // -10 sn, +10 sn ve 00:00 Başa Sarma Butonları
+      function seekByOffset(offsetSec) {
+        if (!activeMediaEl) return;
+        const dur = isFinite(activeMediaEl.duration) && activeMediaEl.duration > 0 ? activeMediaEl.duration : 999999;
+        const nextTime = Math.max(0, Math.min(dur, (activeMediaEl.currentTime || 0) + offsetSec));
+        activeMediaEl.currentTime = nextTime;
+        updateSeekVisuals(nextTime, activeMediaEl.duration || 0);
+      }
+
+      btnRewind10?.addEventListener('click', () => seekByOffset(-10));
+      btnForward10?.addEventListener('click', () => seekByOffset(10));
+      btnRestart?.addEventListener('click', () => {
+        if (!activeMediaEl) return;
+        activeMediaEl.currentTime = 0;
+        updateSeekVisuals(0, activeMediaEl.duration || 0);
+        if (activeMediaEl.paused) activeMediaEl.play().catch(() => {});
+      });
+
+      // Ses Seviyesi ve Sessize Alma
+      function syncVolumeUI(vol, muted) {
+        const effectiveVol = muted ? 0 : Math.round(vol * 100);
+        if (volumeSlider) {
+          volumeSlider.value = effectiveVol;
+          volumeSlider.style.setProperty('--seek-pct', `${effectiveVol}%`);
+        }
+        if (volLabel) volLabel.textContent = `${effectiveVol}%`;
+        if (btnMute) {
+          btnMute.innerHTML = window.UlakIcons.getIcon(effectiveVol === 0 ? 'volume-x' : 'volume-2', 'icon-mono-sm');
+        }
+      }
+
+      volumeSlider?.addEventListener('input', () => {
+        const val = Number(volumeSlider.value) / 100;
+        savedVolume = val > 0 ? val : savedVolume;
+        if (activeMediaEl) {
+          activeMediaEl.muted = val === 0;
+          activeMediaEl.volume = val;
+        }
+        syncVolumeUI(val, val === 0);
+      });
+
+      btnMute?.addEventListener('click', () => {
+        if (!activeMediaEl) return;
+        activeMediaEl.muted = !activeMediaEl.muted;
+        if (!activeMediaEl.muted && activeMediaEl.volume === 0) {
+          activeMediaEl.volume = savedVolume || 0.8;
+        }
+        syncVolumeUI(activeMediaEl.volume, activeMediaEl.muted);
+      });
+
+      // Hız Değiştirme (0.75x - 2.0x)
+      btnSpeed?.addEventListener('click', () => {
+        currentSpeedIdx = (currentSpeedIdx + 1) % speedSteps.length;
+        const rate = speedSteps[currentSpeedIdx];
+        if (btnSpeed) btnSpeed.textContent = `${rate.toFixed(rate % 1 === 0 ? 1 : 2)}x`;
+        if (activeMediaEl) activeMediaEl.playbackRate = rate;
+      });
+
+      // Tam Ekran, Sistemde Aç ve Kapat
+      modalFullscreenBtn?.addEventListener('click', () => {
+        const target = modalVideoWrap || el.querySelector('.ulak-media-dialog');
+        if (!document.fullscreenElement) {
+          target?.requestFullscreen?.().catch(() => {});
+        } else {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      });
+
+      modalOpenSystemBtn?.addEventListener('click', async () => {
         if (currentPlayingFile) {
           await window.ulak.invoke('youtube:open-file', currentPlayingFile);
         }
       });
 
+      modalCloseBtn?.addEventListener('click', closeMediaModal);
+      modalOverlay?.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeMediaModal();
+      });
+
+      // Klavye Kısayolları (Modal Açıkken: Boşluk = Oynat/Durdur, Sol/Sağ Ok = -5/+5 sn, ESC = Kapat)
+      const onModalKeyDown = (e) => {
+        if (!modalOverlay || !modalOverlay.classList.contains('is-open')) return;
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' && e.target.type === 'text') return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeMediaModal();
+        } else if (e.key === ' ' || e.code === 'Space') {
+          e.preventDefault();
+          togglePlayPause();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          seekByOffset(-5);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          seekByOffset(5);
+        }
+      };
+      window.addEventListener('keydown', onModalKeyDown);
+
+      // Canlı Önizleme Başlatıcı (Modal İçinde)
+      function startLivePreview(mode = 'video') {
+        if (!lastPreviewInfo) return;
+        const videoStream = lastPreviewInfo.previewVideoUrl || '';
+        const audioStream = lastPreviewInfo.previewAudioUrl || videoStream;
+        const fallbackDur = Number(lastPreviewInfo.duration) || 0;
+
+        if (mode === 'audio' && audioStream) {
+          openMediaModal({
+            type: 'audio',
+            src: audioStream,
+            title: lastPreviewInfo.title || 'Canlı Ses Önizleme',
+            subtitle: `Kanal: ${lastPreviewInfo.uploader || 'YouTube'} • Canlı Ses Akışı`,
+            badge: 'CANLI SES ÖNİZLEME',
+            isPreview: true,
+            fallbackDuration: fallbackDur
+          });
+        } else if (videoStream) {
+          openMediaModal({
+            type: 'video',
+            src: videoStream,
+            title: lastPreviewInfo.title || 'Canlı Video Önizleme',
+            subtitle: `Kanal: ${lastPreviewInfo.uploader || 'YouTube'}`,
+            badge: 'CANLI VİDEO ÖNİZLEME',
+            isPreview: true,
+            fallbackDuration: fallbackDur
+          });
+        } else {
+          window.UlakUI.toast('Bu medya için doğrudan önizleme akışı bulunamadı.', 'info');
+        }
+      }
+
+      modalSwitchVideoBtn?.addEventListener('click', () => startLivePreview('video'));
+      modalSwitchAudioBtn?.addEventListener('click', () => startLivePreview('audio'));
+
+      // İndirilen Dosyayı Oynatıcı Modalında Aç
+      function playDownloadedMedia(filePath) {
+        if (!filePath) return;
+        const mediaUrl = `media-file://local/?path=${encodeURIComponent(filePath)}`;
+        const fileName = filePath.split(/[/\\]/).pop() || 'Medya Dosyası';
+        const ext = fileName.split('.').pop().toLowerCase();
+        const isAudio = ['mp3', 'm4a', 'wav', 'flac', 'aac', 'ogg', 'opus'].includes(ext);
+
+        openMediaModal({
+          type: isAudio ? 'audio' : 'video',
+          src: mediaUrl,
+          title: fileName,
+          subtitle: isAudio ? `Yerel Ses Dosyası (${ext.toUpperCase()}) • ULAK Stüdyo` : `Yerel Video Dosyası (${ext.toUpperCase()})`,
+          badge: isAudio ? 'ULAK SES OYNATICI' : 'ULAK VİDEO OYNATICI',
+          isPreview: false,
+          localFilePath: filePath
+        });
+      }
+
+      // Windows Arka Plan Bildirimine Tıklandığında Oynatıcıyı Aç
+      if (window.ulak && typeof window.ulak.on === 'function') {
+        window.ulak.on('youtube:play-downloaded', (filePath) => {
+          if (filePath) {
+            loadLibrary(el);
+            playDownloadedMedia(filePath);
+          }
+        });
+      }
+
       // Thumbnail veya Butona Tıklanınca Canlı Önizle
       el.querySelector('#yt-thumb-container')?.addEventListener('click', () => {
-        toggleLiveEmbed(urlInput.value.trim());
+        const selectedQuality = el.querySelector('#yt-opt-quality')?.value || 'best';
+        startLivePreview(selectedQuality.startsWith('audio') ? 'audio' : 'video');
       });
       el.querySelector('#yt-btn-toggle-embed')?.addEventListener('click', () => {
-        toggleLiveEmbed(urlInput.value.trim());
+        startLivePreview('video');
+      });
+      el.querySelector('#yt-btn-toggle-audio-preview')?.addEventListener('click', () => {
+        startLivePreview('audio');
       });
 
       // Önizle (Eski Adı: Bilgi Getir)
@@ -419,7 +799,7 @@
 
         fetchBtn.disabled = true;
         fetchBtn.innerHTML = `<span class="spinner-inline"></span> Önizleniyor...`;
-        window.UlakUI.toast('Medya önizleme bilgileri alınıyor...', 'info');
+        window.UlakUI.toast('Medya önizleme akışı hazırlanıyor...', 'info');
 
         try {
           const info = await window.ulak.invoke('youtube:get-info', url);
@@ -430,23 +810,37 @@
             return;
           }
 
+          lastPreviewInfo = info;
           previewCard.style.display = 'block';
           const thumbEl = el.querySelector('#yt-thumb');
           if (thumbEl) thumbEl.src = info.thumbnail || '';
           el.querySelector('#yt-title').textContent = info.title || 'Video';
           el.querySelector('#yt-author').textContent = `Kanal: ${info.uploader || 'YouTube'}`;
-          el.querySelector('#yt-duration-text').textContent = `Toplam Süre: ${formatDuration(info.duration)}`;
-          el.querySelector('#yt-duration-badge').textContent = formatDurationShort(info.duration);
 
-          // İframe'i sıfırla
-          const embedWrap = el.querySelector('#yt-embed-player-wrap');
-          const iframe = el.querySelector('#yt-embed-iframe');
-          if (embedWrap) embedWrap.style.display = 'none';
-          if (iframe) iframe.src = '';
+          const durationText = el.querySelector('#yt-duration-text');
+          const durationBadge = el.querySelector('#yt-duration-badge');
+          const hasValidDuration = info.duration && info.duration !== '--' && !isNaN(info.duration) && parseInt(info.duration) > 0;
 
-          logBody.textContent += `\n[✔] Medya tespit edildi:\n    Başlık: ${info.title}\n    Kanal: ${info.uploader}\n    Süre: ${formatDuration(info.duration)}\n`;
+          if (hasValidDuration) {
+            durationText.textContent = `Toplam Süre: ${formatDuration(info.duration)}`;
+            if (durationBadge) {
+              durationBadge.textContent = formatDurationShort(info.duration);
+              durationBadge.style.display = 'inline-block';
+            }
+          } else {
+            durationText.textContent = 'Toplam Süre: Çevrimiçi Medya';
+            if (durationBadge) durationBadge.style.display = 'none';
+          }
+
+          // Seçili formata göre (Video veya Ses/MP3) otomatik canlı önizlemeyi başlat
+          const selectedQuality = el.querySelector('#yt-opt-quality')?.value || 'best';
+          const previewMode = selectedQuality.startsWith('audio') ? 'audio' : 'video';
+          startLivePreview(previewMode);
+
+          const durStr = hasValidDuration ? formatDuration(info.duration) : 'Mevcut';
+          logBody.textContent += `\n[✔] Medya tespit edildi ve canlı önizleme başlatıldı:\n    Başlık: ${info.title}\n    Kanal: ${info.uploader}\n    Süre: ${durStr}\n`;
           logBody.scrollTop = logBody.scrollHeight;
-          window.UlakUI.toast('Önizleme hazır!', 'success');
+          window.UlakUI.toast('Canlı önizleme oynatılıyor!', 'success');
         } catch (err) {
           logBody.textContent += `\n[-] İstek hatası: ${err.message}\n`;
           window.UlakUI.toast(`Hata: ${err.message}`, 'error');
@@ -599,21 +993,27 @@
           return window.UlakUI.toast('Kopyalanacak günlük içeriği bulunmuyor.', 'warning');
         }
         try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(text);
-          } else {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-          }
+          await window.ulak.invoke('system:copy-clipboard', text);
           window.UlakUI.toast('Günlük çıktısı panoya kopyalandı.', 'success');
         } catch (e) {
-          window.UlakUI.toast('Kopyalama başarısız oldu.', 'error');
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text);
+              window.UlakUI.toast('Günlük çıktısı panoya kopyalandı.', 'success');
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = text;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              window.UlakUI.toast('Günlük çıktısı panoya kopyalandı.', 'success');
+            }
+          } catch (e2) {
+            window.UlakUI.toast('Kopyalama başarısız oldu.', 'error');
+          }
         }
       });
 
@@ -646,7 +1046,7 @@
                 const isSub = d.name.endsWith('.srt') || d.name.endsWith('.vtt');
                 const icon = isAudio ? 'headphones' : isSub ? 'file' : 'video';
                 return `
-                  <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; gap: 12px; background: rgba(255,255,255,0.02);">
+                  <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; gap: 12px; background: var(--glass-surface-subtle);">
                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                       <div class="chip" style="padding: 6px; border-radius: var(--r-sm);">
                         ${window.UlakIcons.getIcon(icon, 'icon-mono-sm')}

@@ -1,11 +1,31 @@
 // HTML GENERATORS ENSURING NO ELEMENT IS NAKED
 const Components = {
-  headerCard(title, subtitle, iconName) {
+  headerCard(title, subtitle, iconName, moduleId = null) {
+    const modMap = {
+      'shield': 'firewall',
+      'zap': 'hacker',
+      'bluetooth': 'bluetooth',
+      'wifi': 'wifi',
+      'cpu': 'hardware',
+      'sliders': 'admin',
+      'lock': 'crypto_vault',
+      'activity': 'proc_radar'
+    };
+    const modId = moduleId || modMap[iconName];
+    const is3d = Boolean(modId && modId !== 'store' && modId !== 'settings');
+    const iconHtml = is3d
+      ? `<img src="../assets/module_icons/${modId}.png" class="view-header-3d-icon" style="width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));" onerror="this.style.display='none';" />`
+      : window.UlakIcons.getIcon(iconName);
+
+    const boxStyle = is3d
+      ? 'display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: transparent !important; border: none !important; box-shadow: none !important;'
+      : 'display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border-light);';
+
     return `
       <div class="view-header-card glass-card">
         <div class="view-header-left">
-          <div class="view-header-icon-box">
-            ${window.UlakIcons.getIcon(iconName)}
+          <div class="view-header-icon-box" style="${boxStyle}">
+            ${iconHtml}
           </div>
           <div>
             <div class="view-title">${window.UlakUI.escapeHtml(title)}</div>
@@ -80,13 +100,13 @@ const Components = {
 
   gaugeTile(label, value, sub, ringId, textId) {
     return `
-      <div class="gauge-tile glass-card">
-        <div>
+      <div class="gauge-tile glass-card liquid-glow tilt-card">
+        <div style="position: relative; z-index: 3;">
           <div class="stat-tile-label">${window.UlakUI.escapeHtml(label)}</div>
           <div class="stat-tile-value" id="${textId}">${window.UlakUI.escapeHtml(value)}</div>
           <div class="stat-tile-sub">${window.UlakUI.escapeHtml(sub)}</div>
         </div>
-        <div class="gauge-svg-box">
+        <div class="gauge-svg-box" style="position: relative; z-index: 3;">
           <svg class="gauge-svg" viewBox="0 0 36 36">
             <path class="gauge-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
             <path class="gauge-bar" id="${ringId}" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>

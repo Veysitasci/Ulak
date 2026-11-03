@@ -50,7 +50,39 @@ class YouTubeDownloader {
     return 'yt-dlp';
   }
 
+  _getNodeRuntimeArg() {
+    const candidates = [
+      'C:\\Program Files\\nodejs\\node.exe',
+      'C:\\Program Files (x86)\\nodejs\\node.exe'
+    ];
+    for (const c of candidates) {
+      if (fs.existsSync(c)) {
+        return `--js-runtimes "node:${c}"`;
+      }
+    }
+    return '--js-runtimes node';
+  }
+
+  _getFfmpegPath() {
+    if (appUserDataDir) {
+      const userBin = path.join(appUserDataDir, 'bin', 'ffmpeg.exe');
+      if (fs.existsSync(userBin)) return userBin;
+    }
+    const localExe = path.join(this.downloadPath, 'ffmpeg.exe');
+    if (fs.existsSync(localExe)) return localExe;
+
+    const wsBin = path.join(__dirname, '..', 'bin', 'ffmpeg.exe');
+    if (fs.existsSync(wsBin)) return wsBin;
+
+    if (process.resourcesPath) {
+      const packagedBin = path.join(process.resourcesPath, 'bin', 'ffmpeg.exe');
+      if (fs.existsSync(packagedBin)) return packagedBin;
+    }
+    return null;
+  }
+
   async checkFfmpeg() {
+    if (this._getFfmpegPath()) return true;
     try {
       await execAsync('ffmpeg -version');
       return true;
@@ -71,9 +103,15 @@ class YouTubeDownloader {
 
   async installYtDlp() {
     try {
-      // 1. Çalışan kilitli yt-dlp süreci varsa sonlandır
+      // 0. Öncelikli kontrol: yt-dlp zaten kurulu ve sağlıklı çalışıyorsa tekrar indirmeye çalışma
+      const check = await this.checkYtDlp();
+      if (check.installed) {
+        return { success: true, message: `yt-dlp bileşeni hazır (${check.version}).`, path: this._getYtDlpCmd() };
+      }
+
+      // 1. Çalışan kilitli yt-dlp süreci varsa güvenle sonlandır
       try {
-        await execAsync('taskkill /F /IM yt-dlp.exe');
+        await execAsync('taskkill /F /IM yt-dlp.exe /T');
       } catch (e) {
         // Zaten çalışmıyorsa hata vermesi normal
       }
@@ -85,11 +123,11 @@ class YouTubeDownloader {
       }
       const targetPath = path.join(targetDir, 'yt-dlp.exe');
 
-      // 0. Öncelikli kontrol: Yerel pakette veya Downloads klasöründe varsa anında kur
+      // Yerel pakette veya Downloads klasöründe varsa anında kopyala
       const localCandidates = [
         path.join(__dirname, '..', 'bin', 'yt-dlp.exe'),
         path.join(this.downloadPath, 'yt-dlp.exe'),
-        path.join(os.homedir(), 'Downloads', 'ULAK', 'yt-dlp.exe')
+        path.join(require('os').homedir(), 'Downloads', 'ULAK', 'yt-dlp.exe')
       ];
       for (const cand of localCandidates) {
         if (cand !== targetPath && fs.existsSync(cand) && fs.statSync(cand).size > 1000000) {
@@ -195,22 +233,31 @@ class YouTubeDownloader {
 
   async getVideoInfo(url) {
     const oembedPromise = this.fetchOembedInfo(url);
-    const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2000));
+    const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 8000));
 
     const ytdlpPromise = (async () => {
       try {
         const cmd = this._getYtDlpCmd();
-        const { stdout } = await execAsync(`${cmd} --dump-json --no-playlist "${url}"`, { maxBuffer: 10 * 1024 * 1024 });
+        const jsRuntime = this._getNodeRuntimeArg();
+        const { stdout } = await execAsync(`${cmd} ${jsRuntime} --dump-json --no-playlist "${url}"`, { maxBuffer: 15 * 1024 * 1024 });
         const jsonStart = stdout.indexOf('{');
         const jsonEnd = stdout.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) {
           const info = JSON.parse(stdout.slice(jsonStart, jsonEnd + 1));
+          const allFormats = Array.isArray(info.formats) ? info.formats : [];
+          const progVideo = allFormats.find(f => f.format_id === '18' && f.url) ||
+                            allFormats.find(f => f.vcodec && f.vcodec !== 'none' && f.acodec && f.acodec !== 'none' && f.url && !f.url.includes('.m3u8'));
+          const directAudio = allFormats.find(f => f.format_id === '140' && f.url) ||
+                              allFormats.find(f => f.format_id === '251' && f.url) ||
+                              allFormats.find(f => (!f.vcodec || f.vcodec === 'none') && f.acodec && f.acodec !== 'none' && f.url && !f.url.includes('.m3u8'));
           return {
             success: true,
             title: info.title || 'Video',
             duration: info.duration ? Math.round(info.duration) : '--',
             uploader: info.uploader || info.channel || 'Bilinmeyen Kanal',
             thumbnail: info.thumbnail || (info.thumbnails?.length ? info.thumbnails[info.thumbnails.length - 1].url : ''),
+            previewVideoUrl: progVideo ? progVideo.url : (info.url || ''),
+            previewAudioUrl: directAudio ? directAudio.url : (progVideo ? progVideo.url : ''),
             formats: this.parseFormats(info.formats)
           };
         }
@@ -220,13 +267,13 @@ class YouTubeDownloader {
       return null;
     })();
 
-    // Race yt-dlp against 2.0s timeout for instant UX
+    // yt-dlp'nin eksiksiz süre ve kalite bilgisi getirmesi için 8 saniyeye kadar bekle
     const fastResult = await Promise.race([ytdlpPromise, timeoutPromise]);
     if (fastResult && fastResult.success) {
       return fastResult;
     }
 
-    // Fallback immediately to oembed
+    // Fallback: oEmbed
     const oembed = await oembedPromise;
     if (oembed) {
       return {
@@ -264,15 +311,21 @@ class YouTubeDownloader {
     try {
       await this.ensureDownloadDir();
       const cmd = this._getYtDlpCmd();
-      const hasFfmpeg = await this.checkFfmpeg();
+      const ffmpegPath = this._getFfmpegPath();
+      const hasFfmpeg = !!ffmpegPath || (await this.checkFfmpeg());
 
       const quality = options.quality || 'best';
       const isAudio = options.audioOnly || options.extractAudio || options.format === 'mp3' || quality.startsWith('audio');
       const outputTemplate = `"${this.downloadPath}/%(title)s.%(ext)s"`;
+      const jsRuntime = this._getNodeRuntimeArg();
 
-      let command = `${cmd} --no-playlist -o ${outputTemplate}`;
+      let command = `${cmd} --no-playlist --no-mtime -o ${outputTemplate} ${jsRuntime}`;
 
-      // 1. Kalite & Format Seçimi (Genişletilmiş ve Hataya Dayanıklı Format Seçici)
+      if (ffmpegPath) {
+        command += ` --ffmpeg-location "${path.dirname(ffmpegPath)}"`;
+      }
+
+      // 1. Kalite & Format Seçimi (H.264 + AAC evrensel kodek önceliği)
       if (isAudio) {
         if (quality === 'audio-flac' && hasFfmpeg) {
           command += ' -x --audio-format flac';
@@ -281,23 +334,28 @@ class YouTubeDownloader {
         } else if (quality === 'audio-aac' && hasFfmpeg) {
           command += ' -x --audio-format aac';
         } else if (hasFfmpeg) {
-          command += ' -x --audio-format mp3 --audio-quality 0'; // 320k en yüksek kalite
+          command += ' -x --audio-format mp3 --audio-quality 0'; // 320k en yüksek kalite MP3
         } else {
           command += ' -f "ba/bestaudio/best"';
         }
       } else {
-        if (quality === '4k' || quality === '2160p') {
-          command += ' -f "bestvideo[height<=2160]+bestaudio/best[height<=2160]/best"';
-        } else if (quality === '2k' || quality === '1440p') {
-          command += ' -f "bestvideo[height<=1440]+bestaudio/best[height<=1440]/best"';
-        } else if (quality === '1080p') {
-          command += ' -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"';
-        } else if (quality === '720p') {
-          command += ' -f "bestvideo[height<=720]+bestaudio/best[height<=720]/best"';
-        } else if (quality === '480p') {
-          command += ' -f "bestvideo[height<=480]+bestaudio/best[height<=480]/best"';
+        if (hasFfmpeg) {
+          command += ' -S "vcodec:h264,res,acodec:m4a"';
+          if (quality === '4k' || quality === '2160p') {
+            command += ' -f "bestvideo[height<=2160]+bestaudio/best[height<=2160]/best" --merge-output-format mp4';
+          } else if (quality === '2k' || quality === '1440p') {
+            command += ' -f "bestvideo[height<=1440]+bestaudio/best[height<=1440]/best" --merge-output-format mp4';
+          } else if (quality === '1080p') {
+            command += ' -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" --merge-output-format mp4';
+          } else if (quality === '720p') {
+            command += ' -f "bestvideo[height<=720]+bestaudio/best[height<=720]/best" --merge-output-format mp4';
+          } else if (quality === '480p') {
+            command += ' -f "bestvideo[height<=480]+bestaudio/best[height<=480]/best" --merge-output-format mp4';
+          } else {
+            command += ' -f "bestvideo+bestaudio/best" --merge-output-format mp4';
+          }
         } else {
-          command += ' -f "bestvideo+bestaudio/best"';
+          command += ' -f "best[ext=mp4]/best"';
         }
       }
 
@@ -322,16 +380,26 @@ class YouTubeDownloader {
 
       const { stdout } = await execAsync(command, { maxBuffer: 15 * 1024 * 1024 });
 
-      // Son indirilen dosyayı bul
+      // Son indirilen dosyayı bul (isAudio durumuna göre ses veya video uzantısını önceliklendir)
       let targetFile = '';
       try {
+        const audioExts = ['.mp3', '.flac', '.wav', '.m4a', '.aac', '.ogg', '.opus'];
+        const videoExts = ['.mp4', '.mkv', '.webm', '.mov'];
         const files = fs.readdirSync(this.downloadPath);
-        const sorted = files
-          .filter(f => f !== 'yt-dlp.exe' && !f.endsWith('.tmp'))
-          .map(f => ({ name: f, time: fs.statSync(path.join(this.downloadPath, f)).mtime }))
+        const candidates = files
+          .filter(f => f !== 'yt-dlp.exe' && f !== 'ffmpeg.exe' && f !== 'ffprobe.exe' && !f.endsWith('.tmp') && !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.srt') && !f.endsWith('.vtt'))
+          .map(f => ({
+            name: f,
+            ext: path.extname(f).toLowerCase(),
+            time: fs.statSync(path.join(this.downloadPath, f)).mtime
+          }))
           .sort((a, b) => b.time - a.time);
-        if (sorted.length > 0) {
-          targetFile = path.join(this.downloadPath, sorted[0].name);
+
+        const typeMatched = candidates.filter(c => isAudio ? audioExts.includes(c.ext) : videoExts.includes(c.ext));
+        if (typeMatched.length > 0) {
+          targetFile = path.join(this.downloadPath, typeMatched[0].name);
+        } else if (candidates.length > 0) {
+          targetFile = path.join(this.downloadPath, candidates[0].name);
         }
       } catch (e) {}
 
@@ -353,17 +421,23 @@ class YouTubeDownloader {
     try {
       await this.ensureDownloadDir();
       const cmd = this._getYtDlpCmd();
-      const hasFfmpeg = await this.checkFfmpeg();
+      const ffmpegPath = this._getFfmpegPath();
+      const hasFfmpeg = !!ffmpegPath || (await this.checkFfmpeg());
 
       const isAudio = options.audioOnly || options.extractAudio;
-      let command = `${cmd} -o "${this.downloadPath}/%(playlist_title)s/%(playlist_index)s - %(title)s.%(ext)s"`;
+      const jsRuntime = this._getNodeRuntimeArg();
+      let command = `${cmd} --no-mtime -o "${this.downloadPath}/%(playlist_title)s/%(playlist_index)s - %(title)s.%(ext)s" ${jsRuntime}`;
+
+      if (ffmpegPath) {
+        command += ` --ffmpeg-location "${path.dirname(ffmpegPath)}"`;
+      }
 
       if (isAudio) {
-        if (hasFfmpeg) command += ' -x --audio-format mp3';
+        if (hasFfmpeg) command += ' -x --audio-format mp3 --audio-quality 0';
         else command += ' -f "ba/bestaudio/best"';
       } else {
-        if (hasFfmpeg) command += ' -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"';
-        else command += ' -f "best[ext=mp4]/b/best"';
+        if (hasFfmpeg) command += ' -S "vcodec:h264,res,acodec:m4a" -f "bestvideo+bestaudio/best" --merge-output-format mp4';
+        else command += ' -f "best[ext=mp4]/best"';
       }
 
       if (options.start && options.start > 1) {
@@ -407,7 +481,7 @@ class YouTubeDownloader {
       const downloads = [];
 
       for (const file of files) {
-        if (file === 'yt-dlp.exe') continue;
+        if (file === 'yt-dlp.exe' || file === 'ffmpeg.exe' || file === 'ffprobe.exe' || file.endsWith('.tmp') || file.endsWith('.part') || file.endsWith('.ytdl')) continue;
         const filePath = path.join(this.downloadPath, file);
         const stats = fs.statSync(filePath);
 
@@ -442,8 +516,14 @@ class YouTubeDownloader {
   async extractAudio(videoPath) {
     try {
       const cmd = this._getYtDlpCmd();
+      const ffmpegPath = this._getFfmpegPath();
       const outputPath = videoPath.replace(/\.[^.]+$/, '.mp3');
-      await execAsync(`${cmd} -x --audio-format mp3 -o "${outputPath}" "${videoPath}"`);
+      let command = `${cmd} -x --audio-format mp3 -o "${outputPath}"`;
+      if (ffmpegPath) {
+        command += ` --ffmpeg-location "${path.dirname(ffmpegPath)}"`;
+      }
+      command += ` "${videoPath}"`;
+      await execAsync(command);
 
       return {
         success: true,

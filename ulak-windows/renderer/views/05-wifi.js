@@ -10,7 +10,7 @@
       const I = window.UlakIcons;
       return `
         <div class="wifi-view">
-          ${C.headerCard('Wi-Fi, Proxy & Ağ Kalkanı', 'Kablosuz Ağlar, Sistem Proxy Yönetimi, Güvenli DNS Değiştirici ve Spektrum Analizi', 'wifi')}
+          ${C.headerCard('Wi-Fi, Proxy & Ağ Kalkanı', 'Kablosuz Ağlar, Sistem Proxy Yönetimi, Güvenli DNS Değiştirici ve Spektrum Analizi', 'wifi', 'wifi')}
 
           <!-- Bento Golden Split: Active Conn (1.618fr) & Hotspot (1fr) -->
           <div class="grid-golden" style="margin-bottom: var(--space-13);">
@@ -178,29 +178,37 @@
                 </div>
 
                 <!-- Quick DNS Preset Buttons -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px;">
-                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="cloudflare" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
-                    <div>
-                      <div style="font-weight: 600; font-size: 12px;">⚡ Cloudflare</div>
-                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">1.1.1.1 / 1.0.0.1</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                  <button class="btn btn-secondary btn-dns-preset btn-dns-card" data-preset="cloudflare" style="height: auto; min-height: 48px; line-height: normal; justify-content: flex-start; text-align: left; padding: 8px 12px; display: flex; align-items: center;">
+                    <div style="width: 100%;">
+                      <div style="font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 6px; line-height: 1.3; margin-bottom: 2px;">
+                        ${window.UlakIcons.getIcon('zap', 'icon-mono-xs')} <span>Cloudflare</span>
+                      </div>
+                      <div style="font-size: 10.5px; color: var(--text-3); font-family: monospace; line-height: 1.2;">1.1.1.1 / 1.0.0.1</div>
                     </div>
                   </button>
-                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="google" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
-                    <div>
-                      <div style="font-weight: 600; font-size: 12px;">🌐 Google DNS</div>
-                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">8.8.8.8 / 8.8.4.4</div>
+                  <button class="btn btn-secondary btn-dns-preset btn-dns-card" data-preset="google" style="height: auto; min-height: 48px; line-height: normal; justify-content: flex-start; text-align: left; padding: 8px 12px; display: flex; align-items: center;">
+                    <div style="width: 100%;">
+                      <div style="font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 6px; line-height: 1.3; margin-bottom: 2px;">
+                        ${window.UlakIcons.getIcon('globe', 'icon-mono-xs')} <span>Google DNS</span>
+                      </div>
+                      <div style="font-size: 10.5px; color: var(--text-3); font-family: monospace; line-height: 1.2;">8.8.8.8 / 8.8.4.4</div>
                     </div>
                   </button>
-                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="adguard" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
-                    <div>
-                      <div style="font-weight: 600; font-size: 12px;">🛡️ AdGuard DNS</div>
-                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">Reklam & Takip Blok</div>
+                  <button class="btn btn-secondary btn-dns-preset btn-dns-card" data-preset="adguard" style="height: auto; min-height: 48px; line-height: normal; justify-content: flex-start; text-align: left; padding: 8px 12px; display: flex; align-items: center;">
+                    <div style="width: 100%;">
+                      <div style="font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 6px; line-height: 1.3; margin-bottom: 2px;">
+                        ${window.UlakIcons.getIcon('shield', 'icon-mono-xs')} <span>AdGuard DNS</span>
+                      </div>
+                      <div style="font-size: 10.5px; color: var(--text-3); font-family: monospace; line-height: 1.2;">Reklam & Takip Blok</div>
                     </div>
                   </button>
-                  <button class="btn btn-secondary btn-sm btn-dns-preset" data-preset="quad9" style="justify-content: flex-start; text-align: left; padding: 6px 10px;">
-                    <div>
-                      <div style="font-weight: 600; font-size: 12px;">🔒 Quad9</div>
-                      <div style="font-size: 10px; color: var(--text-3); font-family: monospace;">Zararlı Yazılım Blok</div>
+                  <button class="btn btn-secondary btn-dns-preset btn-dns-card" data-preset="quad9" style="height: auto; min-height: 48px; line-height: normal; justify-content: flex-start; text-align: left; padding: 8px 12px; display: flex; align-items: center;">
+                    <div style="width: 100%;">
+                      <div style="font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 6px; line-height: 1.3; margin-bottom: 2px;">
+                        ${window.UlakIcons.getIcon('lock', 'icon-mono-xs')} <span>Quad9</span>
+                      </div>
+                      <div style="font-size: 10.5px; color: var(--text-3); font-family: monospace; line-height: 1.2;">Zararlı Yazılım Blok</div>
                     </div>
                   </button>
                 </div>
@@ -331,11 +339,31 @@
 
           document.querySelectorAll('.btn-copy-pwd').forEach(b => {
             b.addEventListener('click', () => {
-              const pwd = b.getAttribute('data-pwd');
-              navigator.clipboard.writeText(pwd);
-              window.UlakUI.toast('Parola panoya kopyalandı.', 'success');
+              const pwd = b.getAttribute('data-pwd') || '';
+              const doToast = () => window.UlakUI.toast('Parola panoya kopyalandı.', 'success');
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(pwd).then(doToast).catch(() => {
+                  copyTextFallback(pwd);
+                  doToast();
+                });
+              } else {
+                copyTextFallback(pwd);
+                doToast();
+              }
             });
           });
+
+          function copyTextFallback(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+          }
         } catch (e) {
           window.UlakUI.toast(`Kasa hatası: ${e.message}`, 'error');
         }

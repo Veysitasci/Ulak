@@ -11,7 +11,7 @@
       const C = window.UlakComponents;
       return `
         <div class="firewall-view">
-          ${C.headerCard('Güvenlik Duvarı', 'Windows Gelişmiş Güvenlikli Güvenlik Duvarı Yönetimi, ICMP Gizleme ve Kural Denetimi', 'shield')}
+          ${C.headerCard('Güvenlik Duvarı', 'Windows Gelişmiş Güvenlikli Güvenlik Duvarı Yönetimi, ICMP Gizleme ve Kural Denetimi', 'shield', 'firewall')}
 
           <!-- Subtab Segmented Bar -->
           <div class="view-section glass-card" style="padding: 10px 14px; margin-bottom: 16px;">

@@ -134,26 +134,55 @@ class AnimatedBackdrop(Gtk.DrawingArea):
         self.set_hexpand(True)
         self.set_vexpand(True)
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK
-                        | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+                        | Gdk.EventMask.LEAVE_NOTIFY_MASK
+                        | Gdk.EventMask.BUTTON_PRESS_MASK)
         self.connect("draw", self.on_draw)
         self.connect("motion-notify-event", self._on_motion)
         self.connect("leave-notify-event", self._on_leave)
+        self.connect("button-press-event", self._on_press)
 
         self._parts = []
+        self._trail = []
+        self._ripples = []
         self._w = 0
         self._h = 0
+        self._raw_mx = None
+        self._raw_my = None
         self._mx = None
         self._my = None
+        self._mvx = 0.0
+        self._mvy = 0.0
         self._last = time.monotonic()
         self._timer = GLib.timeout_add(33, self._tick)
 
     # ---------- imlec takibi ----------
     def set_mouse(self, x, y=None):
         if x is None or y is None:
+            self._raw_mx = self._raw_my = None
             self._mx = self._my = None
+            self._mvx = self._mvy = 0.0
             return
         inside = 0 <= x <= self._w and 0 <= y <= self._h
-        self._mx, self._my = (x, y) if inside else (None, None)
+        if inside:
+            self._raw_mx, self._raw_my = x, y
+            if self._mx is None:
+                self._mx, self._my = x, y
+        else:
+            self._raw_mx = self._raw_my = None
+            self._mx = self._my = None
+
+    def trigger_shockwave(self, x, y):
+        if x is None or y is None:
+            return
+        self._ripples.append([float(x), float(y), 6.0, 210.0, 0.85])
+        blast_r = 210.0
+        for p in self._parts:
+            dx, dy = p[0] - x, p[1] - y
+            d = math.hypot(dx, dy)
+            if 0.1 < d < blast_r:
+                imp = (1.0 - d / blast_r) * 6.5
+                p[2] += (dx / d) * imp
+                p[3] += (dy / d) * imp
 
     def _on_motion(self, widget, ev):
         self.set_mouse(ev.x, ev.y)
@@ -161,6 +190,10 @@ class AnimatedBackdrop(Gtk.DrawingArea):
 
     def _on_leave(self, widget, ev):
         self.set_mouse(None)
+        return False
+
+    def _on_press(self, widget, ev):
+        self.trigger_shockwave(ev.x, ev.y)
         return False
 
     # ---------- parçacik durumu ----------
@@ -194,20 +227,55 @@ class AnimatedBackdrop(Gtk.DrawingArea):
         if not self._w or not self._h:
             return
         k = max(0.2, min(3.0, dt / (1.0 / 60.0)))
+
+        # Tam ve gecikmesiz 1:1 imleç takibi + kuyruk izi
+        if self._raw_mx is not None and self._raw_my is not None:
+            if self._mx is None or self._my is None:
+                self._mx, self._my = self._raw_mx, self._raw_my
+            self._mvx = self._raw_mx - self._mx
+            self._mvy = self._raw_my - self._my
+            self._mx, self._my = self._raw_mx, self._raw_my
+            mspeed = math.hypot(self._mvx, self._mvy)
+            if mspeed > 0.8:
+                self._trail.insert(0, [self._mx, self._my, 1.0])
+                if len(self._trail) > 18:
+                    self._trail.pop()
+        else:
+            self._mx = self._my = None
+            self._mvx = self._mvy = 0.0
+            if self._trail:
+                self._trail.pop()
+
+        for tr in self._trail:
+            tr[2] *= 0.86
+
+        # Tıklama şok dalgalarını güncelle
+        for i in range(len(self._ripples) - 1, -1, -1):
+            rp = self._ripples[i]
+            rp[2] += (rp[3] - rp[2]) * 0.12 * k + 2.0 * k
+            rp[4] *= (0.91 ** k)
+            if rp[4] < 0.02 or rp[2] >= rp[3]:
+                del self._ripples[i]
+
         mx, my = self._mx, self._my
+        mspeed = min(36.0, math.hypot(self._mvx, self._mvy))
         for p in self._parts:
             if mx is not None:
                 dx, dy = p[0] - mx, p[1] - my
                 d2 = dx * dx + dy * dy
-                if 0.0001 < d2 < self.REPEL_R * self.REPEL_R:
+                dynamic_repel_r = self.REPEL_R + min(45.0, mspeed * 1.5)
+                if 0.0001 < d2 < dynamic_repel_r * dynamic_repel_r:
                     d = math.sqrt(d2)
-                    f = (1.0 - d / self.REPEL_R) * self.REPEL_F * 0.16 * k
-                    p[2] += (dx / d) * f
-                    p[3] += (dy / d) * f
+                    norm = 1.0 - d / dynamic_repel_r
+                    f = norm * (self.REPEL_F * 0.26 + mspeed * 0.05) * k
+                    swirl = norm * (0.05 + mspeed * 0.008) * k
+                    nx, ny = dx / d, dy / d
+                    p[2] += nx * f - ny * swirl + self._mvx * 0.035 * norm
+                    p[3] += ny * f + nx * swirl + self._mvy * 0.035 * norm
 
             # hiz tavanı + kendiliginden yumusama
             sp = math.hypot(p[2], p[3])
-            max_sp = self.BASE_SPEED * 2.4
+            max_sp = self.BASE_SPEED * 2.6
             if sp > max_sp:
                 p[2] *= max_sp / sp
                 p[3] *= max_sp / sp
@@ -274,7 +342,17 @@ class AnimatedBackdrop(Gtk.DrawingArea):
         cr.set_source(glow)
         cr.paint()
 
-        # ---------- baglanti cizgileri ----------
+        # ---------- इमlec spot isigi ----------
+        if self._mx is not None and self._my is not None:
+            mglow = cairo.RadialGradient(self._mx, self._my, 2,
+                                         self._mx, self._my, 145)
+            mglow.add_color_stop_rgba(0, *pal["accent"], 0.13)
+            mglow.add_color_stop_rgba(1, *pal["accent"], 0.0)
+            cr.set_source(mglow)
+            cr.arc(self._mx, self._my, 145, 0, 2 * math.pi)
+            cr.fill()
+
+        # ---------- baglanti cizgileri + ücgen ag dolgusu ----------
         cr.set_line_width(1.0)
         parts = self._parts
         for i in range(len(parts)):
@@ -287,7 +365,8 @@ class AnimatedBackdrop(Gtk.DrawingArea):
                 d2 = dx * dx + dy * dy
                 if d2 > md * md:
                     continue
-                a = pal["line_a"] * (1.0 - math.sqrt(d2) / md)
+                d = math.sqrt(d2)
+                a = pal["line_a"] * (1.0 - d / md)
                 if a < 0.012:
                     continue
                 cr.save()
@@ -297,6 +376,26 @@ class AnimatedBackdrop(Gtk.DrawingArea):
                 cr.stroke()
                 cr.restore()
 
+                # Imlec yakininda siber ücgen poligon parlamasi
+                if self._mx is not None and d < md * 0.78:
+                    mdist = math.hypot((ax + bx) * 0.5 - self._mx,
+                                       (ay + by) * 0.5 - self._my)
+                    if mdist < self.REPEL_R * 1.25:
+                        for m in range(j + 1, len(parts)):
+                            cx, cy = parts[m][0], parts[m][1]
+                            if (math.hypot(bx - cx, by - cy) < md * 0.72 and
+                                    math.hypot(ax - cx, ay - cy) < md * 0.72):
+                                ta = (1.0 - mdist / (self.REPEL_R * 1.25)) * 0.075
+                                cr.save()
+                                cr.set_source_rgba(*pal["accent"], ta)
+                                cr.move_to(ax, ay)
+                                cr.line_to(bx, by)
+                                cr.line_to(cx, cy)
+                                cr.close_path()
+                                cr.fill()
+                                cr.restore()
+                                break
+
         # imlec baglantisi (en yakin parçaciklara ince cizgi)
         if self._mx is not None:
             for p in parts:
@@ -304,7 +403,7 @@ class AnimatedBackdrop(Gtk.DrawingArea):
                 d2 = dx * dx + dy * dy
                 if d2 > md * md * 1.6:
                     continue
-                a = pal["line_a"] * 0.9 * (1.0 - math.sqrt(d2) / (md * 1.26))
+                a = pal["line_a"] * 0.95 * (1.0 - math.sqrt(d2) / (md * 1.26))
                 if a <= 0:
                     continue
                 cr.save()
@@ -313,6 +412,34 @@ class AnimatedBackdrop(Gtk.DrawingArea):
                 cr.line_to(p[0], p[1])
                 cr.stroke()
                 cr.restore()
+
+        # ---------- imlec kuyrugu (laser trail) ----------
+        if len(self._trail) > 2:
+            for i in range(len(self._trail) - 1):
+                c_pt = self._trail[i]
+                n_pt = self._trail[i + 1]
+                ratio = 1.0 - (i / float(len(self._trail)))
+                cr.save()
+                cr.set_source_rgba(*pal["accent"], ratio * 0.40 * c_pt[2])
+                cr.set_line_width(max(0.8, ratio * 3.0))
+                cr.move_to(c_pt[0], c_pt[1])
+                cr.line_to(n_pt[0], n_pt[1])
+                cr.stroke()
+                cr.restore()
+
+        # ---------- tiklama şok dalgaları ----------
+        for rp in self._ripples:
+            cr.save()
+            cr.set_source_rgba(*pal["accent"], rp[4])
+            cr.set_line_width(1.7)
+            cr.arc(rp[0], rp[1], rp[2], 0, 2 * math.pi)
+            cr.stroke()
+            if rp[2] > 18:
+                cr.set_source_rgba(*pal["line"], rp[4] * 0.55)
+                cr.set_line_width(1.0)
+                cr.arc(rp[0], rp[1], rp[2] * 0.72, 0, 2 * math.pi)
+                cr.stroke()
+            cr.restore()
 
         # ---------- parçacik noktaları ----------
         for p in parts:
@@ -343,9 +470,11 @@ class HomeView(Gtk.Overlay):
         sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sc.set_overlay_scrolling(True)
         sc.add_events(Gdk.EventMask.POINTER_MOTION_MASK
-                      | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+                      | Gdk.EventMask.LEAVE_NOTIFY_MASK
+                      | Gdk.EventMask.BUTTON_PRESS_MASK)
         sc.connect("motion-notify-event", self._on_pointer)
         sc.connect("leave-notify-event", self._on_pointer_leave)
+        sc.connect("button-press-event", self._on_pointer_press)
         self.add_overlay(sc)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
@@ -443,6 +572,16 @@ class HomeView(Gtk.Overlay):
 
     def _on_pointer_leave(self, widget, ev):
         self.backdrop.set_mouse(None)
+        return False
+
+    def _on_pointer_press(self, widget, ev):
+        if not self.backdrop.get_mapped():
+            return False
+        try:
+            ox, oy = self.backdrop.translate_coordinates(widget, 0, 0)
+        except Exception:
+            ox = oy = 0
+        self.backdrop.trigger_shockwave(ev.x + ox, ev.y + oy)
         return False
 
     # ---------- kurulum yardimcilari ----------

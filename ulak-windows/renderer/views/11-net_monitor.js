@@ -12,8 +12,8 @@
           <div class="glass-card liquid-glow" style="margin-bottom: 20px; padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
               <div style="display: flex; align-items: center; gap: 14px;">
-                <div class="setting-row-icon" style="width: 50px; height: 50px; border-radius: var(--r-md);">
-                  ${window.UlakIcons.getIcon('activity', 'icon-mono-lg')}
+                <div class="setting-row-icon" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: transparent !important; border: none !important; box-shadow: none !important;">
+                  <img src="../assets/module_icons/net_monitor.png" class="view-header-3d-icon" style="width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));" onerror="this.style.display=\'none\';" />
                 </div>
                 <div>
                   <div style="font-size: 19px; font-weight: 700; color: var(--text-1); letter-spacing: -0.01em;">Ağ & Port Takipçisi Pro</div>

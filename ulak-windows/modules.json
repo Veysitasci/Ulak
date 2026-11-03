@@ -1,5 +1,75 @@
 [
   {
+    "id": "proc_radar",
+    "name_key": "Süreçler",
+    "desc_key": "Canlı Windows süreç telemetrisi, masquerading ve sahte sistem süreç analizi, bellek ve görev avcısı.",
+    "icon": "activity",
+    "category": "Donanım",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "Canlı Windows Süreç Ağacı, PID & Çalışma Zamanı RAM İzleme",
+      "Masquerading & Sahte Sistem Süreci Tespiti (svchost, explorer vb.)",
+      "Kritik ve Şüpheli Konum İzleme (Temp, AppData, Downloads vb.)",
+      "Ağaç Tabanlı Güvenli veya Zorla Süreç Sonlandırma (Task Hunter)"
+    ]
+  },
+  {
+    "id": "firewall",
+    "name_key": "Güvenlik Duvarı",
+    "desc_key": "Windows Gelişmiş Güvenlikli Güvenlik Duvarı profilleri, ICMP gizleme, port kalkanı ve kural yönetimi.",
+    "icon": "shield",
+    "category": "Güvenlik",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "Alan Adı, Özel ve Ortak Ağ Profili Canlı Yönetimi",
+      "ICMP Yankı (Ping) Yanıtlarını Engelleyerek Ağda Görünmez Olma",
+      "Etkin Gelen ve Giden Güvenlik Duvarı Kuralı Denetimi",
+      "Şüpheli Bağlantıları Anında İzolasyona Alma"
+    ]
+  },
+  {
+    "id": "hacker",
+    "name_key": "Hacker Araçları",
+    "desc_key": "Gelişmiş port tarayıcı, alt ağ keşfi, DNS sızıntı testi ve olay günlüğü tehdit avcısı.",
+    "icon": "zap",
+    "category": "Güvenlik",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "Hızlı ve Derin TCP/UDP Port Tarama Motoru",
+      "Yerel Ağ (Subnet) Canlı IP ve Cihaz Keşif Radarı",
+      "Kapsamlı DNS Sızıntı ve Şeffaflık Doğrulama Testi",
+      "Windows Güvenlik Olay Günlüğü Tehdit Avcısı"
+    ]
+  },
+  {
+    "id": "admin",
+    "name_key": "Sistem Yönetimi",
+    "desc_key": "Windows servis yöneticisi, sistem dosyası onarımı (SFC), güç planı optimizasyonu ve Winget.",
+    "icon": "sliders",
+    "category": "Sistem",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "Kritik Windows Servisleri Başlatma/Durdurma ve Durum Takibi",
+      "Tek Tıkla SFC ve DISM Sistem Dosyası Onarım Motoru",
+      "Üstün Performans ve Güç Planı Ayarlayıcı",
+      "Windows Paket Yöneticisi (Winget) Bakım Konsolu"
+    ]
+  },
+  {
+    "id": "antivirus",
+    "name_key": "Antivirüs & Tehdit Avcısı",
+    "desc_key": "Heuristik dosya analizi, Shannon entropisi, Windows Defender entegrasyonu ve güvenli dosya parçalayıcı.",
+    "icon": "shield",
+    "category": "Güvenlik",
+    "github_url": "https://github.com/Veysitasci/Ulak",
+    "features": [
+      "Derinlemesine Heuristik & Polimorfik Kod Taraması (PE, Webshell)",
+      "Windows Defender Canlı Kalkan Durumu & Hızlı Sistem Taraması",
+      "Kriptografik MD5 & SHA-256 Tehdit İmza Tespiti",
+      "DoD 5220.22-M Standardında 3 Aşamalı Kalıcı Dosya Parçalayıcı"
+    ]
+  },
+  {
     "id": "crypto_vault",
     "name_key": "Kripto Kasa & Steganografi",
     "desc_key": "AES-256-GCM dosya şifreleme, görsel içi steganografi, parola korumalı not defteri ve dijital mühür laboratuvarı.",
@@ -7,26 +77,52 @@
     "category": "Güvenlik",
     "github_url": "https://github.com/Veysitasci/Ulak",
     "features": [
-      "AES-256-GCM Askeri Standartta Parolalı Dosya Şifreleme ve Çözme (.ulak)",
+      "AES-256-GCM Askeri Standartta Parolalı Dosya Şifreleme (.ulak)",
       "Görsel İçi LSB Steganografi (Resim Arkasına Gizli Mesaj & Dosya Gömme)",
       "PBKDF2 ve GCM Bütünlük Korumalı Şifreli Gizli Not Defteri",
-      "Yüksek Entropili Kriptografik Parola & Token Üreticisi",
       "HMAC-SHA512 Dijital Bütünlük Mührü & Manipülasyon Doğrulayıcı"
     ]
   },
   {
-    "id": "antivirus",
-    "name_key": "Antivirüs & Tehdit Avcısı",
-    "desc_key": "Heuristik dosya analizi, Shannon entropisi, Windows Defender entegrasyonu, karantina kasası ve güvenli dosya parçalayıcı.",
-    "icon": "shield",
-    "category": "Güvenlik",
-    "github_url": "https://github.com/Veysitasci/Ulak",
+    "id": "net_monitor",
+    "name_key": "Ağ & Port Takipçisi",
+    "desc_key": "Gerçek zamanlı ağ bağlantıları, bant genişliği telemetrisi, görsel traceroute ve DNS önbellek denetçisi.",
+    "icon": "activity",
+    "category": "Ağ",
+    "github_url": "https://github.com/veysi/ulak",
     "features": [
-      "Derinlemesine Heuristik & Polimorfik Kod Taraması (Steganografi, Webshell, PE)",
-      "Windows Defender Canlı Kalkan Durumu & Hızlı Sistem Taraması",
-      "Kriptografik MD5 & SHA-256 Tehdit İmza Tespiti",
-      "Güvenli Karantina Kasası, Şifreli İzolasyon & Geri Yükleme Motoru",
-      "DoD 5220.22-M Standardında 3 Aşamalı Kalıcı Dosya Parçalayıcı (File Shredder)"
+      "Canlı TCP/UDP Soket & İşlem (PID) Eşleme Tablosu",
+      "Görsel Coğrafi Traceroute & Atlama (Hop) Gecikme Grafiği",
+      "Giden Şüpheli Uzak IP ve Port Uyarı Sistemi",
+      "Windows DNS Önbellek İzleme ve Anında Temizleme"
+    ]
+  },
+  {
+    "id": "pkg_installer",
+    "name_key": "Evrensel Paket Yükleyici",
+    "desc_key": "Winget ve Chocolatey üzerinden popüler geliştirici ve güvenlik araçlarını tek tıkla kurar.",
+    "icon": "box",
+    "category": "Araçlar",
+    "github_url": "https://github.com/veysi/ulak",
+    "features": [
+      "Kategorize Edilmiş 100+ Popüler Yazılım Kütüphanesi",
+      "Tek Tıkla Arka Planda Sessiz (Silent) Kurulum",
+      "Yerel İndirilen .exe/.msi Dosyaları İçin İmza Doğrulama",
+      "Yüklü Programlar İçin Otomatik Güncelleme Taraması"
+    ]
+  },
+  {
+    "id": "backup_tool",
+    "name_key": "Otomatik Yedekleme Aracı",
+    "desc_key": "Kritik klasörler, tarayıcı profilleri ve sistem yapılandırmaları için artımlı (incremental) yedekleme.",
+    "icon": "archive",
+    "category": "Araçlar",
+    "github_url": "https://github.com/veysi/ulak",
+    "features": [
+      "Belgeler, Masaüstü ve Özel Dizinler İçin Otomatik Yedekleme",
+      "Gelişmiş ZIP/7z Sıkıştırma ve Parola Koruması",
+      "Zamanlanmış Günlük / Haftalık Yedekleme Görevleri",
+      "Tek Tıkla Noktadan Geri Yükleme (Restore Point) Desteği"
     ]
   },
   {
@@ -40,68 +136,7 @@
       "4K / 2K / 1080p / 720p / 480p Çoklu Video Çözünürlüğü Seçimi",
       "Stüdyo Kalitesinde 320kbps MP3, FLAC, WAV, AAC Ses Ayrıştırma",
       "Toplu Oynatma Listesi (Playlist) ve Aralık Belirleme (Örn: 1-10)",
-      "Otomatik Çok Dilli SRT/VTT Altyazı Algılama ve İndirme",
-      "Bant Genişliği Hız Sınırlandırıcı (Rate-Limit) & İndirme Kütüphanesi"
-    ]
-  },
-  {
-    "id": "sys_cleaner",
-    "name_key": "Sistem Temizleyici",
-    "desc_key": "Disk sağlığı, sistem önbelleği, geçici dosyalar, çöp ve tarayıcı kalıntılarını tek tıkla temizler.",
-    "icon": "trash",
-    "category": "Araçlar",
-    "github_url": "https://github.com/veysi/ulak",
-    "features": [
-      "Kullanıcı & Sistem Temp Klasörleri Derin Temizliği",
-      "Çoklu Tarayıcı Önbellek & Çerez Temizleyici (Chrome, Edge, Brave, Firefox)",
-      "Windows Update & SoftwareDistribution İndirme Kalıntıları Temizliği",
-      "DNS Önbellek Temizleme (FlushDNS) & Winsock Ağ Sıfırlama",
-      "Bozuk Windows İkon & Küçük Resim (Thumbnail) Önbelleği Sıfırlayıcı"
-    ]
-  },
-  {
-    "id": "net_monitor",
-    "name_key": "Ağ & Port Takipçisi",
-    "desc_key": "Canlı bant genişliği, soket-süreç eşlemeli port taraması, gecikme ölçümü ve internet hız testi.",
-    "icon": "activity",
-    "category": "Ağ",
-    "github_url": "https://github.com/veysi/ulak",
-    "features": [
-      "Soket-Süreç Eşlemeli Dışa Açıklık & Dinleyen Port Taraması",
-      "Canlı Adaptör Bant Genişliği ve Süreç Ağ Trafiği Monitörü",
-      "Hedefe Özel Görsel Traceroute (ICMP Hop & Jitter) Analizi",
-      "Şüpheli Dış IP / Coğrafi Konum & Whois İstihbarat Sorgusu",
-      "Tek Tıkla Şüpheli Süreç Sonlandırma & Port Güvenlik Duvarı Engelleme"
-    ]
-  },
-  {
-    "id": "backup_tool",
-    "name_key": "Otomatik Yedekleme Aracı",
-    "desc_key": "Zamanlanmış artımlı yedek motoru, AES-256 şifreleme, bütünlük doğrulaması ve harici diske otomatik kopyalama.",
-    "icon": "archive",
-    "category": "Sistem",
-    "github_url": "https://github.com/veysi/ulak",
-    "features": [
-      "Hızlı ve Tam Sistem Arşivleme (Belgeler, Masaüstü, Projeler)",
-      "Özel Klasör & Dosya Seçimli Dinamik Yedek Oluşturma",
-      "Tek Tıkla Arşivden Geri Yükleme Motoru (One-Click Restore)",
-      "Kriptografik SHA-256 Checksum ile Arşiv Bütünlük Doğrulaması",
-      "Zamanlanmış Yedekleme Hatırlatıcısı & Depolama Kapasite Analizi"
-    ]
-  },
-  {
-    "id": "pkg_installer",
-    "name_key": "Evrensel Paket Yükleyici",
-    "desc_key": "Windows Winget ve Chocolatey paket yöneticisi entegrasyonu ile toplu yazılım arama ve kurulumu.",
-    "icon": "package",
-    "category": "Araçlar",
-    "github_url": "https://github.com/veysi/ulak",
-    "features": [
-      "Yerel Dosya Shannon Entropisi & Polimorfik Zararlı Yazılım Analizi",
-      "Canlı Winget & Chocolatey Bulut Depo Araması ve Tek Tıkla Kurulum",
-      "Microsoft Authenticode Dijital İmza & Sertifika Geçerlilik Denetimi",
-      "Sessiz / Katılımsız (Silent / Unattended) Arka Plan Kurulum Parametreleri",
-      "Yüklü Windows Programları Listesi ve Toplu Uygulama Kaldırıcı"
+      "Otomatik Çok Dilli SRT/VTT Altyazı Algılama ve İndirme"
     ]
   }
 ]

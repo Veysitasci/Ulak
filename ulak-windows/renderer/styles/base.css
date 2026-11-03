@@ -59,7 +59,8 @@ img {
   outline: 1px solid rgba(255, 255, 255, 0.08);
   outline-offset: -1px;
 }
-:root[data-theme="light"] img {
+:root[data-theme="light"] img,
+:root[data-mode="light"] img {
   outline: 1px solid rgba(0, 0, 0, 0.08);
 }
 img.brand-logo, img.splash-logo, #home-hero-logo {

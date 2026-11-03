@@ -14,6 +14,24 @@ class WiFiManager {
     this._prevTime = Date.now();
   }
 
+  async runElevatedBat(lines) {
+    const batPath = path.join(os.tmpdir(), `ulak_net_${Date.now()}.bat`);
+    try {
+      const content = '@echo off\r\n' + lines.join('\r\n') + '\r\n';
+      fs.writeFileSync(batPath, content, 'utf8');
+      await execAsync(`powershell -NoProfile -Command "Start-Process '${batPath}' -Verb RunAs -Wait -WindowStyle Hidden"`);
+      return { success: true };
+    } catch (err) {
+      const msg = (err.message || '').toLowerCase();
+      if (msg.includes('canceled') || msg.includes('iptal')) {
+        return { success: false, message: 'İşlem Windows Yönetici (UAC) izni onaylanmadığı için iptal edildi.' };
+      }
+      return { success: false, message: 'Yönetici yetkisi hatası: ' + err.message };
+    } finally {
+      try { if (fs.existsSync(batPath)) fs.unlinkSync(batPath); } catch (e) {}
+    }
+  }
+
   async getStatus() {
     const conn = await this.getCurrentConnection();
     const netCfg = await this.getNetworkConfig();
@@ -38,9 +56,24 @@ class WiFiManager {
 
   async setPowered(active) {
     try {
+      let iface = 'Wi-Fi';
+      try {
+        const conn = await this.getCurrentConnection();
+        if (conn && conn.interface) iface = conn.interface;
+      } catch (e) {}
       const state = active ? 'enabled' : 'disabled';
-      await execAsync(`netsh interface set interface name="Wi-Fi" admin=${state}`);
-      return { success: true, powered: active };
+      const cmd = `netsh interface set interface name="${iface}" admin=${state}`;
+
+      try {
+        await execAsync(cmd);
+        return { success: true, powered: active };
+      } catch (directErr) {
+        const elevRes = await this.runElevatedBat([cmd]);
+        if (elevRes.success) {
+          return { success: true, powered: active };
+        }
+        return elevRes;
+      }
     } catch (e) {
       return { success: false, message: e.message };
     }
@@ -107,7 +140,7 @@ class WiFiManager {
     try {
       const { stdout } = await execAsync('netsh wlan show interfaces');
       const lines = stdout.split('\n');
-      const info = { powered: true, connected: false, interface: 'Wi-Fi', ssid: '', bssid: '', signal: 0, channel: '1' };
+      const info = { powered: true, connected: false, interface: 'Wi-Fi', ssid: '', bssid: '', signal: 0, channel: '1', radioType: '802.11ax' };
 
       for (const raw of lines) {
         const line = raw.trim();
@@ -126,6 +159,8 @@ class WiFiManager {
         } else if (/^(Channel|Kanal)\s*:/i.test(line)) {
           const m = line.match(/(\d+)/);
           if (m) info.channel = m[1];
+        } else if (/^(Radio type|Radyo türü)\s*:/i.test(line)) {
+          info.radioType = line.split(':').slice(1).join(':').trim();
         }
       }
       return info;
@@ -421,26 +456,53 @@ class WiFiManager {
 
   async setDnsSettings(preset, customPrimary = '', customSecondary = '') {
     try {
-      if (preset === 'dhcp') {
-        await execAsync('netsh interface ipv4 set dnsservers name="Wi-Fi" dhcp');
-      } else {
-        let p = customPrimary;
-        let s = customSecondary;
-        if (preset === 'cloudflare') { p = '1.1.1.1'; s = '1.0.0.1'; }
-        else if (preset === 'google') { p = '8.8.8.8'; s = '8.8.4.4'; }
-        else if (preset === 'adguard') { p = '94.140.14.14'; s = '94.140.15.15'; }
-        else if (preset === 'quad9') { p = '9.9.9.9'; s = '149.112.112.112'; }
+      let iface = 'Wi-Fi';
+      try {
+        const conn = await this.getCurrentConnection();
+        if (conn && conn.interface) iface = conn.interface;
+      } catch (e) {}
 
-        if (!p) throw new Error('Birincil DNS adresi belirtilmedi.');
-        await execAsync(`netsh interface ipv4 set dnsservers name="Wi-Fi" static ${p} primary`);
+      let p = customPrimary;
+      let s = customSecondary;
+      if (preset === 'dhcp') {
+        p = '';
+        s = '';
+      } else if (preset === 'cloudflare') { p = '1.1.1.1'; s = '1.0.0.1'; }
+      else if (preset === 'google') { p = '8.8.8.8'; s = '8.8.4.4'; }
+      else if (preset === 'adguard') { p = '94.140.14.14'; s = '94.140.15.15'; }
+      else if (preset === 'quad9') { p = '9.9.9.9'; s = '149.112.112.112'; }
+
+      const batLines = [];
+      if (preset === 'dhcp') {
+        batLines.push(`netsh interface ipv4 set dnsservers name="${iface}" dhcp`);
+      } else {
+        if (!p) return { success: false, message: 'Birincil DNS adresi belirtilmedi.' };
+        batLines.push(`netsh interface ipv4 set dnsservers name="${iface}" static ${p} primary`);
         if (s) {
-          try {
-            await execAsync(`netsh interface ipv4 add dnsservers name="Wi-Fi" ${s} index=2`);
-          } catch(e) {}
+          batLines.push(`netsh interface ipv4 add dnsservers name="${iface}" ${s} index=2`);
         }
       }
-      try { await execAsync('ipconfig /flushdns'); } catch(e) {}
-      return { success: true, message: 'DNS yapılandırması başarıyla güncellendi ve DNS önbelleği temizlendi.' };
+      batLines.push('ipconfig /flushdns');
+
+      // 1. Direct exec attempt (if application is running elevated)
+      try {
+        await execAsync(batLines.join(' && '));
+        return { success: true, message: `DNS başarıyla '${preset}' profiline ayarlandı.` };
+      } catch (directErr) {
+        const fullErr = ((directErr.message || '') + ' ' + (directErr.stdout || '') + ' ' + (directErr.stderr || '')).toLowerCase();
+        const isElevReq = fullErr.includes('elevation') || fullErr.includes('administrator') || fullErr.includes('yönetici') || fullErr.includes('access is denied');
+
+        if (isElevReq) {
+          // 2. Request UAC elevation via batch file
+          const elevRes = await this.runElevatedBat(batLines);
+          if (elevRes.success) {
+            return { success: true, message: `DNS başarıyla '${preset}' profiline ayarlandı.` };
+          } else {
+            return elevRes;
+          }
+        }
+        return { success: false, message: directErr.message };
+      }
     } catch (e) {
       return { success: false, message: e.message };
     }
@@ -623,11 +685,17 @@ class WiFiManager {
       let speed = '0 Mbps';
       let signal = '0%';
 
-      for (const line of stdout.split('\n')) {
-        if (line.includes('BSSID')) bssid = line.split(':')[1]?.trim() || bssid;
-        if (line.includes('Radio type') || line.includes('Radyo türü')) radio = line.split(':')[1]?.trim() || radio;
-        if (line.includes('Receive rate') || line.includes('Alma hızı')) speed = (line.split(':')[1]?.trim() || '0') + ' Mbps';
-        if (line.includes('Signal') || line.includes('Sinyal')) signal = line.split(':')[1]?.trim() || signal;
+      for (const rawLine of stdout.split('\n')) {
+        const line = rawLine.trim();
+        if (/^BSSID\s*:/i.test(line)) {
+          bssid = line.split(':').slice(1).join(':').trim().toUpperCase() || bssid;
+        } else if (/^(Radio type|Radyo türü)\s*:/i.test(line)) {
+          radio = line.split(':').slice(1).join(':').trim() || radio;
+        } else if (/^(Receive rate|Alma hızı)\s*:/i.test(line)) {
+          speed = (line.split(':').slice(1).join(':').trim() || '0') + ' Mbps';
+        } else if (/^(Signal|Sinyal)\s*:/i.test(line)) {
+          signal = line.split(':').slice(1).join(':').trim() || signal;
+        }
       }
 
       return { success: true, bssid, radio, speed, signal };

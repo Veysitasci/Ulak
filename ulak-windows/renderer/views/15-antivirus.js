@@ -11,7 +11,7 @@
       const C = window.UlakComponents;
       return `
         <div class="antivirus-view">
-          ${C.headerCard('Antivirüs & Tehdit Avcısı', 'Heuristik Dosya Analizi, Shannon Entropisi, Windows Defender Kalkanı ve Güvenli Dosya Parçalayıcı', 'shield')}
+          ${C.headerCard('Antivirüs & Tehdit Avcısı', 'Heuristik Dosya Analizi, Shannon Entropisi, Windows Defender Kalkanı ve Güvenli Dosya Parçalayıcı', 'shield', 'antivirus')}
 
           <!-- Live Defense Bento Stats -->
           <div class="grid-3" style="margin-bottom: var(--space-13);">

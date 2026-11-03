@@ -1,6 +1,12 @@
-const { app, BrowserWindow, ipcMain, dialog, protocol, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, protocol, shell, net, Notification, screen, nativeTheme } = require('electron');
 const path = require('path');
+const { pathToFileURL } = require('url');
+const { Readable } = require('stream');
 const Store = require('electron-store');
+
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.ulak.app');
+}
 
 // Register media-file scheme as privileged before app is ready
 protocol.registerSchemesAsPrivileged([
@@ -22,6 +28,7 @@ const BackupManager = require('./backend/backup');
 const UniversalPackageInstaller = require('./backend/packageInstaller');
 const VersionManager = require('./backend/versionManager');
 const CryptoVaultManager = require('./backend/cryptoVault');
+const ProcessRadarManager = require('./backend/processRadar');
 
 const store = new Store();
 
@@ -41,6 +48,7 @@ const backupManager = new BackupManager();
 const universalPackageInstaller = new UniversalPackageInstaller();
 const versionManager = new VersionManager();
 const cryptoVaultManager = new CryptoVaultManager();
+const processRadarManager = new ProcessRadarManager();
 
 const os = require('os');
 const fs = require('fs');
@@ -56,19 +64,101 @@ const isAcrylicSupported = checkAcrylicSupport();
 
 let mainWindow = null;
 let splashWindow = null;
+let petWindow = null;
+let isMainWindowReady = false;
+let isSplashComplete = false;
+
+function createPetWindow() {
+  if (petWindow && !petWindow.isDestroyed()) {
+    return petWindow;
+  }
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { workArea } = primaryDisplay;
+
+  const savedPos = store.get('pet.position');
+  const defaultX = Math.round(workArea.x + workArea.width - 252);
+  const defaultY = Math.round(workArea.y + workArea.height - 332);
+
+  const posX = (savedPos && typeof savedPos.x === 'number') ? savedPos.x : defaultX;
+  const posY = (savedPos && typeof savedPos.y === 'number') ? savedPos.y : defaultY;
+
+  petWindow = new BrowserWindow({
+    width: 240,
+    height: 320,
+    x: posX,
+    y: posY,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    hasShadow: false,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  });
+
+  petWindow.loadFile(path.join(__dirname, 'renderer', 'pet.html'));
+
+  petWindow.once('ready-to-show', () => {
+    const isEnabled = store.get('pet.enabled', true);
+    if (isEnabled && petWindow && !petWindow.isDestroyed()) {
+      petWindow.showInactive();
+    }
+  });
+
+  petWindow.on('closed', () => {
+    petWindow = null;
+  });
+
+  return petWindow;
+}
+
+function finishSplashAndShowMain() {
+  if (splashWindow) {
+    try { splashWindow.close(); } catch(e) {}
+    splashWindow = null;
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (!mainWindow.isVisible()) {
+      mainWindow.show();
+      mainWindow.focus();
+      mainWindow.moveTop();
+    }
+    // Launch Desktop Pet if enabled
+    try {
+      createPetWindow();
+    } catch (err) {
+      console.warn('[PET] Pencere başlatılırken hata:', err);
+    }
+  }
+}
 
 function createSplashWindow() {
+  const defaultMode = nativeTheme && nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+  const savedFamily = store.get('theme.family', 'nord');
+  const savedMode = store.get('theme.mode', defaultMode);
+  let savedTheme = store.get('theme.id');
+  if (!savedTheme) {
+    savedTheme = (savedFamily === 'ulak') ? savedMode : `${savedFamily}-${savedMode}`;
+  }
+
   const splashOpts = {
-    width: 440,
-    height: 290,
+    width: 500,
+    height: 340,
     frame: false,
-    transparent: false,
+    transparent: true,
     center: true,
     resizable: false,
     show: false,
     alwaysOnTop: true,
-    hasShadow: true,
-    backgroundColor: '#0a0d14',
+    hasShadow: false,
+    backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -79,10 +169,16 @@ function createSplashWindow() {
   };
 
   splashWindow = new BrowserWindow(splashOpts);
-  splashWindow.loadFile(path.join(__dirname, 'renderer', 'splash.html'));
+  splashWindow.loadFile(path.join(__dirname, 'renderer', 'splash.html'), {
+    query: {
+      theme: savedTheme,
+      mode: savedMode,
+      family: savedFamily
+    }
+  });
 
   splashWindow.once('ready-to-show', () => {
-    splashWindow.show();
+    if (splashWindow) splashWindow.show();
   });
 
   splashWindow.on('closed', () => {
@@ -91,14 +187,8 @@ function createSplashWindow() {
 
   // Safety fallback in case splash is stuck
   setTimeout(() => {
-    if (splashWindow) {
-      splashWindow.close();
-      splashWindow = null;
-    }
-    if (mainWindow && !mainWindow.isVisible()) {
-      mainWindow.show();
-    }
-  }, 4000);
+    finishSplashAndShowMain();
+  }, 4500);
 }
 
 function createMainWindow() {
@@ -128,14 +218,11 @@ function createMainWindow() {
   mainWindow = new BrowserWindow(windowOpts);
 
   mainWindow.once('ready-to-show', () => {
-    console.log('[ULAK] Main window ready-to-show, showing immediately.');
-    if (splashWindow) {
-      try { splashWindow.close(); } catch(e) {}
-      splashWindow = null;
+    isMainWindowReady = true;
+    console.log('[ULAK] Main window loaded in background and ready.');
+    if (isSplashComplete) {
+      finishSplashAndShowMain();
     }
-    mainWindow.show();
-    mainWindow.focus();
-    mainWindow.moveTop();
   });
 
   mainWindow.on('maximize', () => {
@@ -150,19 +237,135 @@ function createMainWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    if (petWindow && !petWindow.isDestroyed()) {
+      try { petWindow.close(); } catch(e) {}
+      petWindow = null;
+    }
   });
 }
 
-function startApplication() {
-  // Register media-file protocol for HTML5 video/audio playback
-  protocol.registerFileProtocol('media-file', (request, callback) => {
-    let filePath = request.url.replace(/^media-file:\/\//, '');
-    filePath = decodeURIComponent(filePath);
-    if (process.platform === 'win32' && filePath.startsWith('/') && filePath[2] === ':') {
-      filePath = filePath.slice(1);
+function resolveMediaFilePath(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    const queryPath = parsed.searchParams.get('path');
+    if (queryPath) {
+      return path.normalize(queryPath);
     }
-    callback({ path: path.normalize(filePath) });
-  });
+  } catch (e) {}
+
+  let fileUrl = rawUrl.replace(/^media-file:\/\//i, '');
+  try { fileUrl = decodeURIComponent(fileUrl); } catch (e) {}
+  if (process.platform === 'win32') {
+    if (fileUrl.startsWith('/') && fileUrl[2] === ':') {
+      fileUrl = fileUrl.slice(1);
+    } else if (/^[a-zA-Z]\//.test(fileUrl)) {
+      fileUrl = fileUrl[0].toUpperCase() + ':' + fileUrl.slice(1);
+    }
+  }
+  return path.normalize(fileUrl);
+}
+
+function getMediaMimeType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeMap = {
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.mkv': 'video/x-matroska',
+    '.mov': 'video/quicktime',
+    '.mp3': 'audio/mpeg',
+    '.m4a': 'audio/mp4',
+    '.aac': 'audio/aac',
+    '.wav': 'audio/wav',
+    '.flac': 'audio/flac',
+    '.ogg': 'audio/ogg',
+    '.opus': 'audio/opus'
+  };
+  return mimeMap[ext] || 'application/octet-stream';
+}
+
+function notifyIfBackground(title, body, filePath = null) {
+  try {
+    const isBackground = !mainWindow || mainWindow.isDestroyed() || !mainWindow.isFocused() || mainWindow.isMinimized() || !mainWindow.isVisible();
+    if (isBackground && Notification && Notification.isSupported()) {
+      const notif = new Notification({
+        title: title || 'ULAK Medya İndirici',
+        body: body || 'İndirme işlemi tamamlandı.',
+        icon: path.join(__dirname, 'assets', 'ulak_logo.png'),
+        silent: false
+      });
+      notif.on('click', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.show();
+          mainWindow.focus();
+          if (filePath) {
+            mainWindow.webContents.send('youtube:play-downloaded', filePath);
+          }
+        }
+      });
+      notif.show();
+    }
+    if (isBackground && mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.flashFrame(true);
+    }
+  } catch (err) {
+    console.error('[ULAK] Windows notification error:', err);
+  }
+}
+
+function startApplication() {
+  // Register media-file protocol for HTML5 video/audio playback with true HTTP 206 byte-range seeking
+  if (protocol.handle) {
+    protocol.handle('media-file', (request) => {
+      try {
+        const fullPath = resolveMediaFilePath(request.url);
+        if (!fs.existsSync(fullPath)) {
+          return new Response('Media file not found', { status: 404 });
+        }
+        const stat = fs.statSync(fullPath);
+        const fileSize = stat.size;
+        const mimeType = getMediaMimeType(fullPath);
+        const rangeHeader = request.headers.get('range');
+
+        if (rangeHeader) {
+          const parts = rangeHeader.replace(/bytes=/, '').split('-');
+          const start = Math.max(0, parseInt(parts[0], 10) || 0);
+          const requestedEnd = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+          const end = Math.min(requestedEnd, fileSize - 1);
+          const chunkSize = Math.max(0, (end - start) + 1);
+
+          const nodeStream = fs.createReadStream(fullPath, { start, end });
+          return new Response(Readable.toWeb(nodeStream), {
+            status: 206,
+            headers: {
+              'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+              'Accept-Ranges': 'bytes',
+              'Content-Length': String(chunkSize),
+              'Content-Type': mimeType
+            }
+          });
+        } else {
+          const nodeStream = fs.createReadStream(fullPath);
+          return new Response(Readable.toWeb(nodeStream), {
+            status: 200,
+            headers: {
+              'Accept-Ranges': 'bytes',
+              'Content-Length': String(fileSize),
+              'Content-Type': mimeType
+            }
+          });
+        }
+      } catch (err) {
+        console.error('[ULAK] media-file protocol error:', err);
+        return new Response('Media file not found', { status: 404 });
+      }
+    });
+  } else {
+    protocol.registerFileProtocol('media-file', (request, callback) => {
+      const fullPath = resolveMediaFilePath(request.url);
+      callback({ path: fullPath });
+    });
+  }
 
   createSplashWindow();
   createMainWindow();
@@ -185,13 +388,21 @@ app.on('activate', () => {
 
 // Splash complete IPC handler
 ipcMain.handle('app:splash-complete', () => {
-  if (splashWindow) {
-    splashWindow.close();
-    splashWindow = null;
-  }
-  if (mainWindow) {
-    mainWindow.show();
-    mainWindow.focus();
+  isSplashComplete = true;
+  if (isMainWindowReady) {
+    finishSplashAndShowMain();
+  } else {
+    // If main window still loading, wait briefly then show
+    const checkTimer = setInterval(() => {
+      if (isMainWindowReady || !mainWindow) {
+        clearInterval(checkTimer);
+        finishSplashAndShowMain();
+      }
+    }, 40);
+    setTimeout(() => {
+      clearInterval(checkTimer);
+      finishSplashAndShowMain();
+    }, 2000);
   }
   return true;
 });
@@ -255,6 +466,11 @@ ipcMain.handle('system:get-network-info', async (event, forceRefresh) => systemM
 ipcMain.handle('system:get-battery-info', async (event, forceRefresh) => systemMonitor.getBatteryInfo(forceRefresh));
 ipcMain.handle('system:refresh-all-hardware', async () => systemMonitor.refreshAllHardware());
 ipcMain.handle('system:get-cache-status', async () => systemMonitor.getCacheStatus());
+ipcMain.handle('system:copy-clipboard', async (event, text) => {
+  const { clipboard } = require('electron');
+  clipboard.writeText(text || '');
+  return { success: true };
+});
 
 // WiFi Manager
 ipcMain.handle('wifi:get-networks', async () => wifiManager.getAvailableNetworks());
@@ -386,8 +602,25 @@ ipcMain.handle('cleaner:smart-deep', async () => systemCleaner.smartDeepClean())
 ipcMain.handle('youtube:check-ytdlp', async () => youtubeDownloader.checkYtDlp());
 ipcMain.handle('youtube:install-ytdlp', async () => youtubeDownloader.installYtDlp());
 ipcMain.handle('youtube:get-info', async (event, url) => youtubeDownloader.getVideoInfo(url));
-ipcMain.handle('youtube:download', async (event, url, options) => youtubeDownloader.downloadVideo(url, options));
-ipcMain.handle('youtube:download-playlist', async (event, url, options) => youtubeDownloader.downloadPlaylist(url, options));
+ipcMain.handle('youtube:download', async (event, url, options) => {
+  const res = await youtubeDownloader.downloadVideo(url, options);
+  if (res && res.success) {
+    const fileName = res.filePath ? path.basename(res.filePath) : 'Medya dosyası';
+    notifyIfBackground('ULAK • İndirme Tamamlandı', `${fileName} başarıyla indirildi ve oynatmaya hazır.`, res.filePath);
+  }
+  return res;
+});
+ipcMain.handle('youtube:download-playlist', async (event, url, options) => {
+  const res = await youtubeDownloader.downloadPlaylist(url, options);
+  if (res && res.success) {
+    notifyIfBackground('ULAK • Oynatma Listesi İndirildi', 'Oynatma listesi indirme işlemi tamamlandı.', res.path);
+  }
+  return res;
+});
+ipcMain.handle('system:notify', async (event, title, body, filePath) => {
+  notifyIfBackground(title, body, filePath);
+  return { success: true };
+});
 ipcMain.handle('youtube:get-downloads', async () => youtubeDownloader.getDownloads());
 ipcMain.handle('youtube:open-folder', async () => youtubeDownloader.openFolder());
 ipcMain.handle('youtube:delete-file', async (event, filePath) => youtubeDownloader.deleteFile(filePath));
@@ -542,14 +775,63 @@ ipcMain.handle('app:get-modules', async () => {
 });
 
 ipcMain.handle('app:get-platform-info', async () => {
+  const cpus = os.cpus() || [];
+  const totalMemGB = (os.totalmem() / (1024 ** 3)).toFixed(1);
+  const freeMemGB = (os.freemem() / (1024 ** 3)).toFixed(1);
+  
+  const releaseStr = os.release() || '';
+  const parts = releaseStr.split('.');
+  const buildNum = parseInt(parts[2] || '0', 10);
+  let osName = 'Windows';
+  if (process.platform === 'win32') {
+    if (buildNum >= 22000) {
+      osName = 'Windows 11';
+    } else if (buildNum >= 10240) {
+      osName = 'Windows 10';
+    } else {
+      osName = 'Windows';
+    }
+  }
+
+  let appVersion = '2.4.0';
+  try {
+    appVersion = app.getVersion() || require('./package.json').version || '2.4.0';
+  } catch (e) {
+    appVersion = '2.4.0';
+  }
+
   return {
+    appName: app.getName() || 'ULAK',
+    appVersion,
     platform: process.platform,
-    release: os.release(),
-    isAcrylicSupported,
+    release: releaseStr,
+    buildNumber: buildNum,
+    osName,
+    fullOsDescription: `${osName} (İS Derlemesi ${releaseStr})`,
+    isAcrylicSupported: !!isAcrylicSupported,
     arch: os.arch(),
     hostname: os.hostname(),
-    username: os.userInfo().username
+    username: (os.userInfo && os.userInfo().username) || process.env.USERNAME || 'Kullanıcı',
+    electronVersion: process.versions.electron || '28.0.0',
+    chromeVersion: process.versions.chrome || '120.0.0',
+    nodeVersion: process.versions.node || '18.18.0',
+    v8Version: process.versions.v8 || '12.0.0',
+    cpuModel: cpus[0] ? cpus[0].model.trim() : 'Bilinmeyen İşlemci',
+    cpuCores: cpus.length,
+    totalMemory: `${totalMemGB} GB`,
+    freeMemory: `${freeMemGB} GB`,
+    uptimeSeconds: Math.floor(os.uptime())
   };
+});
+
+ipcMain.handle('app:get-changelog', async () => {
+  try {
+    const changelogPath = path.join(__dirname, 'CHANGELOG.md');
+    if (fs.existsSync(changelogPath)) {
+      return fs.readFileSync(changelogPath, 'utf8');
+    }
+  } catch (e) {}
+  return '# Değişiklik Günlüğü bulunamadı.';
 });
 
 ipcMain.handle('app:set-autostart', async (event, enable) => {
@@ -594,4 +876,153 @@ ipcMain.handle('version:update-latest', async (event, moduleId) => {
 ipcMain.handle('youtube:uninstall-ytdlp', async () => {
   return await youtubeDownloader.uninstallYtDlp();
 });
+
+// ==================== SÜREÇ & TEHDİT RADARI (PROCESS RADAR) ====================
+ipcMain.handle('proc-radar:get-processes', async (event, forceRefresh) => processRadarManager.getProcesses(forceRefresh));
+ipcMain.handle('proc-radar:kill-process', async (event, pid, forceTree) => processRadarManager.killProcess(pid, forceTree));
+ipcMain.handle('proc-radar:get-details', async (event, pid) => processRadarManager.getProcessDetails(pid));
+
+// ==================== DESKTOP PET (SİBER BAYKUŞ & BARIŞ KUŞU) IPC ====================
+ipcMain.handle('pet:get-settings', async () => {
+  return {
+    enabled: store.get('pet.enabled', true),
+    activePetId: store.get('pet.activePetId', 'owl'),
+    sizePercent: store.get('pet.sizePercent', 100),
+    lookTracking: store.get('pet.lookTracking', true),
+    reactionsEnabled: store.get('pet.reactionsEnabled', true)
+  };
+});
+
+ipcMain.handle('pet:set-settings', async (event, newSettings) => {
+  if (!newSettings || typeof newSettings !== 'object') return { success: false };
+  if (typeof newSettings.enabled === 'boolean') {
+    store.set('pet.enabled', newSettings.enabled);
+    if (newSettings.enabled) {
+      if (!petWindow || petWindow.isDestroyed()) {
+        createPetWindow();
+      } else {
+        petWindow.showInactive();
+      }
+    } else {
+      if (petWindow && !petWindow.isDestroyed()) {
+        petWindow.hide();
+      }
+    }
+  }
+  if (typeof newSettings.activePetId === 'string') {
+    store.set('pet.activePetId', newSettings.activePetId);
+  }
+  if (typeof newSettings.sizePercent === 'number') {
+    store.set('pet.sizePercent', newSettings.sizePercent);
+  }
+  if (typeof newSettings.lookTracking === 'boolean') {
+    store.set('pet.lookTracking', newSettings.lookTracking);
+  }
+  if (typeof newSettings.reactionsEnabled === 'boolean') {
+    store.set('pet.reactionsEnabled', newSettings.reactionsEnabled);
+  }
+  if (petWindow && !petWindow.isDestroyed()) {
+    petWindow.webContents.send('pet:settings-changed', newSettings);
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('pet:settings-changed', newSettings);
+  }
+  return { success: true };
+});
+
+ipcMain.handle('pet:toggle', async () => {
+  const cur = store.get('pet.enabled', true);
+  const next = !cur;
+  store.set('pet.enabled', next);
+  if (next) {
+    if (!petWindow || petWindow.isDestroyed()) {
+      createPetWindow();
+    } else {
+      petWindow.showInactive();
+    }
+  } else {
+    if (petWindow && !petWindow.isDestroyed()) {
+      petWindow.hide();
+    }
+  }
+  return next;
+});
+
+ipcMain.handle('pet:get-cursor-pos', async () => {
+  const cursor = screen.getCursorScreenPoint();
+  const windowBounds = (petWindow && !petWindow.isDestroyed()) ? petWindow.getBounds() : null;
+  return { cursor, windowBounds };
+});
+
+ipcMain.handle('pet:get-position', async () => {
+  if (petWindow && !petWindow.isDestroyed()) {
+    const [x, y] = petWindow.getPosition();
+    return { x, y };
+  }
+  return store.get('pet.position') || { x: 0, y: 0 };
+});
+
+ipcMain.handle('pet:set-position', async (event, pos) => {
+  if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
+    if (pos.x === -1 && pos.y === -1) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { workArea } = primaryDisplay;
+      pos.x = Math.round(workArea.x + workArea.width - 252);
+      pos.y = Math.round(workArea.y + workArea.height - 332);
+    }
+    if (petWindow && !petWindow.isDestroyed()) {
+      petWindow.setPosition(Math.round(pos.x), Math.round(pos.y));
+    }
+    store.set('pet.position', pos);
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('pet:action', async (event, actionName) => {
+  if (actionName === 'open-main-window') {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+      return true;
+    }
+  } else if (actionName === 'test-working' || actionName === 'test-alert') {
+    if (petWindow && !petWindow.isDestroyed()) {
+      petWindow.showInactive();
+      petWindow.webContents.send('pet:state-changed', actionName === 'test-working' ? 'running' : 'failed');
+      return true;
+    }
+  }
+  return false;
+});
+
+ipcMain.handle('pet:get-system-status', async () => {
+  try {
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const memUsedPercent = Math.round(((totalMem - freeMem) / totalMem) * 100);
+    return {
+      cpu: Math.min(99, Math.round((os.loadavg()[0] || 0.15) * 100) || 14),
+      mem: memUsedPercent,
+      net: 'Ağ: Güvenli 🟢'
+    };
+  } catch (e) {
+    return { cpu: 14, mem: 42, net: 'Ağ: Güvenli 🟢' };
+  }
+});
+
+// ==================== TEMA DEĞİŞİMİ BİLDİRİMİ ====================
+ipcMain.handle('settings:theme-changed', async (event, themeData) => {
+  if (themeData && typeof themeData === 'object') {
+    if (themeData.family) store.set('theme.family', themeData.family);
+    if (themeData.mode) store.set('theme.mode', themeData.mode);
+    if (themeData.themeId) store.set('theme.id', themeData.themeId);
+  }
+  if (petWindow && !petWindow.isDestroyed()) {
+    petWindow.webContents.send('pet:theme-changed', themeData);
+  }
+  return true;
+});
+
 

@@ -50,7 +50,7 @@
 
       return `
         <div class="hacker-view">
-          ${C.headerCard('Hacker & Ağ Teşhis Araçları', 'Gelişmiş Port Tarayıcı, Alt Ağ Keşfi, DNS Sızıntı Testi ve Olay Günlüğü Tehdit Avcısı', 'zap')}
+          ${C.headerCard('Hacker & Ağ Teşhis Araçları', 'Gelişmiş Port Tarayıcı, Alt Ağ Keşfi, DNS Sızıntı Testi ve Olay Günlüğü Tehdit Avcısı', 'zap', 'hacker')}
 
           <!-- 5 NEW CRITICAL DIAGNOSTIC SUITES -->
           <div class="view-section glass-card liquid-glow" style="margin-bottom: var(--space-13);">

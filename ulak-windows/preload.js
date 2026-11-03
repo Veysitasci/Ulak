@@ -18,6 +18,9 @@ const ALLOWED_INVOKE_PREFIXES = [
   'pkg:',
   'version:',
   'app:',
+  'pet:',
+  'proc-radar:',
+  'settings:',
   'get-store-value',
   'set-store-value'
 ];

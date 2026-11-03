@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr" data-surface="desktop-pet">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ULAK — Masaüstü Maskotu</title>
+  <link rel="stylesheet" href="styles/pet.css">
+</head>
+<body>
+  <main id="desktop-pet-root" class="desktop-pet-root" data-phase="idle" data-motion="waving" data-placement="anchored" data-controls-visible="false" data-active-pet="owl">
+
+    <!-- QODER COMPANION ACTIVITY STACK & SQUIRCLE BUBBLE -->
+    <div id="companion-activity-root" class="desktop-pet-activity-stack" data-slot="desktop-pet-activity-stack">
+      <article id="pet-bubble" class="pet-activity-bubble" data-slot="desktop-pet-activity-bubble" data-status="completed" data-expanded="false">
+        
+        <!-- Üst 64px Alanı (Qoder desktop-pet-activity-open) -->
+        <button type="button" id="bubble-open-btn" class="bubble-open-area" data-slot="desktop-pet-activity-open" title="Ulak İstasyonunu Aç">
+          <span class="bubble-header-col">
+            <span class="bubble-title" id="bubble-title-text">Gözcü Baykuş • Gözetleme</span>
+            <span class="bubble-detail-row" id="bubble-detail-row">
+              <!-- Qoder 3x3 Dot Matrix Loader (running durumunda görünür) -->
+              <span class="detail-dot-loader" id="bubble-dot-loader" data-slot="desktop-pet-activity-detail-loader" aria-hidden="true">
+                <span style="animation-delay: 0s"></span>
+                <span style="animation-delay: -0.13s"></span>
+                <span style="animation-delay: -0.26s"></span>
+                <span style="animation-delay: -0.39s"></span>
+                <span style="animation-delay: -0.52s"></span>
+                <span style="animation-delay: -0.65s"></span>
+                <span style="animation-delay: -0.78s"></span>
+                <span style="animation-delay: -0.91s"></span>
+                <span style="animation-delay: -1.04s"></span>
+              </span>
+              <span class="bubble-detail-text" id="bubble-msg-text">Ağ gözetleniyor • Kalkanlar aktif</span>
+            </span>
+            <span class="bubble-stats-row" id="bubble-stats-row">
+              <span class="stat-pill positive" id="stat-net">Ağ Güvenli</span>
+              <span class="stat-pill neutral" id="stat-cpu">CPU %12</span>
+              <span class="stat-pill neutral" id="stat-mem">RAM %40</span>
+            </span>
+          </span>
+        </button>
+
+        <!-- Sağ Üst Aksiyon İkonları (Qoder IconButton [corner-shape:squircle]) -->
+        <div class="bubble-actions-overlay">
+          <!-- Komut / Yanıt Aç-Kapa Butonu -->
+          <button type="button" id="bubble-reply-toggle" class="bubble-action-icon-btn" data-activity-action="reply" title="Komut & Hızlı İşlem Paneli">
+            <!-- QoderMessage3Fill / QoderArrowDownSLine -->
+            <svg id="icon-reply-msg" viewBox="0 0 24 24"><path d="M2 8.994A5.99 5.99 0 0 1 8 3h8c3.313 0 6 2.695 6 5.994V21H8c-3.313 0-6-2.695-6-5.994V8.994ZM14 11v2h2v-2h-2Zm-6 0v2h2v-2H8Z"/></svg>
+            <svg id="icon-reply-chevron" viewBox="0 0 24 24" style="display:none;"><path d="m12 13.171 4.95-4.95 1.414 1.415L12 16 5.636 9.636 7.05 8.222l4.95 4.95Z"/></svg>
+          </button>
+          <!-- Durum Göstergesi / Kapat -->
+          <button type="button" id="bubble-close-btn" class="bubble-action-icon-btn status-indicator-btn" title="Baloncuğu Gizle">
+            <!-- QoderCheckboxCircleFill -->
+            <svg id="status-icon-ok" viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10Zm-.997-6 7.07-7.071-1.414-1.414-5.656 5.657-2.829-2.829-1.414 1.414L11.003 16Z"/></svg>
+            <svg id="status-icon-warn" viewBox="0 0 24 24" style="display:none;"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10Zm-1-7v2h2v-2h-2Zm0-8v6h2V7h-2Z"/></svg>
+          </button>
+        </div>
+
+        <!-- Genişletilmiş Komut & Etkileşim Çekmecesi (Qoder DesktopPetActivityReply) -->
+        <div class="bubble-expanded-drawer" id="bubble-expanded-drawer" data-slot="desktop-pet-activity-content">
+          <form class="bubble-reply-form" id="pet-cmd-form" data-slot="desktop-pet-activity-reply">
+            <textarea
+              id="pet-cmd-input"
+              class="bubble-reply-textarea"
+              data-slot="desktop-pet-activity-reply-input"
+              rows="2"
+              placeholder="Komut yazın (tara, durum, kuş, baykuş, aç)..."
+              autocomplete="off"
+            ></textarea>
+            <div class="bubble-quick-chips">
+              <button type="button" class="quick-chip" data-quick-cmd="tara">Hızlı Tara</button>
+              <button type="button" class="quick-chip" data-quick-cmd="durum">Telemetri</button>
+              <button type="button" class="quick-chip" data-quick-cmd="aç">İstasyonu Aç</button>
+            </div>
+            <button type="submit" id="btn-send-cmd" class="bubble-reply-submit" data-slot="desktop-pet-activity-reply-submit" title="Komutu Gönder">
+              <!-- QoderArrowUpLine -->
+              <svg viewBox="0 0 24 24"><path d="M13 7.828V20h-2V7.828l-5.364 5.364-1.414-1.414L12 4l7.778 7.778-1.414 1.414L13 7.828Z"/></svg>
+            </button>
+          </form>
+        </div>
+
+      </article>
+    </div>
+
+    <!-- QODER DESKTOP PET HIT TARGET & MASCOT SPRITE STAGE -->
+    <button type="button" id="desktop-pet-hit-target" class="desktop-pet-hit-target" aria-label="Ulak Masaüstü Maskotu">
+      <span id="pet-sprite-stage" class="pet-sprite-stage" aria-hidden="true">
+        
+        <!-- 1. MASKOT: GÖZETLEME (SİBER BAYKUŞ) -->
+        <span id="mascot-owl" class="mascot-layer active">
+          <!-- 1. Gövde, Baş, Gözler ve Tünek (Taban Katmanı) -->
+          <img src="assets/pets/owl_body.png" alt="Gözetleme Siber Baykuş" class="pet-character-img mascot-part owl-body" draggable="false" />
+          <!-- 2. Tek Görünen Ön Kanat (Omuz Menteşesinden Açılıp Çırpar) -->
+          <img src="assets/pets/owl_wing_left.png" alt="" class="mascot-part owl-wing-left" draggable="false" />
+          <!-- Etkileşimli Siber Lens & 16-Yönlü Göz Takibi Katmanı -->
+          <svg class="pet-overlay-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Alın Siber Kristali -->
+            <circle cx="63.6" cy="16.5" r="1.4" class="cyber-node-pulse" />
+            <!-- Göğüs CPU Çekirdeği Parıltısı -->
+            <rect x="57.2" y="48.8" width="8.6" height="9.6" rx="1.2" class="chest-cpu-pulse" />
+            <!-- Omuz Mekanik Rotor Halkası (Tarama ve çırpma modunda döner) -->
+            <circle cx="36.2" cy="45.8" r="5.0" class="cyber-rotor-ring" style="transform-origin: 36.2px 45.8px;" />
+
+            <!-- Sol ve Sağ Kamera Lens Halkaları -->
+            <circle cx="53.8" cy="24.8" r="5.1" class="visor-lens-ring" style="transform-origin: 53.8px 24.8px;" />
+            <circle cx="69.6" cy="25.2" r="4.1" class="visor-lens-ring" style="transform-origin: 69.6px 25.2px;" />
+
+            <!-- 16-Direction Look Tracking Gözbebekleri -->
+            <g id="owl-pupils">
+              <circle id="owl-left-pupil" cx="53.8" cy="24.8" r="2.2" class="cyber-pupil" />
+              <circle id="owl-left-core" cx="53.1" cy="24.1" r="0.85" class="cyber-pupil-core" />
+
+              <circle id="owl-right-pupil" cx="69.6" cy="25.2" r="1.85" class="cyber-pupil" />
+              <circle id="owl-right-core" cx="69.0" cy="24.6" r="0.7" class="cyber-pupil-core" />
+            </g>
+
+            <!-- Göz Kapakları (Kırpma) -->
+            <ellipse id="owl-left-eyelid" cx="53.8" cy="24.8" rx="5.2" ry="5.2" class="cyber-eyelid" />
+            <ellipse id="owl-right-eyelid" cx="69.6" cy="25.2" rx="4.2" ry="4.2" class="cyber-eyelid" />
+          </svg>
+        </span>
+
+        <!-- 2. MASKOT: GÜVENLİ İLETİŞİM (BARIŞ KUŞU) -->
+        <span id="mascot-dove" class="mascot-layer">
+          <!-- 1. Arka Kanat (Gövdenin Arkasında Bağımsız Çırpar) -->
+          <img src="assets/pets/dove_wing_back.png" alt="" class="mascot-part dove-wing-back" draggable="false" />
+          <!-- 2. Gövde, Baş, Göz, Ayaklar ve Kuyruk (Ortada) -->
+          <img src="assets/pets/dove_body.png" alt="Güvenli İletişim Barış Kuşu" class="pet-character-img mascot-part dove-body" draggable="false" />
+          <!-- 3. Ön Kanat (Gövdenin Önünde Bağımsız Çırpar) -->
+          <img src="assets/pets/dove_wing_front.png" alt="" class="mascot-part dove-wing-front" draggable="false" />
+          <!-- Etkileşimli Siber İletişim & 16-Yönlü Göz Takibi Katmanı -->
+          <svg class="pet-overlay-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Fiber-Optik / USB Kablo Ucu Sinyal Parıltıları -->
+            <circle cx="11.5" cy="39.2" r="2.4" class="cyber-node-pulse" />
+            <circle cx="22.0" cy="54.2" r="2.4" class="cyber-node-pulse" style="animation-delay: -0.9s;" />
+            <!-- Göğüs Kripto Çipi -->
+            <circle cx="43.2" cy="57.8" r="2.2" class="chest-cpu-pulse" />
+            <!-- Kanat Mekanik Rotor Halkası -->
+            <circle cx="51.3" cy="51.6" r="3.3" class="cyber-rotor-ring" style="transform-origin: 51.3px 51.6px;" />
+
+            <!-- Göz Halkası -->
+            <circle cx="29.7" cy="36.6" r="2.1" class="visor-lens-ring" style="transform-origin: 29.7px 36.6px;" />
+
+            <!-- 16-Direction Look Tracking Gözbebeği -->
+            <g id="dove-pupils">
+              <circle id="dove-pupil" cx="29.7" cy="36.6" r="1.15" class="cyber-pupil" />
+              <circle id="dove-core" cx="29.3" cy="36.2" r="0.48" class="cyber-pupil-core" />
+            </g>
+
+            <!-- Göz Kapağı (Kırpma) -->
+            <ellipse id="dove-eyelid" cx="29.7" cy="36.6" rx="2.2" ry="2.2" class="cyber-eyelid" />
+          </svg>
+        </span>
+
+      </span>
+    </button>
+
+    <!-- QODER FLOATING ICON TOOLBAR (Maskotun Altındaki Hap Araç Çubuğu) -->
+    <div id="desktop-pet-toolbar" role="toolbar" aria-label="Maskot Kontrolleri" class="floating-icon-toolbar" data-visible="false">
+      <!-- 1. Hızlı Siber Tarama (QoderVoiceprint2Fill stili sinyal ikonu) -->
+      <button type="button" id="desktop-pet-scan-btn" class="toolbar-icon-btn" title="Hızlı Güvenlik Taraması Başlat">
+        <svg viewBox="0 0 24 24"><path d="M5 7h2v10H5V7Zm-4 3h2v4H1v-4Zm8-8h2v18H9V2Zm4 2h2v18h-2V4Zm4 3h2v10h-2V7Zm4 3h2v4h-2v-4Z"/></svg>
+      </button>
+
+      <!-- 2. Maskot Değiştir (Gözetleme Baykuş <-> Güvenli İletişim Barış Kuşu) -->
+      <button type="button" id="desktop-pet-switch-btn" class="toolbar-icon-btn" title="Maskotu Değiştir (Baykuş / Barış Kuşu)">
+        <svg viewBox="0 0 24 24"><path d="M16.05 12.05 21 17l-4.95 4.95-1.414-1.414 2.536-2.536H4v-2h13.172l-2.536-2.536 1.414-1.414Zm-8.1-10L9.364 3.464 6.828 6H20v2H6.828l2.536 2.536L7.95 11.95 3 7l4.95-4.95Z"/></svg>
+      </button>
+
+      <!-- 3. Aktivite Baloncuğu Aç / Kapa (QoderArrowDownSLine) -->
+      <button type="button" id="desktop-pet-toggle-activity" class="toolbar-icon-btn" aria-expanded="false" title="Durum & Komut Balonunu Aç/Kapat">
+        <span id="toolbar-expand-chevron" class="toolbar-chevron rotate-180">
+          <svg viewBox="0 0 24 24"><path d="m12 13.171 4.95-4.95 1.414 1.415L12 16 5.636 9.636 7.05 8.222l4.95 4.95Z"/></svg>
+        </span>
+      </button>
+    </div>
+
+  </main>
+
+  <script src="pet.js"></script>
+</body>
+</html>

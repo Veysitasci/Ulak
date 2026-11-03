@@ -1,0 +1,943 @@
+/* ==========================================================================
+   ULAK MASAÜSTÜ MASKOTU — QODER MIMARİSİ & KRİSTAL HOLOGRAM TASARIM SİSTEMİ
+   ========================================================================== */
+
+:root {
+  --pet-size: 132px;
+  --pet-scale: 1;
+  --accent: #88c0d0;
+  --accent-soft: rgba(136, 192, 208, 0.20);
+  --accent-glow: rgba(136, 192, 208, 0.65);
+  --glass-surface: rgba(12, 16, 26, 0.96);
+  --glass-border: rgba(136, 192, 208, 0.32);
+  --text-1: #ffffff;
+  --text-2: #e2e8f0;
+  --text-3: #94a3b8;
+  --success: #50fa7b;
+  --warning: #fabd2f;
+  --alert-red: #ff5555;
+  --alert-glow: rgba(255, 85, 85, 0.75);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==================== QODER DESKTOP-PET ROOT ==================== */
+.desktop-pet-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 34px; /* Alt FloatingIconToolbar bölgesi */
+}
+
+/* ==================== QODER COMPANION ACTIVITY STACK & SQUIRCLE BUBBLE ==================== */
+.desktop-pet-activity-stack {
+  position: absolute;
+  bottom: calc(var(--pet-size) + 38px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 236px;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.pet-activity-bubble {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  height: 74px; /* Konforlu 3 Satır Yüksekliği */
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(14, 20, 32, 0.96) !important; /* Masaüstü klasörlerinin parlamasını engelleyen koyu obsidian cam */
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  color: var(--text-1);
+  border: 1px solid rgba(136, 192, 208, 0.30);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 16px rgba(136, 192, 208, 0.16);
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  transform-origin: center bottom;
+  pointer-events: none;
+  transition:
+    height 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease;
+}
+
+.pet-activity-bubble.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.pet-activity-bubble[data-expanded="true"] {
+  height: 152px; /* Qoder Expanded Height with Reply Drawer */
+}
+
+.pet-activity-bubble[data-status="failed"] {
+  border-color: rgba(255, 85, 85, 0.65);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), inset 0 0 0 1px rgba(255, 85, 85, 0.45), 0 0 20px rgba(255, 85, 85, 0.4);
+}
+
+/* Üst Tıklanabilir Özet Alanı (desktop-pet-activity-open) */
+.bubble-open-area {
+  width: 100%;
+  height: 74px;
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  padding: 8px 56px 8px 12px;
+  text-align: left;
+  color: var(--text-1);
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: background-color 150ms ease-out;
+}
+
+.bubble-open-area:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.bubble-header-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bubble-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 15px;
+  color: var(--accent);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.2px;
+}
+
+.bubble-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 14px;
+  color: #cbd5e1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  min-width: 0;
+  margin-top: 1px;
+}
+
+.pet-activity-bubble[data-status="failed"] .bubble-detail-row {
+  color: var(--alert-red);
+}
+
+.bubble-detail-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+/* Qoder 3x3 Dot Matrix Loader (DesktopPetActivityDetailLoader) */
+.detail-dot-loader {
+  display: none;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5px;
+  color: var(--accent);
+}
+
+.pet-activity-bubble[data-status="running"] .detail-dot-loader {
+  display: grid;
+}
+
+.detail-dot-loader span {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.4;
+  animation: desktop-pet-activity-detail-dot 1.35s ease-in-out infinite;
+}
+
+@keyframes desktop-pet-activity-detail-dot {
+  0%, 100% { opacity: 0.28; transform: scale(0.72); }
+  45% { opacity: 0.95; transform: scale(1.05); }
+}
+
+/* Canlı İstatistik Satırı */
+.bubble-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  flex-wrap: nowrap !important;
+}
+
+.stat-pill {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 12px;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  white-space: nowrap !important;
+  display: inline-flex;
+  align-items: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  letter-spacing: 0.2px;
+}
+
+.stat-pill.positive {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.25);
+}
+
+.stat-pill.neutral {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.stat-pill.negative {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+/* Sağ Üst Aksiyon İkon Butonları */
+.bubble-actions-overlay {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bubble-action-icon-btn {
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-1);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, transform 120ms ease;
+}
+
+.bubble-action-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--accent);
+}
+
+.bubble-action-icon-btn svg {
+  width: 13.5px;
+  height: 13.5px;
+  fill: currentColor;
+}
+
+.status-indicator-btn {
+  color: #4ade80;
+}
+
+.pet-activity-bubble[data-status="failed"] .status-indicator-btn {
+  color: var(--alert-red);
+}
+
+/* Genişletilmiş Yanıt & Komut Çekmecesi (DesktopPetActivityReply) */
+.bubble-expanded-drawer {
+  position: relative;
+  width: 100%;
+  height: 78px;
+  flex-shrink: 0;
+  border-top: 1px dashed rgba(136, 192, 208, 0.22);
+  display: none;
+}
+
+.pet-activity-bubble[data-expanded="true"] .bubble-expanded-drawer {
+  display: block;
+  animation: desktop-pet-activity-reply-enter 130ms ease-out both;
+}
+
+@keyframes desktop-pet-activity-reply-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bubble-reply-form {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.bubble-reply-textarea {
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  top: 5px;
+  width: calc(100% - 22px);
+  height: 38px;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 15px;
+  font-family: inherit;
+  outline: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.bubble-reply-textarea::placeholder {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.bubble-quick-chips {
+  position: absolute;
+  left: 10px;
+  bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quick-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  border-radius: 5px;
+  color: var(--text-2);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 3px 6px;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  transition: all 120ms ease;
+}
+
+.quick-chip:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.bubble-reply-submit {
+  position: absolute;
+  right: 9px;
+  bottom: 5px;
+  width: 25px;
+  height: 25px;
+  border-radius: 6px;
+  border: 0;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, transform 100ms ease;
+}
+
+.bubble-reply-submit:hover {
+  background: var(--accent);
+  color: #0b0f19;
+  transform: scale(1.05);
+}
+
+.bubble-reply-submit svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* ==================== QODER DESKTOP PET HIT TARGET & SPRITE STAGE ==================== */
+.desktop-pet-hit-target {
+  position: relative;
+  width: var(--pet-size);
+  height: var(--pet-size);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.desktop-pet-hit-target:active {
+  cursor: grabbing;
+}
+
+.pet-sprite-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 200ms ease;
+  animation: qoder-pet-idle 2.734s ease-in-out infinite;
+}
+
+/* Maskot Katmanları (Baykuş / Barış Kuşu) */
+.mascot-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+}
+
+.mascot-layer.active {
+  display: block;
+}
+
+.pet-character-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.58)) drop-shadow(0 0 10px var(--accent-soft));
+  transition: filter 200ms ease, transform 160ms ease-out;
+}
+
+.pet-overlay-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.mascot-part {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.58)) drop-shadow(0 0 10px var(--accent-soft));
+  transition: filter 200ms ease;
+}
+
+/* ==================== GERÇEK KANAT ÇIRPMA MOTORU (ARTICULATED WING FLAPPING) ==================== */
+/* 1. Barış Kuşu: Arka Kanat ve Ön Kanat Ayrı Ayrı 3D Ekseninde Çırpar */
+.dove-wing-back {
+  transform-origin: 48.9% 46.6%;
+  z-index: 1;
+  transition: transform 120ms ease-out;
+}
+
+.dove-body {
+  z-index: 2;
+}
+
+.dove-wing-front {
+  transform-origin: 51.36% 51.59%;
+  z-index: 3;
+  transition: transform 120ms ease-out;
+}
+
+.desktop-pet-root[data-flapping="true"] .dove-wing-back,
+.dove-wing-back.wing-flapping {
+  animation: dove-back-wing-beat 0.35s cubic-bezier(0.42, 0.0, 0.58, 1.0) 4 !important;
+  animation-delay: -0.04s !important;
+}
+
+@keyframes dove-back-wing-beat {
+  0% {
+    transform: rotate(0deg) scale(1, 1);
+  }
+  32% {
+    /* Arka kanat yukarı açılma & gerilme */
+    transform: rotate(15deg) scale(0.95, 1.08) translate3d(1px, -3px, 0);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 10px var(--accent-soft));
+  }
+  75% {
+    /* Arka kanat aşağı itki vuruşu */
+    transform: rotate(-10deg) scale(1.06, 0.94) translate3d(-1px, 2px, 0);
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 20px var(--accent-glow));
+  }
+  100% {
+    transform: rotate(0deg) scale(1, 1);
+  }
+}
+
+.desktop-pet-root[data-flapping="true"] .dove-wing-front,
+.dove-wing-front.wing-flapping {
+  animation: dove-front-wing-beat 0.35s cubic-bezier(0.42, 0.0, 0.58, 1.0) 4 !important;
+}
+
+@keyframes dove-front-wing-beat {
+  0% {
+    transform: rotate(0deg) scale(1, 1);
+  }
+  32% {
+    /* Ön kanat yukarı hava toplama */
+    transform: rotate(-15deg) scale(0.95, 1.08) translate3d(1px, -3px, 0);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 12px var(--accent-soft));
+  }
+  75% {
+    /* Ön kanat aşağı güçlü itki */
+    transform: rotate(10deg) scale(1.06, 0.94) translate3d(-2px, 3px, 0);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 24px var(--accent-glow));
+  }
+  100% {
+    transform: rotate(0deg) scale(1, 1);
+  }
+}
+
+/* 2. Siber Baykuş: Tek Görünen Ön Kanat Omuz Menteşesinden Açılıp Çırpar */
+.owl-body {
+  z-index: 1;
+}
+
+.owl-wing-left {
+  transform-origin: 36.36% 45.68%;
+  z-index: 2;
+  transition: transform 120ms ease-out;
+}
+
+.desktop-pet-root[data-flapping="true"] .owl-wing-left,
+.owl-wing-left.wing-flapping {
+  animation: owl-real-single-wing-beat 0.35s cubic-bezier(0.42, 0.0, 0.58, 1.0) 4 !important;
+}
+
+@keyframes owl-real-single-wing-beat {
+  0% {
+    transform: rotate(0deg) scale(1, 1);
+  }
+  35% {
+    /* Tek görünen kanat omuz menteşesinden dışa ve yukarı açılarak çırpar */
+    transform: rotate(-14deg) scale(1.05, 0.96) translate3d(-3px, -2px, 0);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 24px var(--accent-glow));
+  }
+  75% {
+    /* Kanat aşağı gövdeye doğru itki */
+    transform: rotate(3deg) scale(0.98, 1.02) translate3d(1px, 1px, 0);
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px var(--accent-soft));
+  }
+  100% {
+    transform: rotate(0deg) scale(1, 1);
+  }
+}
+
+/* 3. Kanat Çırparken Tüm Gövdenin Havaya Yükselip Süzülmesi (Thrust & Lift) */
+.desktop-pet-root[data-flapping="true"] .pet-sprite-stage,
+.pet-sprite-stage.wing-flapping {
+  animation: pet-stage-flapping-lift 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+@keyframes pet-stage-flapping-lift {
+  0%   { transform: translateY(0) scale(1); }
+  22%  { transform: translateY(-18px) scale(1.05) rotate(1deg); }
+  45%  { transform: translateY(-9px) scale(1.02) rotate(-1deg); }
+  68%  { transform: translateY(-16px) scale(1.04) rotate(0.8deg); }
+  88%  { transform: translateY(-4px) scale(1.01); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+/* Kanat çırpma esnasında siber rüzgar / rotor hızlanması */
+.desktop-pet-root[data-flapping="true"] .visor-lens-ring,
+.desktop-pet-root[data-flapping="true"] .cyber-rotor-ring {
+  animation: cyber-spin 0.35s linear infinite !important;
+  stroke-opacity: 1 !important;
+}
+
+.desktop-pet-root[data-flapping="true"] .cyber-pupil {
+  filter: drop-shadow(0 0 6px #ffffff) !important;
+}
+
+/* ==================== QODER MOTION PHASES (data-motion) ==================== */
+/* 1. Waving (Greeting Motion: 2600ms) */
+.desktop-pet-root[data-motion="waving"] .pet-sprite-stage {
+  animation: qoder-pet-greeting 2.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes qoder-pet-greeting {
+  0%   { transform: scale(0.55) translateY(22px) rotate(-6deg); opacity: 0; }
+  28%  { transform: scale(1.12) translateY(-10px) rotate(5deg); opacity: 1; }
+  52%  { transform: scale(0.96) translateY(2px) rotate(-4deg); }
+  74%  { transform: scale(1.04) translateY(-4px) rotate(3deg); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
+}
+
+/* 2. Canlı Organik Süzülme & Kristal Nefes Döngüsü (Idle Floating & Aura) */
+@keyframes qoder-pet-idle {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1, 1);
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 8px var(--accent-soft));
+  }
+  24% {
+    transform: translate3d(1px, -5.5px, 0) rotate(1deg) scale(0.985, 1.025);
+  }
+  50% {
+    transform: translate3d(0, -9.5px, 0) rotate(-0.6deg) scale(1.025, 0.98);
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 16px var(--accent-glow));
+  }
+  76% {
+    transform: translate3d(-1px, -4.5px, 0) rotate(-1.2deg) scale(1.01, 0.995);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1, 1);
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 8px var(--accent-soft));
+  }
+}
+
+/* Barış Kuşu: Uçuş Havası & Kanat Akışı */
+#mascot-dove.active .pet-character-img {
+  animation: dove-wing-buoyancy 3.4s ease-in-out infinite;
+  transform-origin: 45% 55%;
+}
+
+@keyframes dove-wing-buoyancy {
+  0%, 100% { transform: scale(1, 1) rotate(0deg); }
+  32%      { transform: scale(1.035, 0.97) rotate(2.2deg) translateY(-2px); }
+  68%      { transform: scale(0.975, 1.025) rotate(-1.8deg) translateY(1.5px); }
+}
+
+/* Baykuş: Gözetleme Duruşu & Kristal Canlılık */
+#mascot-owl.active .pet-character-img {
+  animation: owl-breath-subtle 4.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes owl-breath-subtle {
+  0%, 100% { transform: scale(1, 1) rotate(0deg); }
+  50%      { transform: scale(1.02, 0.985) translateY(-1.5px) rotate(0.4deg); }
+}
+
+/* 3. Jumping (Hovering on Mascot - Neşeli Yaylanma) */
+.desktop-pet-root[data-motion="jumping"] .pet-sprite-stage {
+  animation: qoder-pet-jumping 0.76s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+.desktop-pet-root[data-motion="jumping"] .pet-character-img {
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 20px var(--accent-glow));
+}
+
+@keyframes qoder-pet-jumping {
+  0%, 100% { transform: translateY(0) scale(1.04, 0.96) rotate(0deg); }
+  32%      { transform: translateY(-14px) scale(0.95, 1.08) rotate(2.5deg); }
+  64%      { transform: translateY(-5px) scale(1.05, 0.96) rotate(-1.8deg); }
+}
+
+/* 4. Click / Purr-Bounce (Tıklanınca Mutlu Sevilme Tepkisi) */
+.desktop-pet-root[data-motion="clicked"] .pet-sprite-stage {
+  animation: pet-purr-bounce 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes pet-purr-bounce {
+  0%   { transform: scale(1) translateY(0) rotate(0deg); }
+  18%  { transform: scale(1.18, 0.82) translateY(5px) rotate(-3deg); }
+  45%  { transform: scale(0.92, 1.16) translateY(-16px) rotate(4deg); }
+  70%  { transform: scale(1.07, 0.95) translateY(-4px) rotate(-2deg); }
+  85%  { transform: scale(0.98, 1.02) translateY(0) rotate(1deg); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); }
+}
+
+/* 5. Otonom Meraklı Davranışlar (Idle Fidgets) */
+.desktop-pet-root[data-fidget="tilt-left"] .pet-sprite-stage {
+  transform: rotate(-10deg) translateY(-4px) scale(1.04) !important;
+  transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.desktop-pet-root[data-fidget="tilt-right"] .pet-sprite-stage {
+  transform: rotate(10deg) translateY(-4px) scale(1.04) !important;
+  transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.desktop-pet-root[data-fidget="flutter"] .pet-sprite-stage {
+  animation: pet-flutter 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.desktop-pet-root[data-fidget="flutter"] .owl-wing-left {
+  transform: rotate(-8deg) scale(1.03);
+  transition: transform 140ms ease-out;
+}
+
+.desktop-pet-root[data-fidget="flutter"] .dove-wing-front {
+  transform: rotate(-8deg) scale(1.04);
+  transition: transform 140ms ease-out;
+}
+
+.desktop-pet-root[data-fidget="flutter"] .dove-wing-back {
+  transform: rotate(8deg) scale(1.04);
+  transition: transform 140ms ease-out;
+}
+
+@keyframes pet-flutter {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25%      { transform: translateY(-8px) scale(1.06, 0.94) rotate(2.5deg); }
+  50%      { transform: translateY(-3px) scale(0.96, 1.04) rotate(-2.5deg); }
+  75%      { transform: translateY(-7px) scale(1.04, 0.97) rotate(1deg); }
+}
+
+/* 6. Running Left / Right (Aerodinamik Sürükleme Tepkisi) */
+.desktop-pet-root[data-motion="running-left"] .pet-sprite-stage {
+  animation: none;
+  transform: translateX(-6px) rotate(-14deg) scale(1.06, 0.95);
+  transition: transform 120ms ease-out;
+}
+
+.desktop-pet-root[data-motion="running-right"] .pet-sprite-stage {
+  animation: none;
+  transform: translateX(6px) rotate(14deg) scale(1.06, 0.95);
+  transition: transform 120ms ease-out;
+}
+
+/* 7. Running (Aktif Ağ Taraması / Çalışma Durumu) */
+.desktop-pet-root[data-phase="running"] .pet-character-img {
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 20px var(--accent));
+  animation: pet-scanning-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pet-scanning-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6)) drop-shadow(0 0 16px var(--accent)); }
+  50%      { transform: scale(1.035); filter: drop-shadow(0 8px 22px rgba(0,0,0,0.7)) drop-shadow(0 0 26px var(--accent-glow)); }
+}
+
+/* 8. Failed / Siber Tehdit Alarmı (Recoil & Titreme) */
+.desktop-pet-root[data-phase="failed"] .pet-sprite-stage {
+  animation: pet-alert-shake 0.6s ease-in-out infinite;
+}
+
+.desktop-pet-root[data-phase="failed"] .pet-character-img {
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 22px var(--alert-glow));
+}
+
+@keyframes pet-alert-shake {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20%      { transform: translateX(-4px) rotate(-3.5deg) scale(1.06); }
+  40%      { transform: translateX(4px) rotate(3.5deg) scale(1.06); }
+  60%      { transform: translateX(-3px) rotate(-2deg) scale(1.04); }
+  80%      { transform: translateX(3px) rotate(2deg) scale(1.04); }
+}
+
+/* 9. Tıklama Kıvılcım & Parçacık Efekti (Sparkle Burst) */
+.pet-sparkle-burst {
+  position: absolute;
+  pointer-events: none;
+  font-size: 18px;
+  animation: sparkle-float-fade 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 50;
+  filter: drop-shadow(0 0 6px #ffffff);
+}
+
+@keyframes sparkle-float-fade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.4) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -18px) scale(1.25) rotate(15deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -42px) scale(0.7) rotate(-20deg);
+  }
+}
+
+/* ==================== ETKİLEŞİMLİ SİBER KATMAN (GÖZLER, ROTOR, ÇEKİRDEK) ==================== */
+.cyber-pupil {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 2.5px var(--accent));
+  transition: cx 65ms ease-out, cy 65ms ease-out, r 120ms ease;
+}
+
+.cyber-pupil-core {
+  fill: #ffffff;
+  transition: cx 65ms ease-out, cy 65ms ease-out;
+}
+
+.desktop-pet-root[data-motion="jumping"] .cyber-pupil {
+  filter: drop-shadow(0 0 4px #ffffff);
+}
+
+.cyber-eyelid {
+  fill: #182238;
+  opacity: 0;
+  transform-origin: center;
+  transition: opacity 75ms ease;
+}
+
+.cyber-eyelid.blinking {
+  opacity: 0.94;
+}
+
+.visor-lens-ring {
+  stroke: var(--accent);
+  stroke-width: 0.35;
+  stroke-opacity: 0.45;
+  fill: none;
+}
+
+.cyber-rotor-ring {
+  stroke: var(--accent);
+  stroke-width: 0.45;
+  stroke-dasharray: 2.2 1.4;
+  stroke-opacity: 0.55;
+  fill: none;
+}
+
+.desktop-pet-root[data-phase="running"] .visor-lens-ring,
+.desktop-pet-root[data-phase="running"] .cyber-rotor-ring {
+  stroke-opacity: 0.95;
+  stroke-dasharray: 2.4 1.2;
+  animation: cyber-spin 1.8s linear infinite;
+}
+
+@keyframes cyber-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.cyber-node-pulse {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 3px var(--accent));
+  animation: node-blink 1.9s ease-in-out infinite;
+}
+
+@keyframes node-blink {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50%      { opacity: 0.25; transform: scale(0.85); }
+}
+
+.chest-cpu-pulse {
+  fill: var(--accent);
+  fill-opacity: 0.18;
+  stroke: var(--accent);
+  stroke-width: 0.4;
+  stroke-opacity: 0.65;
+  animation: cpu-breathe 2.734s ease-in-out infinite;
+}
+
+@keyframes cpu-breathe {
+  0%, 100% { fill-opacity: 0.12; stroke-opacity: 0.45; }
+  50%      { fill-opacity: 0.38; stroke-opacity: 0.95; filter: drop-shadow(0 0 4px var(--accent)); }
+}
+
+/* Alert (Failed) durumunda kırmızı siber tepki */
+.desktop-pet-root[data-phase="failed"] .cyber-pupil,
+.desktop-pet-root[data-phase="failed"] .cyber-node-pulse {
+  fill: var(--alert-red) !important;
+  filter: drop-shadow(0 0 4px var(--alert-red)) !important;
+}
+
+.desktop-pet-root[data-phase="failed"] .chest-cpu-pulse,
+.desktop-pet-root[data-phase="failed"] .visor-lens-ring,
+.desktop-pet-root[data-phase="failed"] .cyber-rotor-ring {
+  stroke: var(--alert-red) !important;
+  fill: rgba(255, 85, 85, 0.28) !important;
+}
+
+/* ==================== QODER FLOATING ICON TOOLBAR (ALT HAP ÇUBUK) ==================== */
+.floating-icon-toolbar {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 3px;
+  border-radius: 9999px;
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
+  z-index: 55;
+}
+
+.desktop-pet-root[data-controls-visible="true"] .floating-icon-toolbar,
+.floating-icon-toolbar[data-visible="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.toolbar-icon-btn {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 140ms ease, color 140ms ease, transform 120ms ease;
+}
+
+.toolbar-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--accent);
+}
+
+.toolbar-icon-btn:active {
+  transform: scale(0.92);
+}
+
+.toolbar-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.toolbar-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 150ms ease-out;
+}
+
+.toolbar-chevron.rotate-180 {
+  transform: rotate(180deg);
+}

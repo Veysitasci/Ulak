@@ -15,13 +15,29 @@ const UI = {
   _sanitizeToastMessage(msg) {
     if (!msg) return '';
     let text = String(msg);
-    // PowerShell / Shell hata stack trace temizleme
-    if (text.includes('kullanıldığından') || text.includes('IOException') || text.includes('used by another process')) {
-      return 'Dosya şu an başka bir işlem tarafından kullanılıyor. Lütfen açık indirmeleri kapatıp tekrar deneyin.';
+
+    // Windows Yönetici / UAC Yetki Bildirimi
+    if (text.includes('requires elevation') || text.includes('Run as administrator') || text.includes('PermissionDenied') || text.includes('Yönetici izni') || text.includes('canceled by the user') || text.includes('iptal edildi')) {
+      return 'Bu işlem için Windows Yönetici (UAC) yetkisi onaylanmalıdır.';
     }
-    if (text.includes('Command failed:') || text.includes('powershell') || text.includes('Invoke-WebRequest')) {
+
+    // Dosya kilitlenme / kullanım hatası
+    if (text.includes('kullanıldığından') || text.includes('IOException') || text.includes('used by another process')) {
+      return 'Dosya şu an başka bir işlem tarafından kullanılıyor. Lütfen açık işlemleri kapatıp tekrar deneyin.';
+    }
+
+    // Gerçek indirme (Invoke-WebRequest) hatası
+    if (text.includes('Invoke-WebRequest') || (text.includes('download') && text.includes('failed'))) {
       return 'İndirme işlemi sırasında bir dosya erişim hatası oluştu. Lütfen tekrar deneyin.';
     }
+
+    // Command failed: ... başlığını temizle, asıl mesajı koru
+    if (text.includes('Command failed:')) {
+      const parts = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const clean = parts.find(l => !l.startsWith('Command failed:') && l.length > 2);
+      if (clean) text = clean;
+    }
+
     if (text.length > 200) {
       return text.substring(0, 197) + '...';
     }

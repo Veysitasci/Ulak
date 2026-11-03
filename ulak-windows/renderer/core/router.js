@@ -25,7 +25,7 @@ const Router = {
     this.activeMount = viewObj;
 
     // Update sidebar buttons
-    document.querySelectorAll('.sidebar-btn').forEach((btn) => {
+    document.querySelectorAll('.sidebar-btn[data-page]').forEach((btn) => {
       if (btn.getAttribute('data-page') === viewId) {
         btn.classList.add('active');
       } else {
