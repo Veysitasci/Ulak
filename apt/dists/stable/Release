@@ -1,0 +1,23 @@
+Architectures: all
+Codename: stable
+Components: main
+Date: Tue, 03 Nov 2026 10:37:24 +0000
+Label: ULAK
+Origin: ULAK
+Suite: stable
+MD5Sum:
+ 6bb664bc9d757f330503e01808eceefb              130 Release
+ 196cbb7e018501c4f6b42608d3f57fe1              693 main/binary-all/Packages
+ 575014e41e858e05c4a30c0f75d5ce32              502 main/binary-all/Packages.gz
+SHA1:
+ 673f9925e4550406133c81c357f3bb68d08c3639              130 Release
+ b1d3c64df6074fcbdd1beb20e2714ef93d1089dd              693 main/binary-all/Packages
+ 5e70f17a12539b498ff1d2731e6e8e284b581ea9              502 main/binary-all/Packages.gz
+SHA256:
+ 67e518f8f880f5f94aa7ce063d903fe79023a06122833c8d022f0b0b812b937b              130 Release
+ 6055667b00c48afd7c72824ca1c053f8c414a6856652e3d894f33d5612638f4b              693 main/binary-all/Packages
+ 2248e551dba5bcb40175b987bc938ae3ca7f2841518b25eb8caa3451a826b440              502 main/binary-all/Packages.gz
+SHA512:
+ 85a3cd0a23eda3bd8326efa971bb186a843a9e51e48a3e3e09b0aa0296bae2bb0b2710f7906e6b06553dbd444bea54c4f5fe367b17dec64c8911109ff0ca28ef              130 Release
+ e3d461013969951ba06469b73d9809e5ee825180997840c366b8b5f71ee8926765534b94157c27799544c2afb3979cb164d671e229051cd600e72bb60885abca              693 main/binary-all/Packages
+ 359ccb833bb54879064202c07cc9d5acbac26c00413e20c5469ff2b3cce85217520c75beade6db06a27e5c4df9f6498cda92296750d9c08089d6e5f6775bc7ff              502 main/binary-all/Packages.gz
