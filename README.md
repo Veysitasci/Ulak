@@ -142,9 +142,9 @@ ulak/
 │   ├── renderer/             # Bento Grid & Glassmorphism UI
 │   └── package.json          # Windows yapılandırması
 ├── ulak-android/             # Android Kotlin / Jetpack Compose projesi
+├── assets/                   # Uygulama ikonları, logolar ve modül banner kaynakları
 ├── packaging/                # Linux (.desktop) ve Windows özel kurulum araçları
 │   └── windows/              # C# WPF tabanlı özel kurulum sihirbazı
-├── tools/                    # Banner ve görsel üretim scriptleri
 ├── docs/                     # Tasarım rehberleri ve dokümantasyon
 │   └── design_guidelines/    # UI/UX ilkeleri ve tipografi rehberleri
 └── .github/workflows/        # Otomatik senkronize çoklu platform CI/CD (release.yml)
